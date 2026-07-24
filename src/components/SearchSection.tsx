@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Compass, AlertCircle, ArrowRight, Award, Trophy, ShieldAlert } from 'lucide-react';
+import { fetchSoloLeaderboard, fetchUserProfile } from '../utils/api';
 
 interface SearchSectionProps {
   onSearch: (id: string, isShortId: boolean) => void;
@@ -8,10 +9,19 @@ interface SearchSectionProps {
   onClearError: () => void;
 }
 
-const FEATURED_PROFILES = [
-  { name: 'shadow', shortId: 'HESHPY', role: 'LEADER', level: 98, desc: 'Clan Leader (kiss) • Mythic active loadout' },
-  { name: 'Hisoka', shortId: 'S2WVOK', role: 'USER', level: 99, desc: 'Top S&D Leaderboard #1 • 5.7K KLO score' },
-  { name: 'Bot#0', shortId: '9VECSU', role: 'USER', level: 85, desc: 'Active member • Bolt valuation inventory' },
+interface FeaturedProfile {
+  name: string;
+  shortId: string;
+  role: string;
+  level: number;
+  desc: string;
+  isShortId: boolean;
+}
+
+const FEATURED_PROFILES: FeaturedProfile[] = [
+  { name: 'shadow', shortId: 'HESHPY', role: 'LEADER', level: 98, desc: 'Clan Leader (kiss) • Mythic active loadout', isShortId: true },
+  { name: 'Hisoka', shortId: 'S2WVOK', role: 'USER', level: 99, desc: 'Top S&D Leaderboard #1 • 5.7K KLO score', isShortId: true },
+  { name: 'Bot#0', shortId: '9VECSU', role: 'USER', level: 85, desc: 'Active member • Bolt valuation inventory', isShortId: true },
 ];
 
 export const SearchSection: React.FC<SearchSectionProps> = ({
@@ -22,6 +32,46 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
+  const [featuredProfiles, setFeaturedProfiles] = useState<FeaturedProfile[]>(FEATURED_PROFILES);
+
+  useEffect(() => {
+    // Fetch daily leaderboard to extract top 3 active players dynamically
+    fetchSoloLeaderboard()
+      .then((data) => {
+        if (data && data.length >= 3) {
+          Promise.all(
+            data.slice(0, 3).map(async (player, index) => {
+              try {
+                // Fetch profile to resolve details (shortId, level, clan)
+                const profile = await fetchUserProfile(player.userId, false);
+                return {
+                  name: profile.name,
+                  shortId: profile.shortId || profile.id,
+                  role: profile.role,
+                  level: profile.level,
+                  desc: `Daily Rank #${index + 1} • Level ${profile.level}${profile.clan ? ` (${profile.clan})` : ''}`,
+                  isShortId: true
+                };
+              } catch {
+                return {
+                  name: player.name,
+                  shortId: player.userId,
+                  role: 'USER',
+                  level: 0,
+                  desc: `Daily Rank #${index + 1} • Active competitive player`,
+                  isShortId: false
+                };
+              }
+            })
+          ).then((resolved) => {
+            setFeaturedProfiles(resolved);
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load dynamic featured profiles:', err);
+      });
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,10 +162,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {FEATURED_PROFILES.map((player) => (
+              {featuredProfiles.map((player) => (
                 <div
                   key={player.shortId}
-                  onClick={() => onSearch(player.shortId, true)}
+                  onClick={() => onSearch(player.shortId, player.isShortId)}
                   className="group cursor-pointer bg-gradient-to-br from-[#12141D] to-[#0c0d15] border border-obsidian-border hover:border-gold-primary/20 p-5 rounded-2xl transition-all duration-300 relative shadow-sm overflow-hidden flex flex-col justify-between h-[160px] hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
                 >
                   <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-primary to-gold-bright scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300" />
@@ -125,10 +175,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
                       <span className="text-sm font-black text-white group-hover:text-gold-bright transition-colors uppercase leading-none">
                         {player.name}
                       </span>
-                      <span className="text-[9px] text-slate-500 font-mono mt-1">Lvl {player.level}</span>
+                      {player.level > 0 && <span className="text-[9px] text-slate-500 font-mono mt-1">Lvl {player.level}</span>}
                     </div>
-                    <span className="text-[8px] font-mono font-bold bg-[#04050a] border border-white/5 text-slate-400 px-1.5 py-0.5 rounded uppercase">
-                      #{player.shortId}
+                    <span className="text-[8px] font-mono font-bold bg-[#04050a] border border-white/5 text-slate-400 px-1.5 py-0.5 rounded uppercase max-w-[80px] truncate">
+                      {player.isShortId ? `#${player.shortId}` : 'PROFILE'}
                     </span>
                   </div>
 
