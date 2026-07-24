@@ -9,11 +9,11 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const navItems = [
-    { id: 'search', label: 'Search Portal', imgUrl: '/search_portal.png' },
-    { id: 'daily', label: 'Daily Leaderboard', imgUrl: '/daily_leaderboard.png' },
-    { id: 'ranked', label: 'Ranked Arena', imgUrl: '/ranked_arena.png' },
-    { id: 'clans', label: 'Clans Registry', imgUrl: '/clan_registry.png' },
-    { id: 'trades', label: 'Trades Portal', imgUrl: '/trade_portal.png' },
+    { id: 'search', label: 'Search Portal', imgUrl: 'search_portal.png' },
+    { id: 'daily', label: 'Daily Leaderboard', imgUrl: 'daily_leaderboard.png' },
+    { id: 'ranked', label: 'Ranked Arena', imgUrl: 'ranked_arena.png' },
+    { id: 'clans', label: 'Clans Registry', imgUrl: 'clan_registry.png' },
+    { id: 'trades', label: 'Trades Portal', imgUrl: 'trade_portal.png' },
     { id: 'chat', label: 'Lounge Feed', icon: MessageSquare },
   ];
 
@@ -29,7 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           >
             <div className="w-10 h-10 rounded-xl border border-indigo-500/30 bg-[#090a0f] flex items-center justify-center p-1 shadow-[0_0_15px_rgba(99,102,241,0.15)] group-hover:scale-105 transition-transform duration-300">
               <img
-                src="/kikatracker_mascot.jpg"
+                src="kikatracker_mascot.jpg"
                 alt="Logo"
                 className="w-full h-full rounded-lg object-cover"
               />
@@ -107,7 +107,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         <header className="sticky top-0 z-40 w-full h-14 bg-[#05060b]/90 backdrop-blur-md border-b border-obsidian-border/80 flex items-center justify-between px-4">
           <div className="flex items-center space-x-2" onClick={() => setActiveTab('search')}>
             <img
-              src="/kikatracker_mascot.jpg"
+              src="kikatracker_mascot.jpg"
               alt="Logo"
               className="w-7 h-7 rounded border border-indigo-500/20"
             />

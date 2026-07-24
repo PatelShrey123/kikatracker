@@ -53,7 +53,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-12 select-text">
       {/* 1. Hero Search Panel */}
       <div className="flex flex-col items-center justify-center text-center space-y-6 max-w-3xl mx-auto py-6">
-        <img src="/search_portal.png" alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
+        <img src="search_portal.png" alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
         <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase">
           Kirka.io <span className="text-gold-gradient">Analytics Engine</span>
         </h2>

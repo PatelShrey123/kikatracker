@@ -52,7 +52,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
-            <img src="/ranked_arena.png" alt="Ranked Icon" className="w-8 h-8 rounded-lg object-contain glow-filter-gold" />
+            <img src="ranked_arena.png" alt="Ranked Icon" className="w-8 h-8 rounded-lg object-contain glow-filter-gold" />
             <span>Ranked Arena Leaderboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1.5">

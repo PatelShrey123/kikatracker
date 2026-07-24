@@ -120,7 +120,7 @@ function App() {
             <header className="hidden md:flex items-center justify-between h-14 px-8 border-b border-obsidian-border/50 bg-[#05060b]/40 backdrop-blur-sm sticky top-0 z-30 flex-shrink-0 select-none">
               <div className="flex items-center space-x-2.5">
                 <img
-                  src="/kikatracker_mascot.png"
+                  src="kikatracker_mascot.png"
                   alt="Mascot Logo"
                   className="w-7 h-7 rounded-lg border border-indigo-500/20 shadow-[0_0_8px_rgba(99,102,241,0.2)]"
                 />
