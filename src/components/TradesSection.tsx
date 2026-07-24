@@ -72,11 +72,18 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
   const [visibleLiveCount, setVisibleLiveCount] = useState(40);
   const [visibleHistoryCount, setVisibleHistoryCount] = useState(40);
 
+  // Advanced Search States
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [offeredQuery, setOfferedQuery] = useState('');
+  const [wantedQuery, setWantedQuery] = useState('');
+  const [appliedOffered, setAppliedOffered] = useState('');
+  const [appliedWanted, setAppliedWanted] = useState('');
+
   // Reset pagination on filter or tab change
   useEffect(() => {
     setVisibleLiveCount(40);
     setVisibleHistoryCount(40);
-  }, [searchQuery, ignoreEscrow, activeSubTab]);
+  }, [searchQuery, appliedOffered, appliedWanted, ignoreEscrow, activeSubTab]);
 
   // Load snapshots index and load all history files merged in one feed on mount
   useEffect(() => {
@@ -530,6 +537,18 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           t.wanted.some((i) => i.i.toLowerCase().includes(query))
       );
     }
+    const offQuery = appliedOffered.trim().toLowerCase();
+    if (offQuery) {
+      result = result.filter((t) =>
+        t.offered.some((item) => item.i.toLowerCase().includes(offQuery))
+      );
+    }
+    const wantQuery = appliedWanted.trim().toLowerCase();
+    if (wantQuery) {
+      result = result.filter((t) =>
+        t.wanted.some((item) => item.i.toLowerCase().includes(wantQuery))
+      );
+    }
     return result;
   };
 
@@ -551,6 +570,18 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           t.tradeId.toString().includes(query) ||
           (t.trade?.offered?.items || []).some((i) => i.name.toLowerCase().includes(query)) ||
           (t.trade?.wanted?.items || []).some((i) => i.name.toLowerCase().includes(query))
+      );
+    }
+    const offQuery = appliedOffered.trim().toLowerCase();
+    if (offQuery) {
+      result = result.filter((t) =>
+        (t.trade?.offered?.items || []).some((item) => item.name.toLowerCase().includes(offQuery))
+      );
+    }
+    const wantQuery = appliedWanted.trim().toLowerCase();
+    if (wantQuery) {
+      result = result.filter((t) =>
+        (t.trade?.wanted?.items || []).some((item) => item.name.toLowerCase().includes(wantQuery))
       );
     }
     return result;
@@ -605,6 +636,123 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         </div>
       </div>
 
+      {/* Advanced Search Card */}
+      <div className="bg-[#12141D] border border-obsidian-border rounded-xl p-5 space-y-4">
+        {/* Main Search Row */}
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+          className="flex items-center gap-3"
+        >
+          <div className="relative flex-grow">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-slate-500" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search trades..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="block w-full pl-10 pr-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-600 outline-none focus:border-indigo-500/30 text-xs transition-all font-mono"
+            />
+          </div>
+          <button
+            type="submit"
+            className="px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex-shrink-0"
+          >
+            Search
+          </button>
+        </form>
+
+        {/* Toggle Advanced Search Link */}
+        <div>
+          <button
+            onClick={() => {
+              const nextState = !showAdvanced;
+              setShowAdvanced(nextState);
+              if (!nextState) {
+                // Clear advanced filters when hiding
+                setOfferedQuery('');
+                setWantedQuery('');
+                setAppliedOffered('');
+                setAppliedWanted('');
+              }
+            }}
+            className="text-xs font-mono font-bold text-indigo-400 hover:text-indigo-300 transition-colors duration-150 flex items-center space-x-1 outline-none cursor-pointer"
+          >
+            <span>{showAdvanced ? '− Hide advanced search' : '＋ Show advanced search'}</span>
+          </button>
+        </div>
+
+        {/* Advanced Filters Panel */}
+        {showAdvanced && (
+          <div className="bg-[#090A0F]/60 border border-indigo-500/10 rounded-xl p-4.5 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              
+              {/* Offered Contains */}
+              <div className="flex-grow space-y-1.5">
+                <label className="text-[10px] font-black font-mono tracking-widest text-emerald-400 uppercase block">
+                  Offered Contains
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. turtle"
+                  value={offeredQuery}
+                  onChange={(e) => setOfferedQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setAppliedOffered(offeredQuery);
+                      setAppliedWanted(wantedQuery);
+                    }
+                  }}
+                  className="block w-full px-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-700 outline-none focus:border-emerald-500/30 text-xs transition-all font-mono"
+                />
+              </div>
+
+              {/* Arrow separator */}
+              <div className="hidden md:flex items-center justify-center text-indigo-500/50 mt-5 self-center">
+                <span className="text-lg">➔</span>
+              </div>
+
+              {/* Wanted Contains */}
+              <div className="flex-grow space-y-1.5">
+                <label className="text-[10px] font-black font-mono tracking-widest text-red-400 uppercase block">
+                  Wanted Contains
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. turtle"
+                  value={wantedQuery}
+                  onChange={(e) => setWantedQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setAppliedOffered(offeredQuery);
+                      setAppliedWanted(wantedQuery);
+                    }
+                  }}
+                  className="block w-full px-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-700 outline-none focus:border-red-500/30 text-xs transition-all font-mono"
+                />
+              </div>
+
+              {/* Apply Button */}
+              <div className="md:mt-5 self-end md:self-center flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setAppliedOffered(offeredQuery);
+                    setAppliedWanted(wantedQuery);
+                  }}
+                  className="w-full md:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                >
+                  Apply
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Roster / Ranks filter settings card */}
       <div className="bg-[#12141D] border border-obsidian-border rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Toggle Escrow Switch */}
@@ -638,20 +786,6 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
             <span className="text-[10px] font-mono text-slate-500 uppercase">Merged snap history active</span>
           </div>
         )}
-
-        {/* Search bar */}
-        <div className="relative w-full md:w-72">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-slate-500" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search by player or skin name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-9 pr-4 py-2.5 bg-obsidian-deep border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-600 outline-none focus:border-gold-primary/30 text-xs transition-all font-mono"
-          />
-        </div>
       </div>
 
       {/* Main Grid display results */}
