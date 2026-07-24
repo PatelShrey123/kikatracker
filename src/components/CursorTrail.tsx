@@ -24,8 +24,8 @@ export const CursorTrail: React.FC = () => {
       y: number;
     }
 
-    // Number of points in the fluid tail. 16 provides a highly liquid, sleek stretch.
-    const numPoints = 16;
+    // Number of points in the fluid tail. 6 is short, tight, and neat.
+    const numPoints = 6;
     const points: Point[] = Array.from({ length: numPoints }, () => ({
       x: -100,
       y: -100,
@@ -74,12 +74,12 @@ export const CursorTrail: React.FC = () => {
         points[0].x += (mouse.x - points[0].x) * 0.45;
         points[0].y += (mouse.y - points[0].y) * 0.45;
 
-        // Tail points follow preceding points with organic delay (fluid drag)
+        // Tail points follow preceding points with tight drag
         for (let i = 1; i < numPoints; i++) {
           const p = points[i];
           const prev = points[i - 1];
-          p.x += (prev.x - p.x) * 0.35;
-          p.y += (prev.y - p.y) * 0.35;
+          p.x += (prev.x - p.x) * 0.48;
+          p.y += (prev.y - p.y) * 0.48;
         }
 
         // Render the fluid body by drawing overlapping tangential capsules
@@ -88,7 +88,7 @@ export const CursorTrail: React.FC = () => {
         ctx.shadowColor = '#FFD700'; // Glowing golden aura
 
         // Base max radius: smaller when hovering to act as a precision dot, larger when dragging
-        const maxRadius = isHoveringInteractive ? 5 : 8.5;
+        const maxRadius = isHoveringInteractive ? 3.5 : 5.8;
 
         for (let i = 0; i < numPoints - 1; i++) {
           const p1 = points[i];
