@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
                 XPERT
               </span>
               <span className="text-[9px] tracking-widest text-indigo-400 font-mono uppercase leading-none block mt-1.5 font-bold">
-                KIRKA INTEL
+                KIRKA TRACKER
               </span>
             </div>
           </div>

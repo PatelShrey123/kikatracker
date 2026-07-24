@@ -127,7 +127,7 @@ function App() {
                   alt="Mascot Logo"
                   className="w-7 h-7 rounded-lg border border-indigo-500/20 shadow-[0_0_8px_rgba(99,102,241,0.2)]"
                 />
-                <span className="text-xs font-black tracking-widest text-slate-300">XPERT INTEL PLATFORM</span>
+                <span className="text-xs font-black tracking-widest text-slate-300">XPERT TRACKER</span>
               </div>
               <div className="flex items-center space-x-1.5 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
