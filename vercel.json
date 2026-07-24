@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://api.kirka.io/api/:path*" },
+    { "source": "/api/:path*", "destination": "/api/proxy" },
     { "source": "/trade-api/:path*", "destination": "https://kirka.lukeskywalk.com/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

@@ -6,7 +6,6 @@ const API_BASE = '/api';
 
 // Fallback headers if client calls API directly
 const HEADERS = {
-  'ApiKey': 'fa0b8b9e49d8d22ac5708e51ab6fbb3f4225618d781548011325e4b4254584ee',
   'Content-Type': 'application/json'
 };
 
