@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CursorTrail } from './components/CursorTrail';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { SearchSection } from './components/SearchSection';
@@ -104,6 +105,8 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-obsidian-deep text-slate-100 flex flex-col md:flex-row selection:bg-gold-primary/30 selection:text-gold-bright">
+      {/* Dynamic Fluid Teardrop Gold Cursor Trail */}
+      <CursorTrail />
 
       {/* 2. Full-screen custom loader */}
       <LoadingScreen isLoading={isLoading} />

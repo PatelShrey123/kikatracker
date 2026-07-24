@@ -19,32 +19,26 @@ export const CursorTrail: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    interface Particle {
+    interface Point {
       x: number;
       y: number;
-      size: number;
-      color: string;
-      alpha: number;
-      decay: number;
-      vx: number;
-      vy: number;
     }
 
-    const particles: Particle[] = [];
-    const colors = ['#D4AF37', '#FFD700', '#FFF8DC', '#FFA500', '#FF8C00'];
+    // Number of points in the fluid tail. 16 provides a highly liquid, sleek stretch.
+    const numPoints = 16;
+    const points: Point[] = Array.from({ length: numPoints }, () => ({
+      x: -100,
+      y: -100,
+    }));
 
     const mouse = { x: -100, y: -100 };
-    // Smoothed coordinates for the spring-ring
-    const ring = { x: -100, y: -100 };
     let isHoveringInteractive = false;
-    let currentRingRadius = 8;
-    let targetRingRadius = 8;
 
     const handleMouseMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
 
-      // Check if hovering over a clickable/interactive element
+      // Check if hovering over clickable/interactive elements
       const target = e.target as HTMLElement | null;
       if (target) {
         const isClickable =
@@ -60,20 +54,6 @@ export const CursorTrail: React.FC = () => {
       } else {
         isHoveringInteractive = false;
       }
-
-      // Spawn retro gold particles
-      if (Math.random() < 0.6) {
-        particles.push({
-          x: mouse.x,
-          y: mouse.y,
-          size: Math.random() * 2.5 + 0.8,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          alpha: 0.9,
-          decay: Math.random() * 0.025 + 0.015,
-          vx: (Math.random() - 0.5) * 1.2,
-          vy: (Math.random() - 0.5) * 1.2,
-        });
-      }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -82,59 +62,78 @@ export const CursorTrail: React.FC = () => {
       ctx.clearRect(0, 0, width, height);
 
       if (mouse.x > 0 && mouse.y > 0) {
-        // 1. Lerp/Ease the ring coordinates toward the mouse position (spring effect)
-        const lerpFactor = 0.15;
-        ring.x += (mouse.x - ring.x) * lerpFactor;
-        ring.y += (mouse.y - ring.y) * lerpFactor;
-
-        // 2. Adjust ring size dynamically on hover
-        targetRingRadius = isHoveringInteractive ? 20 : 8;
-        currentRingRadius += (targetRingRadius - currentRingRadius) * 0.2;
-
-        // 3. Draw radial aura under the pointer
-        const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, isHoveringInteractive ? 70 : 45);
-        grad.addColorStop(0, isHoveringInteractive ? 'rgba(212, 175, 55, 0.08)' : 'rgba(212, 175, 55, 0.04)');
-        grad.addColorStop(1, 'rgba(212, 175, 55, 0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, isHoveringInteractive ? 70 : 45, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 4. Draw Smoothed Spring Ring (gold outline circle)
-        ctx.strokeStyle = isHoveringInteractive ? 'rgba(255, 215, 0, 0.6)' : 'rgba(212, 175, 55, 0.35)';
-        ctx.lineWidth = isHoveringInteractive ? 1.5 : 1;
-        ctx.beginPath();
-        ctx.arc(ring.x, ring.y, currentRingRadius, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 5. Draw solid gold center core dot
-        ctx.fillStyle = '#FFD700';
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, isHoveringInteractive ? 2 : 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // 6. Update and render particle trail
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= p.decay;
-
-        if (p.alpha <= 0) {
-          particles.splice(i, 1);
-          continue;
+        // Initialize points if offscreen
+        if (points[0].x === -100) {
+          for (let i = 0; i < numPoints; i++) {
+            points[i].x = mouse.x;
+            points[i].y = mouse.y;
+          }
         }
 
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = p.color;
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = p.color;
+        // Leader point eases toward target mouse position
+        points[0].x += (mouse.x - points[0].x) * 0.45;
+        points[0].y += (mouse.y - points[0].y) * 0.45;
 
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        // Tail points follow preceding points with organic delay (fluid drag)
+        for (let i = 1; i < numPoints; i++) {
+          const p = points[i];
+          const prev = points[i - 1];
+          p.x += (prev.x - p.x) * 0.35;
+          p.y += (prev.y - p.y) * 0.35;
+        }
+
+        // Render the fluid body by drawing overlapping tangential capsules
+        ctx.save();
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#FFD700'; // Glowing golden aura
+
+        // Base max radius: smaller when hovering to act as a precision dot, larger when dragging
+        const maxRadius = isHoveringInteractive ? 5 : 8.5;
+
+        for (let i = 0; i < numPoints - 1; i++) {
+          const p1 = points[i];
+          const p2 = points[i + 1];
+
+          // Compute distance and angle
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          // Taper radius down the tail using power scaling for a teardrop profile
+          const r1 = maxRadius * Math.pow(1 - i / numPoints, 1.2);
+          const r2 = maxRadius * Math.pow(1 - (i + 1) / numPoints, 1.2);
+
+          // Calculate perpendicular angles for boundary tangent offsets
+          const angle = Math.atan2(dy, dx);
+          const perp = angle + Math.PI / 2;
+
+          const x1_l = p1.x + r1 * Math.cos(perp);
+          const y1_l = p1.y + r1 * Math.sin(perp);
+          const x1_r = p1.x - r1 * Math.cos(perp);
+          const y1_r = p1.y - r1 * Math.sin(perp);
+
+          const x2_l = p2.x + r2 * Math.cos(perp);
+          const y2_l = p2.y + r2 * Math.sin(perp);
+
+          // Create a golden gradient for the fluid segment
+          const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+          const alpha = 1 - (i / numPoints) * 0.7; // Fades out slightly at tail end
+          
+          grad.addColorStop(0, `rgba(255, 215, 0, ${alpha})`);     // Bright Gold
+          grad.addColorStop(0.5, `rgba(255, 165, 0, ${alpha})`);   // Orange Gold
+          grad.addColorStop(1, `rgba(212, 175, 55, ${alpha})`);    // Obsidian Gold
+
+          ctx.fillStyle = grad;
+
+          // Draw tangential fluid capsule wrapping segment
+          ctx.beginPath();
+          ctx.moveTo(x1_l, y1_l);
+          ctx.lineTo(x2_l, y2_l);
+          ctx.arc(p2.x, p2.y, r2, perp, perp + Math.PI);
+          ctx.lineTo(x1_r, y1_r);
+          ctx.arc(p1.x, p1.y, r1, perp + Math.PI, perp);
+          ctx.closePath();
+          ctx.fill();
+        }
+
         ctx.restore();
       }
 
