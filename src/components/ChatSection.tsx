@@ -271,7 +271,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             <Users className="w-5 h-5 text-gold-bright" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-white uppercase tracking-wider">Lounge Feed</h2>
+            <h2 className="text-xl font-extrabold text-white uppercase tracking-wider">Kirka Chat</h2>
             <p className="text-xs text-slate-500 font-mono mt-0.5">
               Live in-game lobby stream from the public WebSocket network.
             </p>
@@ -418,7 +418,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       <form onSubmit={(e) => e.preventDefault()} className="flex gap-3 flex-shrink-0 opacity-55 cursor-not-allowed">
         <input
           type="text"
-          placeholder="Lounge chat stream is read-only. Sending messages is disabled."
+          placeholder="Kirka chat stream is read-only. Sending messages is disabled."
           disabled
           className="flex-1 bg-obsidian-card border border-obsidian-border rounded-xl px-4 py-3.5 text-slate-400 placeholder-slate-600 outline-none text-sm cursor-not-allowed"
         />

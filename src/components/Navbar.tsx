@@ -14,7 +14,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
     { id: 'ranked', label: 'Ranked Arena', imgUrl: 'ranked_arena.png' },
     { id: 'clans', label: 'Clans Registry', imgUrl: 'clan_registry.png' },
     { id: 'trades', label: 'Trades Portal', imgUrl: 'trade_portal.png' },
-    { id: 'chat', label: 'Lounge Feed', icon: MessageSquare },
+    { id: 'chat', label: 'Kirka Chat', icon: MessageSquare },
   ];
 
   return (
