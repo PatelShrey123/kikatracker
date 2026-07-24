@@ -8,6 +8,7 @@ interface ClansSectionProps {
   onSelectPlayer: (id: string, isShortId: boolean) => void;
   activeClanName: string | null;
   onClearActiveClanName: () => void;
+  onSelectClan: (name: string) => void;
   fallbackRenders: Record<string, any>;
   allItemData: any[];
 }
@@ -117,6 +118,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
   onSelectPlayer,
   activeClanName,
   onClearActiveClanName,
+  onSelectClan,
   fallbackRenders,
   allItemData
 }) => {
@@ -143,32 +145,30 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
   // Sync with deep-link clan redirects from other pages
   useEffect(() => {
     if (activeClanName) {
-      loadClanPage(activeClanName);
+      setViewLoading(true);
+      setViewError('');
+      fetchClanDetail(activeClanName)
+        .then((clanDetail) => {
+          if (!clanDetail || !clanDetail.name) {
+            throw new Error('Clan roster not found in database.');
+          }
+          setCurrentViewedClan(clanDetail);
+        })
+        .catch((err: any) => {
+          console.error('Failed to load clan page detail:', err);
+          setViewError(err.message || 'Clan not found.');
+        })
+        .finally(() => {
+          setViewLoading(false);
+        });
+    } else {
+      setCurrentViewedClan(null);
+      setViewError('');
     }
   }, [activeClanName]);
 
-  // Load a single Clan Roster view page
-  const loadClanPage = async (clanName: string) => {
-    setViewLoading(true);
-    setViewError('');
-    try {
-      const clanDetail = await fetchClanDetail(clanName);
-      if (!clanDetail || !clanDetail.name) {
-        throw new Error('Clan roster not found in database.');
-      }
-      setCurrentViewedClan(clanDetail);
-    } catch (err: any) {
-      console.error('Failed to load clan page detail:', err);
-      setViewError(err.message || 'Clan not found.');
-    } finally {
-      setViewLoading(false);
-    }
-  };
-
   // Reset page view
   const closeClanPage = () => {
-    setCurrentViewedClan(null);
-    setViewError('');
     onClearActiveClanName();
   };
 
@@ -177,7 +177,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
     e.preventDefault();
     const query = searchQuery.trim();
     if (query) {
-      loadClanPage(query);
+      onSelectClan(query);
     }
   };
 
@@ -371,7 +371,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
             return (
               <div
                 key={clan.clanId}
-                onClick={() => loadClanPage(clan.name)}
+                onClick={() => onSelectClan(clan.name)}
                 className="card-interactive group cursor-pointer bg-gradient-to-br from-obsidian-card to-[#141621] hover:to-[#191c2b] border border-obsidian-border hover:border-gold-primary/20 p-5 rounded-2xl relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] overflow-hidden"
               >
                 {/* Gold Glow hover lines */}

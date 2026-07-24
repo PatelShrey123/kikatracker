@@ -79,6 +79,123 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Helper to parse path and return resolved routing state
+  const parsePath = () => {
+    const path = window.location.pathname;
+    const cleanPath = path.replace(/^\/kikatracker/, '');
+    
+    if (cleanPath.startsWith('/player/')) {
+      const id = cleanPath.split('/player/')[1];
+      return { tab: 'search', player: id, clan: null };
+    }
+    if (cleanPath.startsWith('/clan/')) {
+      const name = cleanPath.split('/clan/')[1];
+      return { tab: 'clans', player: null, clan: name };
+    }
+    if (cleanPath === '/trades') {
+      return { tab: 'trades', player: null, clan: null };
+    }
+    if (cleanPath === '/daily') {
+      return { tab: 'daily', player: null, clan: null };
+    }
+    if (cleanPath === '/ranked') {
+      return { tab: 'ranked', player: null, clan: null };
+    }
+    if (cleanPath === '/chat') {
+      return { tab: 'chat', player: null, clan: null };
+    }
+    return { tab: 'search', player: null, clan: null };
+  };
+
+  // Handle URL history state navigation
+  const navigate = (tab: string, player: string | null = null, clan: string | null = null) => {
+    let path = '/';
+    if (player) {
+      path = `/player/${player}`;
+    } else if (clan) {
+      path = `/clan/${clan}`;
+    } else if (tab !== 'search') {
+      path = `/${tab}`;
+    }
+
+    const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+    const finalPath = prefix + path;
+
+    window.history.pushState(null, '', finalPath);
+
+    setActiveTab(tab);
+    if (player) {
+      handlePlayerSearchDirect(player);
+    } else {
+      setActiveUserProfile(null);
+    }
+    if (clan) {
+      setActiveClanName(clan);
+    } else {
+      setActiveClanName(null);
+    }
+  };
+
+  // Sync back/forward browser actions
+  useEffect(() => {
+    const handlePopState = () => {
+      const state = parsePath();
+      setActiveTab(state.tab);
+      if (state.player) {
+        setSearchLoading(true);
+        fetchUserProfile(state.player, state.player.length === 6)
+          .then((profile) => {
+            setActiveUserProfile(profile);
+            setSearchError(null);
+          })
+          .catch(() => {
+            setSearchError('Player profile not found.');
+          })
+          .finally(() => {
+            setSearchLoading(false);
+          });
+      } else {
+        setActiveUserProfile(null);
+      }
+      if (state.clan) {
+        setActiveClanName(state.clan);
+      } else {
+        setActiveClanName(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Load initial route on startup after base configs complete
+  useEffect(() => {
+    const initRouting = async () => {
+      const state = parsePath();
+      if (state.tab) {
+        setActiveTab(state.tab);
+      }
+      if (state.player) {
+        setSearchLoading(true);
+        try {
+          const profile = await fetchUserProfile(state.player, state.player.length === 6);
+          setActiveUserProfile(profile);
+          setActiveTab('search');
+        } catch {
+          setSearchError('Player profile not found.');
+        } finally {
+          setSearchLoading(false);
+        }
+      }
+      if (state.clan) {
+        setActiveClanName(state.clan);
+        setActiveTab('clans');
+      }
+    };
+
+    initRouting();
+  }, []);
+
   // Handle player search action across pages
   const handlePlayerSearch = async (id: string, isShortId: boolean) => {
     setSearchLoading(true);
@@ -89,7 +206,29 @@ function App() {
         throw new Error('Player not found.');
       }
       setActiveUserProfile(profile);
-      setActiveTab('search'); // Redirect to search tab to display profile
+      
+      const queryId = isShortId ? profile.shortId : profile.id;
+      const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+      window.history.pushState(null, '', prefix + '/player/' + queryId);
+      
+      setActiveTab('search'); 
+    } catch (err) {
+      console.error('Search failed:', err);
+      setSearchError('Player profile not found. Make sure the ID is correct.');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handlePlayerSearchDirect = async (id: string) => {
+    setSearchLoading(true);
+    setSearchError(null);
+    try {
+      const profile = await fetchUserProfile(id, id.length === 6);
+      if (!profile || !profile.name) {
+        throw new Error('Player not found.');
+      }
+      setActiveUserProfile(profile);
     } catch (err) {
       console.error('Search failed:', err);
       setSearchError('Player profile not found. Make sure the ID is correct.');
@@ -100,7 +239,7 @@ function App() {
 
   // Select tab and clear sub-states
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+    navigate(tab);
   };
 
   return (
@@ -157,11 +296,10 @@ function App() {
                             setInspectItem({ name, type, amount });
                           }}
                           onSelectClan={(clanName) => {
-                            setActiveClanName(clanName);
-                            setActiveTab('clans');
+                            navigate('clans', null, clanName);
                           }}
                           onBack={() => {
-                            setActiveUserProfile(null);
+                            navigate('search');
                             setSearchError(null);
                           }}
                         />
@@ -188,7 +326,8 @@ function App() {
                     <ClansSection
                       onSelectPlayer={handlePlayerSearch}
                       activeClanName={activeClanName}
-                      onClearActiveClanName={() => setActiveClanName(null)}
+                      onClearActiveClanName={() => navigate('clans')}
+                      onSelectClan={(name) => navigate('clans', null, name)}
                       fallbackRenders={fallbackRenders}
                       allItemData={allItemData}
                     />
