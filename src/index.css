@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-obsidian-deep: #090A0F;
+  --color-obsidian-dark: #0e1017;
+  --color-obsidian-card: #12141D;
+  --color-obsidian-hover: #1a1d2b;
+  --color-obsidian-border: #1E2230;
+
+  --color-gold-primary: #D4AF37;
+  --color-gold-bright: #FFD700;
+  --color-gold-dark: #9A7B1C;
+
+  --color-rarity-mythic: #FF3344;
+  --color-rarity-legendary: #FFCC00;
+  --color-rarity-epic: #A855F7;
+  --color-rarity-rare: #3B82F6;
+  --color-rarity-common: #64748B;
+
+  --font-sans: "Outfit", "Inter", sans-serif;
+
+  --shadow-gold-glow: 0 0 15px rgba(212, 175, 55, 0.15);
+  --shadow-gold-glow-bright: 0 0 25px rgba(255, 215, 0, 0.3);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-obsidian-deep);
+    color: #f1f5f9;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090A0F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E2230;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(18, 20, 29, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 34, 48, 0.6);
+}
+
+.glass-panel-gold {
+  background: rgba(18, 20, 29, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+.glass-nav {
+  background: rgba(9, 10, 15, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(30, 34, 48, 0.8);
+}
+
+/* Custom animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
+}
+
+/* Shiny gradient text */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #9A7B1C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-mythic-gradient {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF3344 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Rarity Glowing Shadows */
+.shadow-mythic {
+  box-shadow: 0 0 15px rgba(255, 51, 68, 0.25);
+  border-color: rgba(255, 51, 68, 0.6) !important;
+}
+
+.shadow-legendary {
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.25);
+  border-color: rgba(255, 204, 0, 0.6) !important;
+}
+
+.shadow-epic {
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.5) !important;
+}
+
+.shadow-rare {
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.shadow-common {
+  border-color: rgba(100, 116, 139, 0.3) !important;
+}
+
+/* Glow filters for icons */
+.glow-filter-gold {
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+}
+
+/* Custom Interaction Animations (Pop Up, Slide, Lift, Click Squash) */
+.btn-interactive {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-interactive:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.12);
+}
+
+.btn-interactive:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+.card-interactive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-interactive:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+}
+
+.card-interactive:active {
+  transform: scale(0.99);
+}
