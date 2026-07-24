@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
 import { CursorTrail } from './components/CursorTrail';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
@@ -242,6 +243,7 @@ function App() {
           />
         </>
       )}
+      <Analytics />
     </div>
   );
 }
