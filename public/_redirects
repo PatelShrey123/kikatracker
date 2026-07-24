@@ -1,3 +1,3 @@
-/api/* https://api.kirka.io/:splat 200
+/api/* https://api.kirka.io/api/:splat 200
 /trade-api/* https://kirka.lukeskywalk.com/:splat 200
 /* /index.html 200
