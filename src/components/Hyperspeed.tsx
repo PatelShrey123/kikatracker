@@ -928,10 +928,35 @@ export const Hyperspeed: React.FC<HyperspeedProps> = ({ effectOptions = DEFAULT_
 
         if (this.options.distortion.getJS) {
           if (this.options.distortionName === 'rollerCoasterDistortion') {
+            const getX = (p: number) => {
+              const uFreq = new THREE.Vector4(1.5, 3.2, 2.4, 0.8);
+              const uAmp = new THREE.Vector4(35, 15, 20, 10);
+              const t = time * 0.4;
+              return Math.sin(p * Math.PI * uFreq.x + t) * uAmp.x + 
+                     Math.cos(p * Math.PI * uFreq.y + t * 1.5) * uAmp.y;
+            };
+            const getY = (p: number) => {
+              const uFreq = new THREE.Vector4(1.5, 3.2, 2.4, 0.8);
+              const uAmp = new THREE.Vector4(35, 15, 20, 10);
+              const t = time * 0.4;
+              return Math.cos(p * Math.PI * uFreq.z + t * 0.8) * uAmp.z - 
+                     nsin(p * Math.PI * uFreq.w + t * 1.2) * uAmp.w * 15.0;
+            };
+
+            const pLook = 0.055;
+            const lookX = getX(pLook) - getX(pLook + 0.015);
+            const lookY = getY(pLook) - getY(pLook + 0.015);
+
             // Keep camera position completely static at base coordinates
             this.camera.position.set(0, 8, -5);
-            // Point camera straight down the Z axis to see the bent track coming to us
-            this.camera.lookAt(new THREE.Vector3(0, 5, -100));
+            // Point camera dynamically down the track curves so we see it bend in front of us!
+            this.camera.lookAt(
+              new THREE.Vector3(
+                lookX * -1.2,
+                4.5 + lookY * -3.5,
+                -35
+              )
+            );
             updateCamera = true;
           } else {
             const distortion = this.options.distortion.getJS(0.025, time);
