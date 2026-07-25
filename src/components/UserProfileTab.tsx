@@ -179,10 +179,6 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                   <rect x="5" y="4" width="1" height="1" fill="#000" />
                 </svg>
               )}
-              {/* Level Badge Overlay */}
-              <span className="absolute bottom-0 right-0 bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep text-[8px] font-black px-1.5 py-0.2 rounded-tl border-t border-l border-obsidian-border/50 font-mono">
-                L{profile.level}
-              </span>
             </div>
             <span className="text-[11px] font-black font-mono text-slate-300">
               #{profile.shortId}
