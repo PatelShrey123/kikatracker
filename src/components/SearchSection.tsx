@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Compass, AlertCircle, ArrowRight, Award, Trophy, ShieldAlert } from 'lucide-react';
 import { fetchSoloLeaderboard, fetchUserProfile } from '../utils/api';
+import { DotField } from './DotField';
 
 interface SearchSectionProps {
   onSearch: (id: string, isShortId: boolean) => void;
@@ -101,53 +102,72 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-12 select-text">
-      {/* 1. Hero Search Panel */}
-      <div className="flex flex-col items-center justify-center text-center space-y-6 max-w-3xl mx-auto py-6">
-        <img src="search_portal.png" alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
-        <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase">
-          Kirka.io <span className="text-gold-gradient">Analytics Engine</span>
-        </h2>
-        <p className="text-sm sm:text-base text-slate-400 max-w-xl font-medium leading-relaxed">
-          Search player profiles to calculate total net-worth inventory valuations, inspect active weapon loadouts, and track leaderboard ranks.
-        </p>
+      {/* 1. Hero Search Panel with DotField Background */}
+      <div className="relative overflow-hidden w-full rounded-2xl border border-obsidian-border bg-gradient-to-br from-[#0c0e17]/80 to-[#06070b]/90 py-12 px-6 sm:px-12 flex flex-col items-center justify-center text-center space-y-6">
+        
+        {/* Background Dot Field */}
+        <div className="absolute inset-0 pointer-events-none opacity-45">
+          <DotField
+            dotRadius={1.2}
+            dotSpacing={14}
+            bulgeStrength={55}
+            glowRadius={140}
+            sparkle={true}
+            waveAmplitude={1.5}
+            gradientFrom="rgba(212, 175, 55, 0.28)" // gold-primary
+            gradientTo="rgba(255, 215, 0, 0.12)"   // gold-bright
+            glowColor="#1c160b"                      // dark gold glow
+          />
+        </div>
 
-        {/* Input box */}
-        <form onSubmit={handleSubmit} className="w-full max-w-2xl relative pt-3">
-          <div className="relative flex items-center bg-[#12141d]/90 border border-obsidian-border rounded-2xl p-1.5 focus-within:border-gold-primary/45 focus-within:shadow-[0_0_18px_rgba(212,175,55,0.06)] transition-all duration-300">
-            <div className="pl-4 text-slate-500">
-              <Search className="w-5 h-5" />
+        {/* Hero Content Wrapper */}
+        <div className="relative z-10 flex flex-col items-center justify-center space-y-6 max-w-2xl mx-auto">
+          <img src="search_portal.png" alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase">
+            Kirka.io <span className="text-gold-gradient">Analytics Engine</span>
+          </h2>
+          <p className="text-sm sm:text-base text-slate-400 max-w-xl font-medium leading-relaxed">
+            Search player profiles to calculate total net-worth inventory valuations, inspect active weapon loadouts, and track leaderboard ranks.
+          </p>
+
+          {/* Input box */}
+          <form onSubmit={handleSubmit} className="w-full max-w-xl relative pt-3">
+            <div className="relative flex items-center bg-[#12141d]/90 border border-obsidian-border rounded-2xl p-1.5 focus-within:border-gold-primary/45 focus-within:shadow-[0_0_18px_rgba(212,175,55,0.06)] transition-all duration-300">
+              <div className="pl-4 text-slate-500">
+                <Search className="w-5 h-5" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by 6-character short ID (e.g. #FUYR7K)..."
+                value={query}
+                onChange={handleInputChange}
+                disabled={isLoading}
+                className="w-full bg-transparent border-0 ring-0 outline-none text-white text-base py-3 px-3 placeholder-slate-600 disabled:opacity-50 font-medium"
+              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn-interactive flex items-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep px-6 py-3 rounded-xl font-bold hover:shadow-[0_0_18px_rgba(255,215,0,0.25)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              >
+                {isLoading ? (
+                  <span className="w-5 h-5 border-2 border-obsidian-deep border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span className="font-extrabold uppercase tracking-wider text-xs">Search</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
             </div>
-            <input
-              type="text"
-              placeholder="Search by 6-character short ID (e.g. #FUYR7K)..."
-              value={query}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              className="w-full bg-transparent border-0 ring-0 outline-none text-white text-base py-3 px-3 placeholder-slate-600 disabled:opacity-50 font-medium"
-            />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-interactive flex items-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep px-6 py-3 rounded-xl font-bold hover:shadow-[0_0_18px_rgba(255,215,0,0.25)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-            >
-              {isLoading ? (
-                <span className="w-5 h-5 border-2 border-obsidian-deep border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span className="font-extrabold uppercase tracking-wider text-xs">Search</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </div>
-          
-          {(error || searchError) && (
-            <div className="absolute -bottom-6 left-2 flex items-center space-x-1.5 text-red-500 text-xs font-mono">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{error || searchError}</span>
-            </div>
-          )}
-        </form>
+            
+            {(error || searchError) && (
+              <div className="absolute -bottom-6 left-2 flex items-center space-x-1.5 text-red-500 text-xs font-mono">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{error || searchError}</span>
+              </div>
+            )}
+          </form>
+        </div>
       </div>
 
       {/* 2. Page Distribution Dashboard Grid */}
