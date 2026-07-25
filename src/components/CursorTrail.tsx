@@ -24,8 +24,8 @@ export const CursorTrail: React.FC = () => {
       y: number;
     }
 
-    // Number of points in the fluid tail. 6 is short, tight, and neat.
-    const numPoints = 6;
+    // Number of points in the fluid tail. 3 is tiny, tight, and neat.
+    const numPoints = 3;
     const points: Point[] = Array.from({ length: numPoints }, () => ({
       x: -100,
       y: -100,
@@ -33,10 +33,12 @@ export const CursorTrail: React.FC = () => {
 
     const mouse = { x: -100, y: -100 };
     let isHoveringInteractive = false;
+    let lastMoveTime = Date.now();
 
     const handleMouseMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
+      lastMoveTime = Date.now();
 
       // Check if hovering over clickable/interactive elements
       const target = e.target as HTMLElement | null;
@@ -56,12 +58,21 @@ export const CursorTrail: React.FC = () => {
       }
     };
 
+    const handleMouseLeave = () => {
+      mouse.x = -100;
+      mouse.y = -100;
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mouseleave', handleMouseLeave);
 
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
-      if (mouse.x > 0 && mouse.y > 0) {
+      const idleTime = Date.now() - lastMoveTime;
+      // Fade out if idle for more than 1.5 seconds, or if cursor is off-screen
+      if (mouse.x > 0 && mouse.y > 0 && idleTime < 1500) {
         // Initialize points if offscreen
         if (points[0].x === -100) {
           for (let i = 0; i < numPoints; i++) {
@@ -70,25 +81,33 @@ export const CursorTrail: React.FC = () => {
           }
         }
 
-        // Leader point eases toward target mouse position
-        points[0].x += (mouse.x - points[0].x) * 0.45;
-        points[0].y += (mouse.y - points[0].y) * 0.45;
+        // Leader point eases toward target mouse position tightly
+        points[0].x += (mouse.x - points[0].x) * 0.7;
+        points[0].y += (mouse.y - points[0].y) * 0.7;
 
-        // Tail points follow preceding points with tight drag
+        // Tail points follow preceding points with extremely tight drag
         for (let i = 1; i < numPoints; i++) {
           const p = points[i];
           const prev = points[i - 1];
-          p.x += (prev.x - p.x) * 0.48;
-          p.y += (prev.y - p.y) * 0.48;
+          p.x += (prev.x - p.x) * 0.75;
+          p.y += (prev.y - p.y) * 0.75;
         }
 
-        // Render the fluid body by drawing overlapping tangential capsules
+        // Render the fluid body
         ctx.save();
-        ctx.shadowBlur = 12;
+        
+        // Calculate dynamic opacity based on idle time
+        let opacity = 1;
+        if (idleTime > 800) {
+          opacity = Math.max(0, 1 - (idleTime - 800) / 700);
+        }
+
+        ctx.globalAlpha = opacity;
+        ctx.shadowBlur = 8;
         ctx.shadowColor = '#FFD700'; // Glowing golden aura
 
-        // Base max radius: smaller when hovering to act as a precision dot, larger when dragging
-        const maxRadius = isHoveringInteractive ? 3.5 : 5.8;
+        // Base max radius: smaller micro dot trail
+        const maxRadius = isHoveringInteractive ? 1.8 : 3.2;
 
         for (let i = 0; i < numPoints - 1; i++) {
           const p1 = points[i];
@@ -97,11 +116,10 @@ export const CursorTrail: React.FC = () => {
           // Compute distance and angle
           const dx = p2.x - p1.x;
           const dy = p2.y - p1.y;
-          // Taper radius down the tail using power scaling for a teardrop profile
+          // Taper radius down the tail using power scaling
           const r1 = maxRadius * Math.pow(1 - i / numPoints, 1.2);
           const r2 = maxRadius * Math.pow(1 - (i + 1) / numPoints, 1.2);
 
-          // Calculate perpendicular angles for boundary tangent offsets
           const angle = Math.atan2(dy, dx);
           const perp = angle + Math.PI / 2;
 
@@ -113,7 +131,7 @@ export const CursorTrail: React.FC = () => {
           const x2_l = p2.x + r2 * Math.cos(perp);
           const y2_l = p2.y + r2 * Math.sin(perp);
 
-          // Create a golden gradient for the fluid segment
+          // Create a golden gradient
           const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
           const alpha = 1 - (i / numPoints) * 0.7; // Fades out slightly at tail end
           
@@ -123,7 +141,6 @@ export const CursorTrail: React.FC = () => {
 
           ctx.fillStyle = grad;
 
-          // Draw tangential fluid capsule wrapping segment
           ctx.beginPath();
           ctx.moveTo(x1_l, y1_l);
           ctx.lineTo(x2_l, y2_l);
@@ -145,6 +162,8 @@ export const CursorTrail: React.FC = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
