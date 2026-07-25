@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TargetCursor } from './components/TargetCursor';
+import { ClickSpark } from './components/ClickSpark';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { SearchSection } from './components/SearchSection';
@@ -252,6 +253,15 @@ function App() {
         parallaxOn={true}
         cursorColor="#d4af37"
         cursorColorOnTarget="#ffd700"
+      />
+
+      {/* React Bits ClickSpark click effect */}
+      <ClickSpark
+        sparkColor="#ffd700"
+        sparkSize={10}
+        sparkRadius={20}
+        sparkCount={8}
+        duration={500}
       />
 
       {/* 2. Full-screen custom loader */}
