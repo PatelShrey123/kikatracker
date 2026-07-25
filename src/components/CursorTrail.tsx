@@ -19,8 +19,8 @@ export const CursorTrail: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    // Number of points in the liquid trail
-    const numPoints = 12;
+    // Number of points in the long liquid trail
+    const numPoints = 20;
     const points = Array.from({ length: numPoints }, () => ({ x: -100, y: -100 }));
     
     const mouse = { x: -100, y: -100 };
@@ -59,6 +59,13 @@ export const CursorTrail: React.FC = () => {
     window.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('mouseleave', handleMouseLeave);
 
+    // Color bands matching the CodeGrid video (Red, Orange, Blue, Pink, Yellow)
+    const colors = ['#FF3333', '#FF9933', '#3399FF', '#FF3399', '#FFFF33'];
+    const getSegmentColor = (index: number) => {
+      const colorIndex = Math.floor((index / numPoints) * colors.length);
+      return colors[Math.min(colorIndex, colors.length - 1)];
+    };
+
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
@@ -74,12 +81,12 @@ export const CursorTrail: React.FC = () => {
         }
 
         // Leader point tracks mouse with dynamic spring ease
-        const easeLeader = isHoveringInteractive ? 0.2 : 0.35;
+        const easeLeader = isHoveringInteractive ? 0.15 : 0.25;
         points[0].x += (mouse.x - points[0].x) * easeLeader;
         points[0].y += (mouse.y - points[0].y) * easeLeader;
 
         // Tail points drag behind preceding points smoothly
-        const easeTail = isHoveringInteractive ? 0.38 : 0.48;
+        const easeTail = isHoveringInteractive ? 0.28 : 0.38;
         for (let i = 1; i < numPoints; i++) {
           points[i].x += (points[i - 1].x - points[i].x) * easeTail;
           points[i].y += (points[i - 1].y - points[i].y) * easeTail;
@@ -94,27 +101,15 @@ export const CursorTrail: React.FC = () => {
         ctx.save();
         ctx.globalAlpha = opacity;
 
-        // 1. Draw Outer Liquid Glow (Gold)
-        const outerMaxRadius = isHoveringInteractive ? 6.5 : 10.0;
+        // Draw overlapping multicolored fluid segments
+        const maxRadius = isHoveringInteractive ? 8.0 : 16.0;
         for (let i = 0; i < numPoints; i++) {
           const p = points[i];
-          const radius = outerMaxRadius * Math.pow(1 - i / numPoints, 0.85);
+          // Slight taper towards the tail
+          const radius = maxRadius * (1 - (i / numPoints) * 0.35);
           if (radius <= 0) continue;
 
-          ctx.fillStyle = '#FFD700'; // Bright Gold
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // 2. Draw Inner Core (Bright White-Gold)
-        const innerMaxRadius = isHoveringInteractive ? 3.5 : 5.8;
-        for (let i = 0; i < numPoints; i++) {
-          const p = points[i];
-          const radius = innerMaxRadius * Math.pow(1 - i / numPoints, 0.85);
-          if (radius <= 0) continue;
-
-          ctx.fillStyle = '#FFFFFF'; // White-gold core
+          ctx.fillStyle = getSegmentColor(i);
           ctx.beginPath();
           ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
           ctx.fill();
@@ -143,11 +138,11 @@ export const CursorTrail: React.FC = () => {
       <svg xmlns="http://www.w3.org/2000/svg" className="hidden absolute w-0 h-0">
         <defs>
           <filter id="cursor-gooey">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
             <feColorMatrix 
               in="blur" 
               mode="matrix" 
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" 
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" 
               result="goo" 
             />
             <feComposite in="SourceGraphic" in2="goo" operator="atop" />
