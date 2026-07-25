@@ -608,6 +608,10 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           </div>
         )}
       </div>
+      {/* Subtle render attribution footer */}
+      <div className="text-center pt-8 pb-2 text-[9px] font-mono text-slate-600 select-none opacity-40">
+        All 3D character avatars and skins are rendered on-the-fly or sourced from Smudgy/Akuma open repository API.
+      </div>
     </div>
   );
 };

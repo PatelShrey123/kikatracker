@@ -33,10 +33,28 @@ export function cropMinecraftHead(textureUrl: string): Promise<string> {
         return faceCanvas;
       };
 
-      // Extract 3 visible head faces for the front-right isometric view
-      const topFace = getFaceCanvas(8, 0, 40, 0);       // Head Top + Hat Top
-      const frontFace = getFaceCanvas(8, 8, 40, 8);     // Head Front + Hat Front
-      const rightSideFace = getFaceCanvas(0, 8, 32, 8); // Head Right Side + Hat Right Side
+      // Helper to rotate the Top face counter-clockwise by 90 degrees
+      const rotateCanvas90CCW = (src: HTMLCanvasElement): HTMLCanvasElement => {
+        const dst = document.createElement('canvas');
+        dst.width = 8;
+        dst.height = 8;
+        const dstCtx = dst.getContext('2d');
+        if (dstCtx) {
+          dstCtx.imageSmoothingEnabled = false;
+          dstCtx.translate(0, 8);
+          dstCtx.rotate(-Math.PI / 2);
+          dstCtx.drawImage(src, 0, 0);
+        }
+        return dst;
+      };
+
+      // Extract 3 visible head faces for the front-left shallow isometric view
+      const topFace = getFaceCanvas(8, 0, 40, 0);         // Head Top + Hat Top
+      const frontFace = getFaceCanvas(8, 8, 40, 8);       // Head Front + Hat Front
+      const leftSideFace = getFaceCanvas(16, 8, 48, 8);   // Head Left Side + Hat Left Side
+
+      // Rotate top face 90 degrees CCW to align correctly in the front-left projection
+      const rotatedTopFace = rotateCanvas90CCW(topFace);
 
       // Create main output canvas for 3D isometric stitching
       const canvas = document.createElement('canvas');
@@ -52,34 +70,34 @@ export function cropMinecraftHead(textureUrl: string): Promise<string> {
       // Disable image smoothing to preserve sharp pixel edges
       ctx.imageSmoothingEnabled = false;
 
-      // Center and scale parameters for perfect isometric box fit
+      // Center and scale parameters for front-left shallow isometric view
       const L = 46; // isometric edge length
       const centerX = 64;
-      const centerY = 56;
+      const centerY = 68; // shifted down slightly for shallow vertical compression
 
-      // 1. Draw Left Face (sheared extending left and up - displaying the Head Right Side profile)
+      // 1. Draw Left Face (sheared extending left - displaying the Head Front face)
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.transform(-0.866, -0.5, 0, 1, 0, 0);
-      // Flip horizontally so the front edge of the side profile connects to the center seam
+      ctx.transform(-0.94, -0.34, 0, 0.94, 0, 0);
+      // Flip horizontally so the front profile connects cleanly to the center seam
       ctx.scale(-1, 1);
-      ctx.drawImage(rightSideFace, -L, 0, L, L);
+      ctx.drawImage(frontFace, -L, 0, L, L);
       ctx.restore();
 
-      // 2. Draw Right Face (sheared extending right and up - displaying the Head Front face)
+      // 2. Draw Right Face (sheared extending right - displaying the Head Left Side profile)
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.transform(0.866, -0.5, 0, 1, 0, 0);
-      ctx.drawImage(frontFace, 0, 0, L, L);
+      ctx.transform(0.94, -0.34, 0, 0.94, 0, 0);
+      ctx.drawImage(leftSideFace, 0, 0, L, L);
       ctx.restore();
 
-      // 3. Draw Top Face (rhombus extending up - displaying the Head Top hair/cap layer)
+      // 3. Draw Top Face (rhombus extending up - displaying the rotated Head Top cap layer)
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.transform(0.866, -0.5, -0.866, -0.5, 0, 0);
-      // Flip vertically to align front/back correctly with the front seam
+      ctx.transform(0.94, -0.34, -0.94, -0.34, 0, 0);
+      // Flip vertically to align with the front seam
       ctx.scale(1, -1);
-      ctx.drawImage(topFace, 0, -L, L, L);
+      ctx.drawImage(rotatedTopFace, 0, -L, L, L);
       ctx.restore();
 
       try {
