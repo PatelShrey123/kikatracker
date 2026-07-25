@@ -29,7 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           >
             <div className="w-10 h-10 rounded-xl border border-indigo-500/30 bg-[#090a0f] flex items-center justify-center p-1 shadow-[0_0_15px_rgba(99,102,241,0.15)] group-hover:scale-105 transition-transform duration-300">
               <img
-                src="kikatracker_mascot.jpg"
+                src={`${import.meta.env.BASE_URL}kikatracker_mascot.jpg`}
                 alt="Logo"
                 className="w-full h-full rounded-lg object-cover"
               />
@@ -72,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
                   {/* Render custom thumbnail image or Lucide icon */}
                   {item.imgUrl ? (
                     <img
-                      src={item.imgUrl}
+                      src={`${import.meta.env.BASE_URL}${item.imgUrl}`}
                       alt={item.label}
                       className={`w-5 h-5 rounded object-contain transition-all duration-300 ${
                         isActive ? 'scale-110 brightness-110 filter drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]' : 'opacity-60 group-hover:opacity-90'
@@ -107,7 +107,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         <header className="sticky top-0 z-40 w-full h-14 bg-[#05060b]/90 backdrop-blur-md border-b border-obsidian-border/80 flex items-center justify-between px-4">
           <div className="flex items-center space-x-2" onClick={() => setActiveTab('search')}>
             <img
-              src="kikatracker_mascot.jpg"
+              src={`${import.meta.env.BASE_URL}kikatracker_mascot.jpg`}
               alt="Logo"
               className="w-7 h-7 rounded border border-indigo-500/20"
             />
@@ -141,7 +141,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               >
                 {item.imgUrl ? (
                   <img
-                    src={item.imgUrl}
+                    src={`${import.meta.env.BASE_URL}${item.imgUrl}`}
                     alt={item.label}
                     className={`w-5 h-5 rounded object-contain transition-all duration-300 ${
                       isActive ? 'brightness-110 filter drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]' : 'opacity-65'

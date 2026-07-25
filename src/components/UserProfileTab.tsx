@@ -201,7 +201,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       onClick={() => onSelectClan(profile.clan!)}
                       className="flex items-center space-x-1.5 text-gold-bright hover:text-gold-primary font-bold uppercase tracking-wider transition-colors hover:underline cursor-pointer"
                     >
-                      <img src="clan_registry.png" alt="Clan Registry" className="w-3.5 h-3.5 rounded-sm object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.4)]" />
+                      <img src={`${import.meta.env.BASE_URL}clan_registry.png`} alt="Clan Registry" className="w-3.5 h-3.5 rounded-sm object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.4)]" />
                       <span>[{profile.clan}]</span>
                     </button>
                   </>
@@ -315,7 +315,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                     <span>Valuation:</span>
                     {profile.activeBodySkin ? (
                       <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                        <img src="kirka_coin.png" alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
+                        <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
                         <span>{formatValue(getItemPrice(profile.activeBodySkin))}</span>
                       </div>
                     ) : (
@@ -380,7 +380,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                     <span>Valuation:</span>
                     {profile.activeWeapon1Skin ? (
                       <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                        <img src="kirka_coin.png" alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
+                        <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
                         <span>{formatValue(getItemPrice(profile.activeWeapon1Skin))}</span>
                       </div>
                     ) : (
@@ -511,7 +511,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                 {/* Net Worth Block */}
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-gold-primary/10 rounded-lg border border-gold-primary/20 flex items-center justify-center">
-                    <img src="kirka_coin.png" alt="Coin" className="w-7.5 h-7.5 object-contain filter drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]" />
+                    <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-7.5 h-7.5 object-contain filter drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]" />
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-500 tracking-wider uppercase font-mono block">Estimated Net Worth</span>
@@ -610,7 +610,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/5 text-xs font-mono">
                         <span className="text-[10px] text-slate-500 uppercase">Valuation:</span>
                         <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                          <img src="kirka_coin.png" alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
+                          <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
                           <span>{matchedPrice > 0 ? formatValue(matchedPrice) : '—'}</span>
                         </div>
                       </div>

@@ -597,7 +597,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         <div className="flex items-center space-x-3.5">
           {/* Custom image replaces ArrowRightLeft icon */}
           <img 
-            src="trade_portal.png" 
+            src={`${import.meta.env.BASE_URL}trade_portal.png`} 
             alt="Trades Icon" 
             className="w-8 h-8 rounded-lg object-contain glow-filter-gold" 
           />

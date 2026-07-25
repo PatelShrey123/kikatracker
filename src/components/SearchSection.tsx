@@ -148,7 +148,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 
         {/* Hero Content Wrapper */}
         <div className="relative z-10 flex flex-col items-center justify-center space-y-6 max-w-2xl mx-auto pointer-events-none">
-          <img src="search_portal.png" alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
+          <img src={`${import.meta.env.BASE_URL}search_portal.png`} alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase select-none">
             Kirka.io <span className="text-gold-gradient">Analytics Engine</span>
           </h2>
