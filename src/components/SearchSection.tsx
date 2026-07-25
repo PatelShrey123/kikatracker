@@ -109,8 +109,8 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         <div className="absolute inset-0 pointer-events-auto opacity-55 z-0">
           <Hyperspeed
             effectOptions={{
-              distortion: 'rollerCoasterDistortion',
-              length: 800,
+              distortion: 'mountainDistortion',
+              length: 400,
               roadWidth: 10,
               islandWidth: 2,
               lanesPerRoad: 3,
@@ -120,8 +120,8 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
               carLightsFade: 0.4,
               totalSideLightSticks: 20,
               lightPairsPerRoadWay: 40,
-               shoulderLinesWidthPercentage: 0.08,
-              brokenLinesWidthPercentage: 0.15,
+              shoulderLinesWidthPercentage: 0.05,
+              brokenLinesWidthPercentage: 0.1,
               brokenLinesLengthPercentage: 0.5,
               lightStickWidth: [0.12, 0.5],
               lightStickHeight: [1.3, 1.7],
@@ -133,11 +133,11 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
               carShiftX: [-0.8, 0.8],
               carFloorSeparation: [0, 5],
               colors: {
-                roadColor: 0x15161e,
-                islandColor: 0x08090c,
+                roadColor: 0x020202,
+                islandColor: 0x050505,
                 background: 0x000000,
-                shoulderLines: 0xffd700,
-                brokenLines: 0xffffff,
+                shoulderLines: 0xd4af37,
+                brokenLines: 0xffd700,
                 leftCars: [0xd4af37, 0xffd700, 0xb8860b],
                 rightCars: [0xffdf00, 0xffc125, 0xdaa520],
                 sticks: 0xffd700
