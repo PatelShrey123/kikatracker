@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CursorTrail } from './components/CursorTrail';
+import { TargetCursor } from './components/TargetCursor';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { SearchSection } from './components/SearchSection';
@@ -244,8 +244,15 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-obsidian-deep text-slate-100 flex flex-col md:flex-row selection:bg-gold-primary/30 selection:text-gold-bright">
-      {/* Dynamic Fluid Teardrop Gold Cursor Trail */}
-      <CursorTrail />
+      {/* React Bits TargetCursor */}
+      <TargetCursor 
+        targetSelector="button, a, input, select, textarea, [role='button'], .cursor-pointer, .card-interactive, .btn-interactive"
+        spinDuration={2}
+        hideDefaultCursor={true}
+        parallaxOn={true}
+        cursorColor="#d4af37"
+        cursorColorOnTarget="#ffd700"
+      />
 
       {/* 2. Full-screen custom loader */}
       <LoadingScreen isLoading={isLoading} />
