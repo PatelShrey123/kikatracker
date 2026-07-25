@@ -33,10 +33,10 @@ export function cropMinecraftHead(textureUrl: string): Promise<string> {
         return faceCanvas;
       };
 
-      // Extract 3 visible faces: Front (face), Left Side, Top
-      const topFace = getFaceCanvas(8, 0, 40, 0);     // Head Top + Hat Top
-      const frontFace = getFaceCanvas(8, 8, 40, 8);   // Head Front + Hat Front
-      const leftFace = getFaceCanvas(16, 8, 48, 8);   // Head Left + Hat Left
+      // Extract 3 visible head faces for the front-right isometric view
+      const topFace = getFaceCanvas(8, 0, 40, 0);       // Head Top + Hat Top
+      const frontFace = getFaceCanvas(8, 8, 40, 8);     // Head Front + Hat Front
+      const rightSideFace = getFaceCanvas(0, 8, 32, 8); // Head Right Side + Hat Right Side
 
       // Create main output canvas for 3D isometric stitching
       const canvas = document.createElement('canvas');
@@ -57,25 +57,29 @@ export function cropMinecraftHead(textureUrl: string): Promise<string> {
       const centerX = 64;
       const centerY = 56;
 
-      // 1. Draw Left Face (sheared extending left and down)
+      // 1. Draw Left Face (sheared extending left and up - displaying the Head Right Side profile)
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.transform(-0.866, 0.5, 0, 0.866, 0, 0);
-      ctx.drawImage(leftFace, 0, 0, L, L);
+      ctx.transform(-0.866, -0.5, 0, 1, 0, 0);
+      // Flip horizontally so the front edge of the side profile connects to the center seam
+      ctx.scale(-1, 1);
+      ctx.drawImage(rightSideFace, -L, 0, L, L);
       ctx.restore();
 
-      // 2. Draw Front/Right Face (sheared extending right and down)
+      // 2. Draw Right Face (sheared extending right and up - displaying the Head Front face)
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.transform(0.866, 0.5, 0, 0.866, 0, 0);
+      ctx.transform(0.866, -0.5, 0, 1, 0, 0);
       ctx.drawImage(frontFace, 0, 0, L, L);
       ctx.restore();
 
-      // 3. Draw Top Face (rhombus extending up)
+      // 3. Draw Top Face (rhombus extending up - displaying the Head Top hair/cap layer)
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.transform(0.866, -0.5, -0.866, -0.5, 0, 0);
-      ctx.drawImage(topFace, 0, 0, L, L);
+      // Flip vertically to align front/back correctly with the front seam
+      ctx.scale(1, -1);
+      ctx.drawImage(topFace, 0, -L, L, L);
       ctx.restore();
 
       try {
