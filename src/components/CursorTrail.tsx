@@ -1,17 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  alpha: number;
-  size: number;
-  life: number;
-  maxLife: number;
-  color: string;
-}
-
 export const CursorTrail: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -31,71 +19,18 @@ export const CursorTrail: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    const particles: Particle[] = [];
-    const maxParticles = 45;
-
+    // Number of points in the liquid trail
+    const numPoints = 12;
+    const points = Array.from({ length: numPoints }, () => ({ x: -100, y: -100 }));
+    
     const mouse = { x: -100, y: -100 };
     let isHoveringInteractive = false;
-
-    // Helper to spawn a single spark particle
-    const spawnParticle = (x: number, y: number, isClickBurst = false) => {
-      if (particles.length >= maxParticles && !isClickBurst) {
-        // Recycle oldest particle if limit reached
-        particles.shift();
-      }
-
-      // Random velocities
-      let vx = (Math.random() - 0.5) * 0.8;
-      let vy = (Math.random() - 0.5) * 0.8 - 0.3; // Slight upward bias by default
-      let maxLife = 25 + Math.random() * 15;
-      let size = 1.5 + Math.random() * 2.0;
-
-      if (isClickBurst) {
-        // Expand outwards in all directions with speed
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 1.2 + Math.random() * 2.2;
-        vx = Math.cos(angle) * speed;
-        vy = Math.sin(angle) * speed;
-        maxLife = 20 + Math.random() * 10;
-        size = 2.0 + Math.random() * 1.8;
-      } else if (isHoveringInteractive) {
-        // Faster, tighter sparks when hovering over buttons
-        vx = (Math.random() - 0.5) * 1.5;
-        vy = (Math.random() - 0.5) * 1.5;
-        size = 1.0 + Math.random() * 1.5;
-      }
-
-      // Golden hues: gold, gold-orange, bright gold-white
-      const colors = ['#FFD700', '#FFA500', '#FFFDD0', '#D4AF37'];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-
-      particles.push({
-        x,
-        y,
-        vx,
-        vy,
-        alpha: 1,
-        size,
-        life: maxLife,
-        maxLife,
-        color
-      });
-    };
-
-    // Trigger explosive burst on click
-    const handleMouseDown = (e: MouseEvent) => {
-      const numSparks = 10 + Math.floor(Math.random() * 6);
-      for (let i = 0; i < numSparks; i++) {
-        spawnParticle(e.clientX, e.clientY, true);
-      }
-    };
+    let lastMoveTime = Date.now();
 
     const handleMouseMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
-
-      // Spawn a trail particle
-      spawnParticle(e.clientX, e.clientY);
+      lastMoveTime = Date.now();
 
       // Check hovering state for cursor style overrides
       const target = e.target as HTMLElement | null;
@@ -121,71 +56,68 @@ export const CursorTrail: React.FC = () => {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('mouseleave', handleMouseLeave);
 
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // 1. UPDATE AND DRAW PARTICLES
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
+      const idleTime = Date.now() - lastMoveTime;
 
-        // Apply slight gravity to drift down organically
-        p.vy += 0.03;
+      // Fade out trail if idle for more than 1.5 seconds or off-screen
+      if (mouse.x > 0 && mouse.y > 0 && idleTime < 1800) {
+        if (points[0].x === -100) {
+          for (let i = 0; i < numPoints; i++) {
+            points[i].x = mouse.x;
+            points[i].y = mouse.y;
+          }
+        }
 
-        // Decelerate velocities (friction)
-        p.vx *= 0.98;
-        p.vy *= 0.98;
+        // Leader point tracks mouse with dynamic spring ease
+        const easeLeader = isHoveringInteractive ? 0.2 : 0.35;
+        points[0].x += (mouse.x - points[0].x) * easeLeader;
+        points[0].y += (mouse.y - points[0].y) * easeLeader;
 
-        p.life--;
-        p.alpha = Math.max(0, p.life / p.maxLife);
+        // Tail points drag behind preceding points smoothly
+        const easeTail = isHoveringInteractive ? 0.38 : 0.48;
+        for (let i = 1; i < numPoints; i++) {
+          points[i].x += (points[i - 1].x - points[i].x) * easeTail;
+          points[i].y += (points[i - 1].y - points[i].y) * easeTail;
+        }
 
-        if (p.life <= 0) {
-          particles.splice(i, 1);
-          continue;
+        // Calculate dynamic opacity
+        let opacity = 1;
+        if (idleTime > 1000) {
+          opacity = Math.max(0, 1 - (idleTime - 1000) / 800);
         }
 
         ctx.save();
-        ctx.shadowBlur = 6 + p.size * 2;
-        ctx.shadowColor = p.color;
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha;
+        ctx.globalAlpha = opacity;
 
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * p.alpha, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
+        // 1. Draw Outer Liquid Glow (Gold)
+        const outerMaxRadius = isHoveringInteractive ? 6.5 : 10.0;
+        for (let i = 0; i < numPoints; i++) {
+          const p = points[i];
+          const radius = outerMaxRadius * Math.pow(1 - i / numPoints, 0.85);
+          if (radius <= 0) continue;
 
-      // 2. RENDER THE INTERACTIVE PRECISION DOT
-      if (mouse.x > 0 && mouse.y > 0) {
-        ctx.save();
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#FFD700';
-
-        // Precise micro golden pointer dot
-        const dotRadius = isHoveringInteractive ? 1.5 : 2.5;
-        ctx.fillStyle = '#FFFFFF'; // Bright core
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, dotRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Secondary ring halo when hovering
-        if (isHoveringInteractive) {
-          ctx.strokeStyle = '#FFD700';
-          ctx.lineWidth = 1;
+          ctx.fillStyle = '#FFD700'; // Bright Gold
           ctx.beginPath();
-          ctx.arc(mouse.x, mouse.y, 6, 0, Math.PI * 2);
-          ctx.stroke();
-          
-          // Spawn extra ambient micro sparks when idle/moving on a button
-          if (Math.random() < 0.3) {
-            spawnParticle(mouse.x, mouse.y);
-          }
+          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 2. Draw Inner Core (Bright White-Gold)
+        const innerMaxRadius = isHoveringInteractive ? 3.5 : 5.8;
+        for (let i = 0; i < numPoints; i++) {
+          const p = points[i];
+          const radius = innerMaxRadius * Math.pow(1 - i / numPoints, 0.85);
+          if (radius <= 0) continue;
+
+          ctx.fillStyle = '#FFFFFF'; // White-gold core
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+          ctx.fill();
         }
 
         ctx.restore();
@@ -199,7 +131,6 @@ export const CursorTrail: React.FC = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
@@ -207,9 +138,28 @@ export const CursorTrail: React.FC = () => {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-50 mix-blend-screen"
-    />
+    <>
+      {/* SVG Gooey Filter Definitions */}
+      <svg xmlns="http://www.w3.org/2000/svg" className="hidden absolute w-0 h-0">
+        <defs>
+          <filter id="cursor-gooey">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feColorMatrix 
+              in="blur" 
+              mode="matrix" 
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" 
+              result="goo" 
+            />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+          </filter>
+        </defs>
+      </svg>
+
+      <canvas
+        ref={canvasRef}
+        style={{ filter: "url(#cursor-gooey)" }}
+        className="fixed inset-0 pointer-events-none z-50 mix-blend-screen"
+      />
+    </>
   );
 };
