@@ -543,7 +543,9 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {inventory.map((invItem, index) => {
+                {[...inventory]
+                  .sort((a, b) => getItemPrice(b.item) - getItemPrice(a.item))
+                  .map((invItem, index) => {
                   const item = invItem.item;
                   const matchedPrice = getItemPrice(item);
                   const rarityStyles = getRarityStyles(item.rarity);
