@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Compass, AlertCircle, ArrowRight, Award, Trophy, ShieldAlert } from 'lucide-react';
 import { fetchSoloLeaderboard, fetchUserProfile } from '../utils/api';
-import { DotField } from './DotField';
+import { Hyperspeed } from './Hyperspeed';
 
 interface SearchSectionProps {
   onSearch: (id: string, isShortId: boolean) => void;
@@ -102,36 +102,62 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-12 select-text">
-      {/* 1. Hero Search Panel with DotField Background */}
+      {/* 1. Hero Search Panel with Hyperspeed Background */}
       <div className="relative overflow-hidden w-full rounded-2xl border border-obsidian-border bg-gradient-to-br from-[#0c0e17]/80 to-[#06070b]/90 py-12 px-6 sm:px-12 flex flex-col items-center justify-center text-center space-y-6">
         
-        {/* Background Dot Field */}
-        <div className="absolute inset-0 pointer-events-none opacity-45">
-          <DotField
-            dotRadius={1.2}
-            dotSpacing={14}
-            bulgeStrength={55}
-            glowRadius={140}
-            sparkle={true}
-            waveAmplitude={1.5}
-            gradientFrom="rgba(212, 175, 55, 0.28)" // gold-primary
-            gradientTo="rgba(255, 215, 0, 0.12)"   // gold-bright
-            glowColor="#1c160b"                      // dark gold glow
+        {/* Background Hyperspeed Effect */}
+        <div className="absolute inset-0 pointer-events-auto opacity-55 z-0">
+          <Hyperspeed
+            effectOptions={{
+              distortion: 'mountainDistortion',
+              length: 400,
+              roadWidth: 10,
+              islandWidth: 2,
+              lanesPerRoad: 3,
+              fov: 90,
+              fovSpeedUp: 150,
+              speedUp: 3.5,
+              carLightsFade: 0.4,
+              totalSideLightSticks: 20,
+              lightPairsPerRoadWay: 40,
+              shoulderLinesWidthPercentage: 0.05,
+              brokenLinesWidthPercentage: 0.1,
+              brokenLinesLengthPercentage: 0.5,
+              lightStickWidth: [0.12, 0.5],
+              lightStickHeight: [1.3, 1.7],
+              movingAwaySpeed: [60, 80],
+              movingCloserSpeed: [-120, -160],
+              carLightsLength: [12, 80],
+              carLightsRadius: [0.05, 0.14],
+              carWidthPercentage: [0.3, 0.5],
+              carShiftX: [-0.8, 0.8],
+              carFloorSeparation: [0, 5],
+              colors: {
+                roadColor: 0x020202,
+                islandColor: 0x050505,
+                background: 0x000000,
+                shoulderLines: 0xd4af37,
+                brokenLines: 0xffd700,
+                leftCars: [0xd4af37, 0xffd700, 0xb8860b],
+                rightCars: [0xffdf00, 0xffc125, 0xdaa520],
+                sticks: 0xffd700
+              }
+            }}
           />
         </div>
 
         {/* Hero Content Wrapper */}
-        <div className="relative z-10 flex flex-col items-center justify-center space-y-6 max-w-2xl mx-auto">
+        <div className="relative z-10 flex flex-col items-center justify-center space-y-6 max-w-2xl mx-auto pointer-events-none">
           <img src="search_portal.png" alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
-          <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase">
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase select-none">
             Kirka.io <span className="text-gold-gradient">Analytics Engine</span>
           </h2>
-          <p className="text-sm sm:text-base text-slate-400 max-w-xl font-medium leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-400 max-w-xl font-medium leading-relaxed select-none">
             Search player profiles to calculate total net-worth inventory valuations, inspect active weapon loadouts, and track leaderboard ranks.
           </p>
 
           {/* Input box */}
-          <form onSubmit={handleSubmit} className="w-full max-w-xl relative pt-3">
+          <form onSubmit={handleSubmit} className="w-full max-w-xl relative pt-3 pointer-events-auto">
             <div className="relative flex items-center bg-[#12141d]/90 border border-obsidian-border rounded-2xl p-1.5 focus-within:border-gold-primary/45 focus-within:shadow-[0_0_18px_rgba(212,175,55,0.06)] transition-all duration-300">
               <div className="pl-4 text-slate-500">
                 <Search className="w-5 h-5" />
@@ -167,6 +193,12 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
               </div>
             )}
           </form>
+
+          {/* Tip notification to click for speed */}
+          <div className="flex items-center space-x-2 text-[10px] font-mono text-gold-bright/60 bg-[#06070b]/80 border border-gold-primary/10 px-3.5 py-2 rounded-full select-none mt-2 animate-pulse pointer-events-auto">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold-bright shadow-[0_0_6px_rgba(255,215,0,0.8)]" />
+            <span>Tip: Click and hold anywhere in the background to activate Hyperspeed! 🚀</span>
+          </div>
         </div>
       </div>
 
