@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, Search, ShieldAlert, Sparkles } from 'lucide-react';
+import { Trophy, Search, ShieldAlert } from 'lucide-react';
 import type { RankedLeaderboardResult } from '../utils/api';
 import { fetchRanked1v1, fetchRanked2v2, fetchRankedSAD } from '../utils/api';
 
@@ -34,17 +34,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
     player.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Helper to map KLO to ranks
-  const getRankInfo = (klo: number) => {
-    if (klo >= 5000) return { name: 'Challenger', color: 'text-gold-bright bg-gold-primary/10 border-gold-primary/45 shadow-[0_0_10px_rgba(255,215,0,0.2)]' };
-    if (klo >= 4000) return { name: 'Grandmaster', color: 'text-rarity-mythic bg-rarity-mythic/10 border-rarity-mythic/40' };
-    if (klo >= 3000) return { name: 'Master', color: 'text-rarity-epic bg-rarity-epic/10 border-rarity-epic/40' };
-    if (klo >= 2500) return { name: 'Diamond', color: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/30' };
-    if (klo >= 2000) return { name: 'Platinum', color: 'text-teal-400 bg-teal-400/10 border-teal-400/30' };
-    if (klo >= 1500) return { name: 'Gold', color: 'text-rarity-legendary bg-rarity-legendary/10 border-rarity-legendary/40' };
-    if (klo >= 1000) return { name: 'Silver', color: 'text-slate-300 bg-slate-300/10 border-slate-300/30' };
-    return { name: 'Bronze', color: 'text-amber-700 bg-amber-700/10 border-amber-700/30' };
-  };
+
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
@@ -134,7 +124,6 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
                 <tr className="border-b border-obsidian-border bg-[#090A0F]/55 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
                   <th className="py-4 px-6 font-semibold">Rank</th>
                   <th className="py-4 px-6 font-semibold">Player</th>
-                  <th className="py-4 px-6 font-semibold">Tier</th>
                   <th className="py-4 px-6 font-semibold text-right">KLO Rating</th>
                 </tr>
               </thead>
@@ -143,7 +132,6 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
                   const rank = index + 1;
                   const isTop3 = rank <= 3;
                   const klo = player.kloSAD || player.klo1V1 || player.klo2V2 || 0;
-                  const rankInfo = getRankInfo(klo);
 
                   return (
                     <tr
@@ -177,14 +165,6 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
                             {player.shortId}
                           </span>
                         </div>
-                      </td>
-
-                      {/* Rank Badge Tier */}
-                      <td className="py-4 px-6">
-                        <span className={`inline-flex items-center space-x-1 text-[9px] font-bold font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${rankInfo.color}`}>
-                          <Sparkles className="w-2.5 h-2.5 animate-pulse" />
-                          <span>{rankInfo.name}</span>
-                        </span>
                       </td>
 
                       {/* KLO rating score */}
