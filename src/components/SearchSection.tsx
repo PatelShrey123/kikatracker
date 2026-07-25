@@ -109,8 +109,8 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         <div className="absolute inset-0 pointer-events-auto opacity-55 z-0">
           <Hyperspeed
             effectOptions={{
-              distortion: 'mountainDistortion',
-              length: 400,
+              distortion: 'rollerCoasterDistortion',
+              length: 800,
               roadWidth: 10,
               islandWidth: 2,
               lanesPerRoad: 3,

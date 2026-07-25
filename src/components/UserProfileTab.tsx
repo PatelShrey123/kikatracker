@@ -506,19 +506,37 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
         ) : (
           /* Inventory Valuation Tab */
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gold-primary/10 rounded-lg border border-gold-primary/20">
-                  <Coins className="w-6 h-6 text-gold-bright glow-filter-gold" />
+            <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                {/* Net Worth Block */}
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gold-primary/10 rounded-lg border border-gold-primary/20">
+                    <Coins className="w-6 h-6 text-gold-bright glow-filter-gold" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 tracking-wider uppercase font-mono block">Estimated Net Worth</span>
+                    <span className="text-2xl font-black text-gold-gradient block mt-0.5 leading-none">
+                      {totalValuation.toLocaleString()} <span className="text-xs font-medium font-mono text-gold-bright/60">Kirka Coins</span>
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 tracking-wider uppercase font-mono block">Estimated Net Worth</span>
-                  <span className="text-2xl font-black text-gold-gradient block mt-0.5 leading-none">
-                    {totalValuation.toLocaleString()} <span className="text-xs font-medium font-mono text-gold-bright/60">Kirka Coins</span>
-                  </span>
+
+                {/* Total Units Block */}
+                <div className="flex items-center space-x-3 border-t sm:border-t-0 sm:border-l border-white/5 pt-4 sm:pt-0 sm:pl-6">
+                  <div className="p-3 bg-gold-primary/5 rounded-lg border border-white/5">
+                    <Database className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 tracking-wider uppercase font-mono block">Total Inventory Items</span>
+                    <span className="text-2xl font-black text-white block mt-0.5 leading-none">
+                      {inventory.reduce((sum, item) => sum + item.amount, 0).toLocaleString()} <span className="text-xs font-medium font-mono text-slate-400/60">Units</span>
+                      <span className="text-[10px] text-slate-500 font-mono font-medium ml-2">({inventory.length} unique)</span>
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="bg-obsidian-deep/80 border border-obsidian-border px-4 py-2.5 rounded-lg flex items-center space-x-2 text-xs font-mono text-slate-400">
+
+              <div className="bg-obsidian-deep/80 border border-obsidian-border px-4 py-2.5 rounded-lg flex items-center space-x-2 text-xs font-mono text-slate-400 self-start md:self-auto">
                 <Database className="w-3.5 h-3.5 text-gold-primary" />
                 <span>Price Index: <strong className="text-slate-200">Bolt Pricing</strong></span>
               </div>

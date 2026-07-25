@@ -108,7 +108,52 @@ export const Hyperspeed: React.FC<HyperspeedProps> = ({ effectOptions = DEFAULT_
       uPowY: { value: new THREE.Vector2(20, 2) }
     };
 
+    const rollerCoasterUniforms = {
+      uFreq: { value: new THREE.Vector4(1.5, 3.2, 2.4, 0.8) },
+      uAmp: { value: new THREE.Vector4(35, 15, 20, 10) }
+    };
+
     const distortions: Record<string, any> = {
+      rollerCoasterDistortion: {
+        uniforms: rollerCoasterUniforms,
+        getDistortion: `
+          uniform vec4 uFreq;
+          uniform vec4 uAmp;
+          #define PI 3.14159265358979
+          float nsin(float val){
+            return sin(val) * 0.5 + 0.5;
+          }
+          vec3 getDistortion(float progress){
+            float time = uTime * 0.4;
+            float x = sin(progress * PI * uFreq.x + time) * uAmp.x + 
+                      cos(progress * PI * uFreq.y + time * 1.5) * uAmp.y;
+            float y = cos(progress * PI * uFreq.z + time * 0.8) * uAmp.z - 
+                      nsin(progress * PI * uFreq.w + time * 1.2) * uAmp.w * 15.0;
+            return vec3(x - sin(time) * uAmp.x, y - cos(time * 0.8) * uAmp.z, 0.0);
+          }
+        `,
+        getJS: (progress: number, time: number) => {
+          let uFreq = new THREE.Vector4(1.5, 3.2, 2.4, 0.8);
+          let uAmp = new THREE.Vector4(35, 15, 20, 10);
+          let t = time * 0.4;
+
+          const getX = (p: number) => 
+            Math.sin(p * Math.PI * uFreq.x + t) * uAmp.x + 
+            Math.cos(p * Math.PI * uFreq.y + t * 1.5) * uAmp.y;
+          const getY = (p: number) => 
+            Math.cos(p * Math.PI * uFreq.z + t * 0.8) * uAmp.z - 
+            nsin(p * Math.PI * uFreq.w + t * 1.2) * uAmp.w * 15.0;
+
+          let distortion = new THREE.Vector3(
+            getX(progress) - getX(progress + 0.015),
+            getY(progress) - getY(progress + 0.015),
+            0
+          );
+          let lookAtAmp = new THREE.Vector3(-1.2, -3.5, 0);
+          let lookAtOffset = new THREE.Vector3(0, 0, -8);
+          return distortion.multiply(lookAtAmp).add(lookAtOffset);
+        }
+      },
       mountainDistortion: {
         uniforms: mountainUniforms,
         getDistortion: `
