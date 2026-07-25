@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Target, Sparkles, Database, Coins, Shield, Layers, Award } from 'lucide-react';
+import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import { fetchUserInventory, fetchAllPublicItems } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
@@ -315,7 +315,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                     <span>Valuation:</span>
                     {profile.activeBodySkin ? (
                       <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                        <Coins className="w-3.5 h-3.5 text-gold-primary" />
+                        <img src="kirka_coin.png" alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
                         <span>{formatValue(getItemPrice(profile.activeBodySkin))}</span>
                       </div>
                     ) : (
@@ -380,7 +380,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                     <span>Valuation:</span>
                     {profile.activeWeapon1Skin ? (
                       <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                        <Coins className="w-3.5 h-3.5 text-gold-primary" />
+                        <img src="kirka_coin.png" alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
                         <span>{formatValue(getItemPrice(profile.activeWeapon1Skin))}</span>
                       </div>
                     ) : (
@@ -510,8 +510,8 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                 {/* Net Worth Block */}
                 <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-gold-primary/10 rounded-lg border border-gold-primary/20">
-                    <Coins className="w-6 h-6 text-gold-bright glow-filter-gold" />
+                  <div className="p-2 bg-gold-primary/10 rounded-lg border border-gold-primary/20 flex items-center justify-center">
+                    <img src="kirka_coin.png" alt="Coin" className="w-7.5 h-7.5 object-contain filter drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]" />
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-500 tracking-wider uppercase font-mono block">Estimated Net Worth</span>
@@ -610,7 +610,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/5 text-xs font-mono">
                         <span className="text-[10px] text-slate-500 uppercase">Valuation:</span>
                         <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                          <Coins className="w-3.5 h-3.5 text-gold-primary" />
+                          <img src="kirka_coin.png" alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
                           <span>{matchedPrice > 0 ? formatValue(matchedPrice) : '—'}</span>
                         </div>
                       </div>
