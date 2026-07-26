@@ -587,6 +587,36 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return result;
   };
 
+  const getHistoryDateRangeInfo = () => {
+    if (!historyTrades || historyTrades.length === 0) {
+      return { diffDays: 0, dateString: '' };
+    }
+
+    const times = historyTrades
+      .map((t) => new Date(t.updatedAt).getTime())
+      .filter((time) => !isNaN(time));
+
+    if (times.length === 0) {
+      return { diffDays: 0, dateString: '' };
+    }
+
+    const oldestTime = Math.min(...times);
+    const latestTime = Math.max(...times);
+
+    const oldestDate = new Date(oldestTime);
+    const latestDate = new Date(latestTime);
+
+    // Calculate diff in days
+    const diffTime = Math.abs(latestTime - oldestTime);
+    const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+    // Format as M/D/YYYY
+    const format = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    const dateString = `${format(oldestDate)} → ${format(latestDate)}`;
+
+    return { diffDays, dateString };
+  };
+
   const activeFilteredLive = getFilteredLiveTrades();
   const activeFilteredHistory = getFilteredHistoryTrades();
 
@@ -831,6 +861,21 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Completed Trade History Dynamic Header Banner */}
+            {(() => {
+              const { diffDays, dateString } = getHistoryDateRangeInfo();
+              if (diffDays === 0) return null;
+              return (
+                <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-sm">
+                  <span className="text-slate-300 font-extrabold tracking-wider uppercase">
+                    COMPLETED TRADE HISTORY
+                  </span>
+                  <span className="text-slate-500">
+                    Showing data from the <strong className="text-purple-400 font-bold">last {diffDays} days</strong> · {dateString}
+                  </span>
+                </div>
+              );
+            })()}
             <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
               <span>Showing {Math.min(visibleHistoryCount, activeFilteredHistory.length)} of {activeFilteredHistory.length} merged logs (Latest first)</span>
               <span>Historical Archives Feed</span>
