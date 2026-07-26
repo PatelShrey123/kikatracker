@@ -103,7 +103,18 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
     }
   };
 
+  const formatWithSpaces = (num: number | string) => {
+    if (num === undefined || num === null) return '';
+    const str = num.toString().replace(/[^0-9.]/g, '');
+    const parts = str.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return parts.join('.');
+  };
+
   const formatShorthand = (val: number) => {
+    if (val >= 1000000000) {
+      return (val / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+    }
     if (val >= 1000000) {
       return (val / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     }
@@ -292,7 +303,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                     <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain mr-1 filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
                     <input
                       type="text"
-                      value={itemObj.price}
+                      value={formatWithSpaces(itemObj.price)}
                       onChange={(e) => updatePrice(itemObj.id, e.target.value)}
                       placeholder="Price"
                       className="w-full bg-transparent text-xs font-mono font-bold text-white outline-none border-0 ring-0 text-right p-0.5"
@@ -329,7 +340,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                   <span className="text-[9px] text-slate-500 uppercase tracking-widest block">Total Value</span>
                   <span className="text-xs font-bold text-gold-bright flex items-center justify-end space-x-1">
                     <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
-                    <span>{enabledItems.reduce((sum, item) => sum + item.price * item.amount, 0).toLocaleString()}</span>
+                    <span>{formatWithSpaces(enabledItems.reduce((sum, item) => sum + item.price * item.amount, 0))}</span>
                   </span>
                 </div>
               </div>

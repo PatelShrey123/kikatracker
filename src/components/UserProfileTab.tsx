@@ -518,7 +518,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                   <div>
                     <span className="text-[10px] text-slate-500 tracking-wider uppercase font-mono block">Estimated Net Worth</span>
                     <span className="text-2xl font-black text-gold-gradient block mt-0.5 leading-none">
-                      {totalValuation.toLocaleString()} <span className="text-xs font-medium font-mono text-gold-bright/60">Kirka Coins</span>
+                      {totalValuation.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} <span className="text-xs font-medium font-mono text-gold-bright/60">Kirka Coins</span>
                     </span>
                   </div>
                 </div>
