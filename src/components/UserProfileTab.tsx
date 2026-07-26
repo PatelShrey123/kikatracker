@@ -556,7 +556,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
             <div className="flex items-center space-x-2 bg-obsidian-card/40 border border-obsidian-border/50 px-4 py-3 rounded-lg text-xs text-slate-400 font-mono">
               <Award className="w-4 h-4 text-gold-primary" />
-              <span>Note: All prices shown in the inventory valuations are synchronized directly from the official **Bolt Pricing** database.</span>
+              <span>Note: All prices shown in the inventory valuations are synchronized directly from the official **Bolt Pricing** database. Unpriced items are sorted to the bottom of the list.</span>
             </div>
 
             {loadingInventory ? (
