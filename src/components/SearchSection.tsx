@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Compass, AlertCircle, ArrowRight, Award, Trophy, ShieldAlert } from 'lucide-react';
 import { fetchSoloLeaderboard, fetchUserProfile } from '../utils/api';
-import { Hyperspeed } from './Hyperspeed';
+import { GridScan } from './GridScan';
 
 interface SearchSectionProps {
   onSearch: (id: string, isShortId: boolean) => void;
@@ -105,44 +105,19 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
       {/* 1. Hero Search Panel with Hyperspeed Background */}
       <div className="relative overflow-hidden w-full rounded-2xl border border-obsidian-border bg-gradient-to-br from-[#0c0e17]/80 to-[#06070b]/90 py-12 px-6 sm:px-12 flex flex-col items-center justify-center text-center space-y-6">
         
-        {/* Background Hyperspeed Effect */}
-        <div className="absolute inset-0 pointer-events-auto opacity-55 z-0">
-          <Hyperspeed
-            effectOptions={{
-              distortion: 'mountainDistortion',
-              length: 400,
-              roadWidth: 10,
-              islandWidth: 2,
-              lanesPerRoad: 3,
-              fov: 90,
-              fovSpeedUp: 150,
-              speedUp: 3.5,
-              carLightsFade: 0.4,
-              totalSideLightSticks: 20,
-              lightPairsPerRoadWay: 40,
-              shoulderLinesWidthPercentage: 0.05,
-              brokenLinesWidthPercentage: 0.1,
-              brokenLinesLengthPercentage: 0.5,
-              lightStickWidth: [0.12, 0.5],
-              lightStickHeight: [1.3, 1.7],
-              movingAwaySpeed: [60, 80],
-              movingCloserSpeed: [-120, -160],
-              carLightsLength: [12, 80],
-              carLightsRadius: [0.05, 0.14],
-              carWidthPercentage: [0.3, 0.5],
-              carShiftX: [-0.8, 0.8],
-              carFloorSeparation: [0, 5],
-              colors: {
-                roadColor: 0x020202,
-                islandColor: 0x050505,
-                background: 0x000000,
-                shoulderLines: 0xd4af37,
-                brokenLines: 0xffd700,
-                leftCars: [0xd4af37, 0xffd700, 0xb8860b],
-                rightCars: [0xffdf00, 0xffc125, 0xdaa520],
-                sticks: 0xffd700
-              }
-            }}
+        {/* Background GridScan Effect */}
+        <div className="absolute inset-0 pointer-events-none opacity-45 z-0">
+          <GridScan
+            sensitivity={0.55}
+            lineThickness={1}
+            linesColor="#181524"
+            gridScale={0.12}
+            scanColor="#d4af37"
+            scanOpacity={0.5}
+            enablePost={true}
+            bloomIntensity={0.8}
+            chromaticAberration={0.002}
+            noiseIntensity={0.015}
           />
         </div>
 
