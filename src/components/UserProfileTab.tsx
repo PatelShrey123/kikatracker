@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award } from 'lucide-react';
+import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import { fetchUserInventory, fetchAllPublicItems } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
+import { ShareInventoryModal } from './ShareInventoryModal';
 
 interface UserProfileTabProps {
   profile: UserProfile;
@@ -30,6 +31,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [croppedHeadUrl, setCroppedHeadUrl] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Sync inventory & public items
   useEffect(() => {
@@ -536,9 +538,19 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                 </div>
               </div>
 
-              <div className="bg-obsidian-deep/80 border border-obsidian-border px-4 py-2.5 rounded-lg flex items-center space-x-2 text-xs font-mono text-slate-400 self-start md:self-auto">
-                <Database className="w-3.5 h-3.5 text-gold-primary" />
-                <span>Price Index: <strong className="text-slate-200">Bolt Pricing</strong></span>
+              <div className="flex items-center gap-3 self-start md:self-auto">
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright hover:shadow-gold-glow text-obsidian-deep px-4 py-2.5 rounded-xl font-bold hover:scale-[1.02] transition-all cursor-pointer text-xs"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Share Inventory</span>
+                </button>
+
+                <div className="bg-obsidian-deep/80 border border-obsidian-border px-4 py-2.5 rounded-lg flex items-center space-x-2 text-xs font-mono text-slate-400">
+                  <Database className="w-3.5 h-3.5 text-gold-primary" />
+                  <span>Price Index: <strong className="text-slate-200">Bolt Pricing</strong></span>
+                </div>
               </div>
             </div>
 
@@ -626,6 +638,15 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       <div className="text-center pt-8 pb-2 text-[9px] font-mono text-slate-600 select-none opacity-40">
         All 3D character avatars and skins are rendered on-the-fly or sourced from Smudgy/Akuma open repository API.
       </div>
+
+      <ShareInventoryModal
+        inventory={inventory}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        getItemPrice={getItemPrice}
+        getItemRenderUrl={getItemRenderUrl}
+        username={profile.name}
+      />
     </div>
   );
 };
