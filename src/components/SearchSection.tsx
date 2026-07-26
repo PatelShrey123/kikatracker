@@ -106,7 +106,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
       <div className="relative overflow-hidden w-full rounded-2xl border border-obsidian-border bg-gradient-to-br from-[#0c0e17]/80 to-[#06070b]/90 py-12 px-6 sm:px-12 flex flex-col items-center justify-center text-center space-y-6">
         
         {/* Background GridScan Effect */}
-        <div className="absolute inset-0 pointer-events-none opacity-45 z-0">
+        <div className="absolute inset-0 pointer-events-auto opacity-45 z-0">
           <GridScan
             sensitivity={0.55}
             lineThickness={1}
@@ -169,11 +169,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             )}
           </form>
 
-          {/* Tip notification to click for speed */}
-          <div className="flex items-center space-x-2 text-[10px] font-mono text-gold-bright/60 bg-[#06070b]/80 border border-gold-primary/10 px-3.5 py-2 rounded-full select-none mt-2 animate-pulse pointer-events-auto">
-            <span className="w-1.5 h-1.5 rounded-full bg-gold-bright shadow-[0_0_6px_rgba(255,215,0,0.8)]" />
-            <span>Tip: Click and hold anywhere in the background to activate Hyperspeed! 🚀</span>
-          </div>
+
         </div>
       </div>
 
