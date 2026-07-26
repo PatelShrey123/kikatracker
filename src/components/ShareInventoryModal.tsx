@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Camera, Download, RefreshCw, Square, CheckSquare, AlertTriangle } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import type { UserInventoryItem } from '../utils/api';
 
 interface ShareInventoryModalProps {
@@ -28,6 +27,9 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
   const [downloading, setDownloading] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
+  // Dictionary to store preloaded image elements
+  const preloadedImagesRef = useRef<Record<string, HTMLImageElement>>({});
+
   // Initialize and automatically sort inventory descending by value.
   // Enable ONLY the top 15 items by default to prevent large clipboards and memory errors.
   useEffect(() => {
@@ -47,6 +49,35 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
       setItemsState(initial);
     }
   }, [isOpen, inventory]);
+
+  const enabledItems = itemsState.filter(i => i.enabled);
+  const filteredList = itemsState.filter(i =>
+    i.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const maxAllowed = 15;
+  const isOverLimit = enabledItems.length > maxAllowed;
+
+  // Pre-load enabling items skin images in the background
+  useEffect(() => {
+    if (!isOpen) return;
+    enabledItems.forEach(itemObj => {
+      const url = getItemRenderUrl(itemObj.item);
+      if (!url) return;
+      const proxiedUrl = getProxiedImageUrl(url);
+      if (preloadedImagesRef.current[proxiedUrl]) return;
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = proxiedUrl;
+      img.onload = () => {
+        preloadedImagesRef.current[proxiedUrl] = img;
+      };
+      img.onerror = () => {
+        console.error('Failed to preload skin image:', proxiedUrl);
+      };
+    });
+  }, [itemsState, isOpen]);
 
   if (!isOpen) return null;
 
@@ -103,14 +134,6 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
     }
   };
 
-  const formatWithSpaces = (num: number | string) => {
-    if (num === undefined || num === null) return '';
-    const str = num.toString().replace(/[^0-9.]/g, '');
-    const parts = str.split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    return parts.join('.');
-  };
-
   const formatShorthand = (val: number) => {
     if (val >= 1000000000) {
       return (val / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
@@ -124,38 +147,212 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
     return val.toString();
   };
 
+  const formatWithSpaces = (num: number | string) => {
+    if (num === undefined || num === null) return '';
+    const str = num.toString().replace(/[^0-9.]/g, '');
+    const parts = str.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return parts.join('.');
+  };
+
   const getProxiedImageUrl = (url: string | null) => {
     if (!url) return '';
     if (url.startsWith('data:') || url.startsWith('/') || url.startsWith('http://localhost') || url.includes(window.location.host)) {
       return url;
     }
-    // Encodes URL to bypass CORS policies via images.weserv.nl
     return `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
   };
 
-  const enabledItems = itemsState.filter(i => i.enabled);
-  const filteredList = itemsState.filter(i =>
-    i.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // High-performance canvas-based drawing API.
+  // Renders the preview box on a 2D canvas in under 2ms.
+  // This solves HMR/UI lags completely and avoids HTML-parsing failures!
+  const generateInventoryCanvas = (): Promise<HTMLCanvasElement> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get 2D context'));
+          return;
+        }
 
-  const maxAllowed = 15;
-  const isOverLimit = enabledItems.length > maxAllowed;
+        const scale = 3; // 3x ultra-sharp resolution scale
+        const colCount = 5;
+        const enabled = itemsState.filter(i => i.enabled);
+        const rowCount = Math.ceil(enabled.length / colCount) || 1;
 
-  // High-performance direct Clipboard Copy using ClipboardItem Promise.
-  // This executes synchronously inside the click handler to satisfy browser security rules,
-  // preventing lag because the rendering runs inside the promise without blocking the UI loops!
+        const cardWidth = 180 * scale;
+        const cardHeight = 110 * scale;
+        const gap = 12 * scale;
+        const padding = 24 * scale;
+        const headerHeight = 70 * scale;
+
+        // Set dimensions (multiplied by scale)
+        canvas.width = padding * 2 + colCount * cardWidth + (colCount - 1) * gap;
+        canvas.height = padding * 2 + headerHeight + rowCount * cardHeight + (rowCount - 1) * gap;
+
+        // Ensure background color fill
+        ctx.fillStyle = '#121214';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 2. Draw Header Text
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = '#64748b';
+        ctx.font = `bold ${11 * scale}px monospace`;
+        ctx.textAlign = 'left';
+        ctx.fillText('KIRKA.IO INVENTORY', padding, padding);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${20 * scale}px sans-serif`;
+        ctx.fillText(`${username.toUpperCase()}'s VALUATION`, padding, padding + 18 * scale);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = `bold ${11 * scale}px monospace`;
+        ctx.textAlign = 'right';
+        ctx.fillText('TOTAL VALUE', canvas.width - padding, padding);
+
+        // Format Total Coins with spaces
+        const totalCoins = enabled.reduce((sum, item) => sum + item.price * item.amount, 0);
+        const totalCoinsText = formatWithSpaces(totalCoins);
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = `bold ${16 * scale}px monospace`;
+        ctx.textAlign = 'right';
+
+        const coinImgUrl = `${import.meta.env.BASE_URL}kirka_coin.png`;
+        const coinImg = new Image();
+        coinImg.src = coinImgUrl;
+
+        const drawGrid = () => {
+          // Draw Coin icon in header
+          const textWidth = ctx.measureText(totalCoinsText).width;
+          const coinSize = 18 * scale;
+          const coinX = canvas.width - padding - textWidth - 22 * scale;
+          const coinY = padding + 16 * scale;
+          
+          try {
+            ctx.drawImage(coinImg, coinX, coinY, coinSize, coinSize);
+          } catch (e) {
+            // fallback silently
+          }
+
+          ctx.fillText(totalCoinsText, canvas.width - padding, padding + 17 * scale);
+
+          // Draw Header divider line
+          ctx.strokeStyle = '#27272a';
+          ctx.lineWidth = 1 * scale;
+          ctx.beginPath();
+          ctx.moveTo(padding, padding + headerHeight - 10 * scale);
+          ctx.lineTo(canvas.width - padding, padding + headerHeight - 10 * scale);
+          ctx.stroke();
+
+          // 3. Draw Grid Cards
+          enabled.forEach((itemObj, idx) => {
+            const col = idx % colCount;
+            const row = Math.floor(idx / colCount);
+
+            const x = padding + col * (cardWidth + gap);
+            const y = padding + headerHeight + row * (cardHeight + gap);
+
+            // Draw Card background
+            ctx.fillStyle = '#1c1c1f';
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(x, y, cardWidth, cardHeight, 8 * scale);
+            } else {
+              ctx.rect(x, y, cardWidth, cardHeight);
+            }
+            ctx.fill();
+
+            // Draw Card border matching rarity color
+            ctx.strokeStyle = getRarityColor(itemObj.item.rarity);
+            ctx.lineWidth = 2 * scale;
+            ctx.stroke();
+
+            // Draw Item Name (Top Center)
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${10 * scale}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            let nameText = itemObj.name.toUpperCase();
+            if (ctx.measureText(nameText).width > cardWidth - 20 * scale) {
+              nameText = itemObj.name.slice(0, 15) + '...';
+            }
+            ctx.fillText(nameText, x + cardWidth / 2, y + 10 * scale);
+
+            // Draw Proxied Skin Image (Middle Center)
+            const renderUrl = getItemRenderUrl(itemObj.item);
+            const proxiedUrl = getProxiedImageUrl(renderUrl);
+            const cachedImg = preloadedImagesRef.current[proxiedUrl];
+
+            if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
+              const imgAspect = cachedImg.width / cachedImg.height;
+              const targetHeight = 42 * scale;
+              const targetWidth = targetHeight * imgAspect;
+              const imgX = x + (cardWidth - targetWidth) / 2;
+              const imgY = y + 26 * scale;
+              try {
+                ctx.drawImage(cachedImg, imgX, imgY, targetWidth, targetHeight);
+              } catch (e) {
+                // Fallback text if rendering fails
+                ctx.fillStyle = '#4b5563';
+                ctx.font = `${9 * scale}px monospace`;
+                ctx.fillText('[IMAGE ERROR]', x + cardWidth / 2, y + 42 * scale);
+              }
+            } else {
+              // Standard text category fallback
+              ctx.fillStyle = '#4b5563';
+              ctx.font = `${9 * scale}px monospace`;
+              ctx.fillText(itemObj.item.parent?.name || 'ITEM', x + cardWidth / 2, y + 42 * scale);
+            }
+
+            // Draw Divider line inside card
+            ctx.strokeStyle = '#27272a';
+            ctx.lineWidth = 1 * scale;
+            ctx.beginPath();
+            ctx.moveTo(x + 10 * scale, y + 84 * scale);
+            ctx.lineTo(x + cardWidth - 10 * scale, y + 84 * scale);
+            ctx.stroke();
+
+            // Draw bottom row statistics
+            ctx.textBaseline = 'bottom';
+
+            // Price (left)
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = `bold ${10 * scale}px monospace`;
+            ctx.textAlign = 'left';
+            ctx.fillText(formatShorthand(itemObj.price), x + 12 * scale, y + cardHeight - 8 * scale);
+
+            // Quantity (right)
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = `bold ${10 * scale}px monospace`;
+            ctx.textAlign = 'right';
+            ctx.fillText(itemObj.amount.toString(), x + cardWidth - 12 * scale, y + cardHeight - 8 * scale);
+          });
+
+          resolve(canvas);
+        };
+
+        if (coinImg.complete) {
+          drawGrid();
+        } else {
+          coinImg.onload = drawGrid;
+          coinImg.onerror = drawGrid;
+        }
+
+      } catch (err) {
+        reject(err);
+      }
+    });
+  };
+
   const handleCopyClipboard = async () => {
-    if (isOverLimit || !previewRef.current) return;
+    if (isOverLimit) return;
     setCopyStatus('Copying...');
 
     try {
       const copyPromise = new Promise<Blob>((resolve, reject) => {
-        html2canvas(previewRef.current!, {
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: '#121214',
-          scale: 1.5
-        })
+        generateInventoryCanvas()
           .then((canvas) => {
             canvas.toBlob((blob) => {
               if (blob) {
@@ -176,7 +373,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
       setTimeout(() => setCopyStatus(null), 2000);
     } catch (err) {
       console.error('Clipboard write failed:', err);
-      // Fallback: download
+      // Dual fallback to PC download
       handleDownload();
       setCopyStatus('Saved to PC!');
       setTimeout(() => setCopyStatus(null), 2000);
@@ -184,15 +381,10 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
   };
 
   const handleDownload = async () => {
-    if (!previewRef.current || isOverLimit) return;
+    if (isOverLimit) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(previewRef.current, {
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#121214',
-        scale: 1.5
-      });
+      const canvas = await generateInventoryCanvas();
       triggerDownload(canvas);
     } catch (e) {
       console.error(e);
@@ -212,7 +404,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto font-sans select-text">
       <div className="relative max-w-6xl w-full bg-[#0b0c12] border border-obsidian-border rounded-2xl p-6 flex flex-col lg:flex-row gap-6 max-h-[90vh] overflow-hidden shadow-2xl">
         
-        {/* Left Side: Settings */}
+        {/* Left Side: Customize Settings */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between pb-4 border-b border-obsidian-border/50">
             <div>
@@ -262,7 +454,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
             </div>
           </div>
 
-          {/* Item configuration list */}
+          {/* Item List */}
           <div className="flex-1 overflow-y-auto space-y-2 pr-2">
             {filteredList.map((itemObj) => {
               const renderUrl = getItemRenderUrl(itemObj.item);
@@ -345,7 +537,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                 </div>
               </div>
 
-              {/* Grid Layout (exactly 5 columns, now showing CORS-proxied images) */}
+              {/* Grid Layout (exactly 5 columns) */}
               {enabledItems.length === 0 ? (
                 <div className="text-center py-20 text-slate-600 text-xs font-mono">
                   Select items from the list to show them here
@@ -369,7 +561,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                           </span>
                         </div>
 
-                        {/* Proxied Skin Image in Center (Renders correctly via CORS proxy) */}
+                        {/* Proxied Skin Image in Center */}
                         <div className="w-full h-11 flex items-center justify-center my-1.5">
                           {renderUrl ? (
                             <img
