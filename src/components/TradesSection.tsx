@@ -93,10 +93,12 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       .then((r) => r.json())
       .then(async (data) => {
         if (Array.isArray(data)) {
-          const jsonFiles = data.filter((s) => typeof s === 'string' && s.endsWith('.json'));
+          const jsonFiles = data
+            .filter((s) => typeof s === 'string' && s.endsWith('.json') && s !== 'dailyTrades.json')
+            .sort();
 
-          // We fetch the first 12 snapshots in parallel to merge them into one feed
-          const filesToFetch = jsonFiles.slice(0, 12);
+          // Fetch the latest 16 snapshots (last 16 days) to show the most recent completed trades
+          const filesToFetch = jsonFiles.slice(-16);
           const promises = filesToFetch.map((file) =>
             fetch(`/trade-api/tradehistory/${file}`)
               .then((r) => r.json())
