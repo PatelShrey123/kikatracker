@@ -401,11 +401,11 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto font-sans select-text">
-      <div className="relative max-w-6xl w-full bg-[#0b0c12] border border-obsidian-border rounded-2xl p-6 flex flex-col lg:flex-row gap-6 max-h-[90vh] overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 overflow-y-auto font-sans select-text">
+      <div className="relative max-w-6xl w-full bg-[#0b0c12] border border-obsidian-border rounded-2xl p-4 sm:p-6 flex flex-col lg:flex-row gap-6 max-h-[95vh] lg:max-h-[90vh] overflow-y-auto lg:overflow-hidden shadow-2xl">
         
         {/* Left Side: Customize Settings */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="w-full lg:flex-1 flex flex-col overflow-visible lg:overflow-hidden">
           <div className="flex items-center justify-between pb-4 border-b border-obsidian-border/50">
             <div>
               <h3 className="text-lg font-black text-white uppercase tracking-wider">Customize Valuation</h3>
@@ -455,7 +455,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
           </div>
 
           {/* Item List */}
-          <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+          <div className="max-h-[220px] lg:max-h-none lg:flex-1 overflow-y-auto space-y-2 pr-1 sm:pr-2">
             {filteredList.map((itemObj) => {
               const renderUrl = getItemRenderUrl(itemObj.item);
               return (
@@ -508,7 +508,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
         </div>
 
         {/* Right Side: Export Preview */}
-        <div className="w-full lg:w-[480px] flex flex-col border-t lg:border-t-0 lg:border-l border-obsidian-border/50 pt-6 lg:pt-0 lg:pl-6 overflow-hidden">
+        <div className="w-full lg:w-[480px] flex flex-col border-t lg:border-t-0 lg:border-l border-obsidian-border/50 pt-6 lg:pt-0 lg:pl-6 overflow-visible lg:overflow-hidden">
           <div className="pb-4">
             <h3 className="text-lg font-black text-white uppercase tracking-wider">Export Preview</h3>
             <p className="text-xs text-slate-400 font-medium">Preview matches the generated copy layout</p>
@@ -519,7 +519,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
             <div
               ref={previewRef}
               id="share-grid-capture"
-              className="w-full bg-[#121214] p-5 rounded-xl border border-white/5 select-none"
+              className="w-full bg-[#121214] p-4 sm:p-5 rounded-xl border border-white/5 select-none"
               style={{ contentVisibility: 'auto' }}
             >
               {/* Header Title in Screenshot */}
@@ -537,13 +537,13 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                 </div>
               </div>
 
-              {/* Grid Layout (exactly 5 columns) */}
+              {/* Responsive columns grid for screen preview; canvas output remains exact 5-columns */}
               {enabledItems.length === 0 ? (
                 <div className="text-center py-20 text-slate-600 text-xs font-mono">
                   Select items from the list to show them here
                 </div>
               ) : (
-                <div className="grid grid-cols-5 gap-2 bg-[#121214]">
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 bg-[#121214]">
                   {enabledItems.map((itemObj) => {
                     const renderUrl = getItemRenderUrl(itemObj.item);
                     const color = getRarityColor(itemObj.item.rarity);
@@ -551,7 +551,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                     return (
                       <div
                         key={itemObj.id}
-                        className="relative flex flex-col justify-between bg-[#1c1c1f] rounded-lg p-2 min-h-[96px] border-2 shadow-md transition-all duration-300"
+                        className="relative flex flex-col justify-between bg-[#1c1c1f] rounded-lg p-2 min-h-[96px] border-2 shadow-md transition-all duration-300 animate-fade-in"
                         style={{ borderColor: color }}
                       >
                         {/* Name at Top Center */}
