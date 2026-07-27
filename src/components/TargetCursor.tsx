@@ -219,6 +219,13 @@ export const TargetCursor: React.FC<TargetCursorProps> = ({
       }
       const target = allTargets[0] || null;
       if (!target || !cursorRef.current || !cornersRef.current) return;
+
+      // Ignore hover targets outside the modal overlay when a modal is open
+      const activeModal = document.querySelector('.fixed.inset-0.z-50');
+      if (activeModal && !activeModal.contains(target)) {
+        return;
+      }
+
       if (activeTarget === target) return;
       if (activeTarget) {
         cleanupTarget(activeTarget);

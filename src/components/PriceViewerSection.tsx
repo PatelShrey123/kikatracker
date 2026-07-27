@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Tag, Sparkles, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 
@@ -18,6 +18,12 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRarity, setSelectedRarity] = useState<string>('ALL');
   const [selectedType, setSelectedType] = useState<string>('ALL');
+  const [visibleCount, setVisibleCount] = useState(25);
+
+  // Reset pagination when filter values change
+  useEffect(() => {
+    setVisibleCount(25);
+  }, [searchTerm, selectedRarity, selectedType]);
 
   // Parse and cache unique items from Bolt marketPrices map
   const uniqueItems = useMemo(() => {
@@ -201,73 +207,88 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
           No pricing values match your search query.
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {filteredItems.map((item, index) => {
-            const rarityStyles = getRarityStyles(item.rarity);
-            const renderUrl = getItemRenderUrl(item);
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {filteredItems.slice(0, visibleCount).map((item, index) => {
+              const rarityStyles = getRarityStyles(item.rarity);
+              const renderUrl = getItemRenderUrl(item);
 
-            return (
-              <div
-                key={item.skinName + '-' + item.type + '-' + index}
-                onClick={() => onInspectItem?.(item.skinName, item.type)}
-                className={`relative flex flex-col justify-between bg-gradient-to-b from-[#161824] to-[#0c0d13] border rounded-2xl p-4 transition-all duration-300 hover:scale-[1.03] select-none hover:shadow-lg cursor-pointer ${rarityStyles.split(' ')[0]}`}
-              >
-                {/* Rarity Border Highlight */}
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+              return (
+                <div
+                  key={item.skinName + '-' + item.type + '-' + index}
+                  onClick={() => onInspectItem?.(item.skinName, item.type)}
+                  className={`relative flex flex-col justify-between bg-gradient-to-b from-[#161824] to-[#0c0d13] border rounded-2xl p-4 transition-all duration-300 hover:scale-[1.03] select-none hover:shadow-lg cursor-pointer ${rarityStyles.split(' ')[0]}`}
+                >
+                  {/* Rarity Border Highlight */}
+                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
-                {/* Top Info */}
-                <div className="flex justify-between items-start mb-2">
-                  <span className={`text-[8px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${getRarityBadgeColor(item.rarity)}`}>
-                    {item.rarity || 'Common'}
-                  </span>
-                  <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider font-bold">
-                    {item.type || 'Skin'}
-                  </span>
-                </div>
-
-                {/* 3D Skin Render */}
-                <div className="h-28 flex items-center justify-center relative my-2">
-                  {renderUrl ? (
-                    <img
-                      src={getProxiedImageUrl(renderUrl)}
-                      alt={item.skinName}
-                      className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)] hover:rotate-6 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-obsidian-deep/50 border border-white/5 flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-slate-600" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Bottom Stats */}
-                <div className="space-y-2.5 pt-2.5 border-t border-white/5">
-                  <div className="text-center">
-                    <span className="text-xs font-black text-white uppercase tracking-wide line-clamp-1">
-                      {item.skinName}
+                  {/* Top Info */}
+                  <div className="flex justify-between items-start mb-2">
+                    <span className={`text-[8px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${getRarityBadgeColor(item.rarity)}`}>
+                      {item.rarity || 'Common'}
                     </span>
-                    {item.obtainableBy && (
-                      <span className="text-[8px] text-slate-500 font-mono block mt-0.5 max-w-full truncate uppercase">
-                        {item.obtainableBy}
-                      </span>
+                    <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider font-bold">
+                      {item.type || 'Skin'}
+                    </span>
+                  </div>
+
+                  {/* 3D Skin Render */}
+                  <div className="h-28 flex items-center justify-center relative my-2">
+                    {renderUrl ? (
+                      <img
+                        src={getProxiedImageUrl(renderUrl)}
+                        alt={item.skinName}
+                        loading="lazy"
+                        className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)] hover:rotate-6 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-obsidian-deep/50 border border-white/5 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-slate-600" />
+                      </div>
                     )}
                   </div>
 
-                  {/* Valuation badge */}
-                  <div className="bg-[#04050a]/90 border border-white/5 rounded-xl px-2 py-2 flex items-center justify-center space-x-1.5">
-                    <img
-                      src={`${import.meta.env.BASE_URL}kirka_coin.png`}
-                      alt="Coins"
-                      className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]"
-                    />
-                    <span className="text-xs font-mono font-bold text-gold-bright">
-                      {formatWithSpaces(item.baseValue)}
-                    </span>
+                  {/* Bottom Stats */}
+                  <div className="space-y-2.5 pt-2.5 border-t border-white/5">
+                    <div className="text-center">
+                      <span className="text-xs font-black text-white uppercase tracking-wide line-clamp-1">
+                        {item.skinName}
+                      </span>
+                      {item.obtainableBy && (
+                        <span className="text-[8px] text-slate-500 font-mono block mt-0.5 max-w-full truncate uppercase">
+                          {item.obtainableBy}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Valuation badge */}
+                    <div className="bg-[#04050a]/90 border border-white/5 rounded-xl px-2 py-2 flex items-center justify-center space-x-1.5">
+                      <img
+                        src={`${import.meta.env.BASE_URL}kirka_coin.png`}
+                        alt="Coins"
+                        className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]"
+                      />
+                      <span className="text-xs font-mono font-bold text-gold-bright">
+                        {formatWithSpaces(item.baseValue)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {filteredItems.length > visibleCount && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={() => setVisibleCount(prev => prev + 25)}
+                className="px-6 py-3 bg-obsidian-card hover:bg-[#1b1e2e] border border-obsidian-border hover:border-gold-primary/30 rounded-xl text-xs font-bold text-slate-300 transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center space-x-2"
+              >
+                <span>Load More Items</span>
+                <span className="text-[10px] font-mono text-slate-500">({filteredItems.length - visibleCount} remaining)</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
