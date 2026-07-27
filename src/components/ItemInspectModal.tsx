@@ -26,7 +26,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const normalizedName = itemName.toLowerCase();
+  const cleanName = itemName.replace(/^_+/, '');
+  const normalizedName = cleanName.toLowerCase();
   const normalizedType = itemType.toLowerCase();
 
   // 1. Get pricing details from Bolt (Google Sheet)

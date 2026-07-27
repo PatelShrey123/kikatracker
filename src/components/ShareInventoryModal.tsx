@@ -40,7 +40,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
       
       const initial = sorted.map((invItem, idx) => ({
         id: invItem.item.id,
-        name: invItem.item.name,
+        name: invItem.item.name.replace(/^_+/, ''),
         amount: invItem.amount,
         price: getItemPrice(invItem.item),
         enabled: idx < 15, // Default enable top 15 items
@@ -109,7 +109,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
     );
     const reset = sorted.map((invItem, idx) => ({
       id: invItem.item.id,
-      name: invItem.item.name,
+      name: invItem.item.name.replace(/^_+/, ''),
       amount: invItem.amount,
       price: getItemPrice(invItem.item),
       enabled: idx < 15,

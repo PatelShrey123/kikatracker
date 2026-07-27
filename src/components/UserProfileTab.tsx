@@ -73,12 +73,13 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   // Helper to map item to market price
   const getItemPrice = (item: any) => {
     if (!item) return 0;
+    const cleanName = item.name.replace(/^_+/, '');
     const isCharacter = item.type === 'BODY_SKIN';
     const parentName = item.parent?.name || '';
     const itemTypeKey = isCharacter ? 'character' : parentName;
     
-    const compositeKey = `${item.name.toLowerCase()}_${itemTypeKey.toLowerCase()}`;
-    const nameKey = item.name.toLowerCase();
+    const compositeKey = `${cleanName.toLowerCase()}_${itemTypeKey.toLowerCase()}`;
+    const nameKey = cleanName.toLowerCase();
 
     const matched = marketPrices.get(compositeKey) || marketPrices.get(nameKey);
     return matched ? matched.baseValue : (item.salePrice || 0);
@@ -90,12 +91,13 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     if (item.renderUrl) return item.renderUrl;
 
     // Check fallback renders map
-    const nameKey = item.name.toLowerCase();
+    const cleanName = item.name.replace(/^_+/, '');
+    const nameKey = cleanName.toLowerCase();
     const fallback = fallbackRenders[nameKey];
     if (fallback && fallback.renderurl) return fallback.renderurl;
 
     if (item.parent?.name) {
-      const comboKey = `${item.name.toLowerCase()} ${item.parent.name.toLowerCase()}`;
+      const comboKey = `${cleanName.toLowerCase()} ${item.parent.name.toLowerCase()}`;
       const comboFallback = fallbackRenders[comboKey];
       if (comboFallback && comboFallback.renderurl) return comboFallback.renderurl;
     }
@@ -103,7 +105,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     const matched = publicItems.find(
       (p) =>
         p.id === item.id ||
-        (p.name.toLowerCase() === item.name.toLowerCase() &&
+        (p.name.toLowerCase() === cleanName.toLowerCase() &&
           p.type.toLowerCase() === item.type.toLowerCase())
     );
     return matched ? matched.renderUrl : null;
@@ -615,7 +617,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                           {item.type === 'BODY_SKIN' ? 'Body Skin' : item.parent?.name || 'Weapon Skin'}
                         </span>
                         <h4 className="text-sm font-extrabold text-white line-clamp-1 group-hover:text-gold-bright transition-colors">
-                          {item.name}
+                          {item.name.replace(/^_+/, '')}
                         </h4>
                       </div>
 
