@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera } from 'lucide-react';
+import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera, GitCompare } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import { fetchUserInventory, fetchAllPublicItems } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
+import { CompareModal } from './CompareModal';
 
 interface UserProfileTabProps {
   profile: UserProfile;
@@ -32,6 +33,8 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [croppedHeadUrl, setCroppedHeadUrl] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareInitialType, setCompareInitialType] = useState<'stats' | 'inventory'>('stats');
 
   // Sync inventory & public items
   useEffect(() => {
@@ -235,29 +238,58 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-obsidian-border">
-        <button
-          onClick={() => setProfileTab('stats')}
-          className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
-            profileTab === 'stats'
-              ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
-              : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
-          }`}
-        >
-          <Target className="w-4 h-4" />
-          <span>Stats & Loadout</span>
-        </button>
-        <button
-          onClick={() => setProfileTab('inventory')}
-          className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
-            profileTab === 'inventory'
-              ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
-              : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          <span>Inventory Valuation</span>
-        </button>
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-obsidian-border gap-3 sm:gap-0">
+        <div className="flex">
+          <button
+            onClick={() => setProfileTab('stats')}
+            className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+              profileTab === 'stats'
+                ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
+            }`}
+          >
+            <Target className="w-4 h-4" />
+            <span>Stats & Loadout</span>
+          </button>
+          <button
+            onClick={() => setProfileTab('inventory')}
+            className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+              profileTab === 'inventory'
+                ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
+            }`}
+          >
+            <Database className="w-4 h-4" />
+            <span>Inventory Valuation</span>
+          </button>
+        </div>
+
+        {/* Compare Profile Buttons aligned right */}
+        <div className="px-4 pb-2.5 sm:pb-0">
+          {profileTab === 'stats' ? (
+            <button
+              onClick={() => {
+                setCompareInitialType('stats');
+                setCompareOpen(true);
+              }}
+              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-indigo-500/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <GitCompare className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Compare Stats</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setCompareInitialType('inventory');
+                setCompareOpen(true);
+              }}
+              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-gold-primary/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <GitCompare className="w-3.5 h-3.5 text-gold-primary" />
+              <span>Compare Inventory</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tab Contents */}
@@ -648,6 +680,18 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
         getItemPrice={getItemPrice}
         getItemRenderUrl={getItemRenderUrl}
         username={profile.name}
+      />
+
+      <CompareModal
+        isOpen={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        primaryProfile={profile}
+        primaryInventory={inventory}
+        marketPrices={marketPrices}
+        fallbackRenders={fallbackRenders}
+        publicItems={publicItems}
+        allItemData={allItemData}
+        initialType={compareInitialType}
       />
     </div>
   );
