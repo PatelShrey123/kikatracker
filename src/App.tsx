@@ -384,6 +384,9 @@ function App() {
                       marketPrices={marketPrices}
                       publicItems={publicItems}
                       fallbackRenders={fallbackRenders}
+                      onInspectItem={(name, type) => {
+                        setInspectItem({ name, type, amount: 1 });
+                      }}
                     />
                   )}
                 </motion.div>

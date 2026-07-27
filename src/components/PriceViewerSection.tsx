@@ -6,12 +6,14 @@ interface PriceViewerSectionProps {
   marketPrices: Map<string, MarketItem>;
   publicItems: any[];
   fallbackRenders: Record<string, any>;
+  onInspectItem?: (name: string, type: string) => void;
 }
 
 export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
   marketPrices,
   publicItems,
   fallbackRenders,
+  onInspectItem,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRarity, setSelectedRarity] = useState<string>('ALL');
@@ -207,7 +209,8 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
             return (
               <div
                 key={item.skinName + '-' + item.type + '-' + index}
-                className={`relative flex flex-col justify-between bg-gradient-to-b from-[#161824] to-[#0c0d13] border rounded-2xl p-4 transition-all duration-300 hover:scale-[1.03] select-none hover:shadow-lg ${rarityStyles.split(' ')[0]}`}
+                onClick={() => onInspectItem?.(item.skinName, item.type)}
+                className={`relative flex flex-col justify-between bg-gradient-to-b from-[#161824] to-[#0c0d13] border rounded-2xl p-4 transition-all duration-300 hover:scale-[1.03] select-none hover:shadow-lg cursor-pointer ${rarityStyles.split(' ')[0]}`}
               >
                 {/* Rarity Border Highlight */}
                 <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
