@@ -520,7 +520,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   </div>
                 </div>
               ) : (
-                /* INVENTORY VALUATION SPLIT VIEW (Matches Customize Valuation side-by-side design) */
+                /* INVENTORY VALUATION SPLIT VIEW (Spacious lists with fixed height) */
                 <div className="flex-grow flex flex-col min-h-0 space-y-4">
                   
                   {/* Valuation Summary row */}
@@ -545,7 +545,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   </div>
 
                   {/* SIDE-BY-SIDE SPLIT PANELS (NO TABBING) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-grow overflow-hidden min-h-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-grow min-h-0">
                     
                     {/* LEFT PANEL: Player 1 (My) Inventory Selector */}
                     <div className="flex flex-col min-h-0 bg-[#090A0F]/30 border border-white/5 rounded-2xl p-4">
@@ -557,7 +557,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                       </div>
 
                       {/* Search box for filtering my items */}
-                      <div className="relative mb-3">
+                      <div className="relative mb-3 select-text">
                         <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
@@ -568,8 +568,8 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                         />
                       </div>
 
-                      {/* Scrollable checklist */}
-                      <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
+                      {/* Spacious list with fixed height */}
+                      <div className="h-[380px] overflow-y-auto space-y-2 pr-1 select-none">
                         {sortedMyInventory.slice(0, myVisibleCount).map((invItem) => {
                           const isSelected = !!mySelected[invItem.item.id];
                           const price = getItemPrice(invItem.item);
@@ -579,16 +579,16 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                           return (
                             <div
                               key={invItem.item.id}
-                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all select-none border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : ''}`}
+                              onClick={() => handleToggleMyItem(invItem.item.id)}
+                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all cursor-pointer border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : ''}`}
                             >
                               <div className="flex items-center space-x-3 flex-grow min-w-0">
                                 {/* Checkbox */}
-                                <button
-                                  onClick={() => handleToggleMyItem(invItem.item.id)}
-                                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer ${isSelected ? 'border-indigo-500 bg-indigo-500 text-slate-900' : 'border-white/10 bg-[#090A0F] hover:border-white/20'}`}
+                                <div
+                                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${isSelected ? 'border-indigo-500 bg-indigo-500 text-slate-900' : 'border-white/10 bg-[#090A0F]'}`}
                                 >
                                   {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                                </button>
+                                </div>
 
                                 {/* Render Preview Box */}
                                 <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -611,10 +611,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
                                 {/* Skin Info */}
                                 <div className="truncate pr-2 min-w-0">
-                                  <span 
-                                    onClick={() => handleToggleMyItem(invItem.item.id)}
-                                    className="font-extrabold text-xs text-slate-200 block truncate uppercase tracking-wide cursor-pointer hover:text-indigo-400 transition-colors"
-                                  >
+                                  <span className="font-extrabold text-xs text-slate-200 block truncate uppercase tracking-wide">
                                     {cleanName}
                                   </span>
                                   <span className="text-[9px] font-mono text-slate-500 uppercase block mt-0.5">x{invItem.amount} Units</span>
@@ -624,9 +621,12 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                               {/* Right Side: Qty Adjuster & Price Badge */}
                               <div className="flex items-center space-x-2.5 flex-shrink-0">
                                 {isSelected && (
-                                  <div className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow">
+                                  <div 
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow"
+                                  >
                                     <button
-                                      onClick={() => handleAdjustMyItemQty(invItem.item.id, false, invItem.amount)}
+                                      onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, false, invItem.amount); }}
                                       className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Minus className="w-2.5 h-2.5" />
@@ -635,7 +635,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                       {mySelected[invItem.item.id]}
                                     </span>
                                     <button
-                                      onClick={() => handleAdjustMyItemQty(invItem.item.id, true, invItem.amount)}
+                                      onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, true, invItem.amount); }}
                                       className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Plus className="w-2.5 h-2.5" />
@@ -662,7 +662,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
                         {sortedMyInventory.length > myVisibleCount && (
                           <button
-                            onClick={() => setMyVisibleCount(prev => prev + 15)}
+                            onClick={(e) => { e.stopPropagation(); setMyVisibleCount(prev => prev + 15); }}
                             className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
                           >
                             Load More Skins
@@ -681,7 +681,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                       </div>
 
                       {/* Search box for filtering opponent's items */}
-                      <div className="relative mb-3">
+                      <div className="relative mb-3 select-text">
                         <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
@@ -692,8 +692,8 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                         />
                       </div>
 
-                      {/* Scrollable checklist */}
-                      <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
+                      {/* Spacious list with fixed height */}
+                      <div className="h-[380px] overflow-y-auto space-y-2 pr-1 select-none">
                         {sortedTheirInventory.slice(0, theirVisibleCount).map((invItem) => {
                           const isSelected = !!theirSelected[invItem.item.id];
                           const price = getItemPrice(invItem.item);
@@ -703,16 +703,16 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                           return (
                             <div
                               key={invItem.item.id}
-                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all select-none border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-gold-primary/30 bg-gold-primary/[0.01]' : ''}`}
+                              onClick={() => handleToggleTheirItem(invItem.item.id)}
+                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all cursor-pointer border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-gold-primary/30 bg-gold-primary/[0.01]' : ''}`}
                             >
                               <div className="flex items-center space-x-3 flex-grow min-w-0">
                                 {/* Checkbox */}
-                                <button
-                                  onClick={() => handleToggleTheirItem(invItem.item.id)}
-                                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer ${isSelected ? 'border-gold-primary bg-gold-primary text-slate-900' : 'border-white/10 bg-[#090A0F] hover:border-white/20'}`}
+                                <div
+                                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${isSelected ? 'border-gold-primary bg-gold-primary text-slate-900' : 'border-white/10 bg-[#090A0F]'}`}
                                 >
                                   {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                                </button>
+                                </div>
 
                                 {/* Render Preview Box */}
                                 <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -735,10 +735,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
                                 {/* Skin Info */}
                                 <div className="truncate pr-2 min-w-0">
-                                  <span 
-                                    onClick={() => handleToggleTheirItem(invItem.item.id)}
-                                    className="font-extrabold text-xs text-slate-200 block truncate uppercase tracking-wide cursor-pointer hover:text-gold-bright transition-colors"
-                                  >
+                                  <span className="font-extrabold text-xs text-slate-200 block truncate uppercase tracking-wide">
                                     {cleanName}
                                   </span>
                                   <span className="text-[9px] font-mono text-slate-500 uppercase block mt-0.5">x{invItem.amount} Units</span>
@@ -748,9 +745,12 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                               {/* Right Side: Qty Adjuster & Price Badge */}
                               <div className="flex items-center space-x-2.5 flex-shrink-0">
                                 {isSelected && (
-                                  <div className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow">
+                                  <div 
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow"
+                                  >
                                     <button
-                                      onClick={() => handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount)}
+                                      onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount); }}
                                       className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Minus className="w-2.5 h-2.5" />
@@ -759,7 +759,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                       {theirSelected[invItem.item.id]}
                                     </span>
                                     <button
-                                      onClick={() => handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount)}
+                                      onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount); }}
                                       className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Plus className="w-2.5 h-2.5" />
@@ -786,7 +786,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
                         {sortedTheirInventory.length > theirVisibleCount && (
                           <button
-                            onClick={() => setTheirVisibleCount(prev => prev + 15)}
+                            onClick={(e) => { e.stopPropagation(); setTheirVisibleCount(prev => prev + 15); }}
                             className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
                           >
                             Load More Skins
@@ -825,7 +825,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                     </div>
 
                     {generatedTradeCommand ? (
-                      <div className="space-y-2">
+                      <div className="space-y-2 select-text">
                         <p className="text-[10px] text-slate-400">Copy this trade command paste it directly inside the Kirka.io game chat to create a trade offer immediately:</p>
                         <div 
                           onClick={handleCopyCommand}
