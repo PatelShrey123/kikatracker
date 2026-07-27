@@ -13,6 +13,7 @@ import { ChatSection } from './components/ChatSection';
 import { TradesSection } from './components/TradesSection';
 import { ItemInspectModal } from './components/ItemInspectModal';
 import { PriceViewerSection } from './components/PriceViewerSection';
+import { CompareSection } from './components/CompareSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -108,6 +109,9 @@ function App() {
     }
     if (cleanPath === '/prices') {
       return { tab: 'prices', player: null, clan: null };
+    }
+    if (cleanPath.startsWith('/compare')) {
+      return { tab: 'compare', player: null, clan: null };
     }
     return { tab: 'search', player: null, clan: null };
   };
@@ -323,6 +327,11 @@ function App() {
                             navigate('search');
                             setSearchError(null);
                           }}
+                          onCompare={(id, type) => {
+                            const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+                            window.history.pushState(null, '', `${prefix}/compare?p1=${id}&type=${type}`);
+                            setActiveTab('compare');
+                          }}
                         />
                       ) : (
                         <SearchSection
@@ -387,6 +396,14 @@ function App() {
                       onInspectItem={(name, type) => {
                         setInspectItem({ name, type, amount: 1 });
                       }}
+                    />
+                  )}
+                  {activeTab === 'compare' && (
+                    <CompareSection
+                      marketPrices={marketPrices}
+                      fallbackRenders={fallbackRenders}
+                      publicItems={publicItems}
+                      allItemData={allItemData}
                     />
                   )}
                 </motion.div>

@@ -6,8 +6,6 @@ import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
-import { CompareModal } from './CompareModal';
-
 interface UserProfileTabProps {
   profile: UserProfile;
   onBack: () => void;
@@ -16,6 +14,7 @@ interface UserProfileTabProps {
   fallbackRenders: Record<string, any>;
   onInspectItem: (name: string, type?: string, amount?: number) => void;
   allItemData: any[];
+  onCompare: (id: string, type: 'stats' | 'inventory') => void;
 }
 
 export const UserProfileTab: React.FC<UserProfileTabProps> = ({ 
@@ -25,7 +24,8 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   onSelectClan,
   fallbackRenders,
   onInspectItem,
-  allItemData
+  allItemData,
+  onCompare
 }) => {
   const [profileTab, setProfileTab] = useState<'stats' | 'inventory'>('stats');
   const [inventory, setInventory] = useState<UserInventoryItem[]>([]);
@@ -33,8 +33,6 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [croppedHeadUrl, setCroppedHeadUrl] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [compareOpen, setCompareOpen] = useState(false);
-  const [compareInitialType, setCompareInitialType] = useState<'stats' | 'inventory'>('stats');
 
   // Sync inventory & public items
   useEffect(() => {
@@ -268,10 +266,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
         <div className="px-4 pb-2.5 sm:pb-0">
           {profileTab === 'stats' ? (
             <button
-              onClick={() => {
-                setCompareInitialType('stats');
-                setCompareOpen(true);
-              }}
+              onClick={() => onCompare(profile.id, 'stats')}
               className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-indigo-500/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
             >
               <GitCompare className="w-3.5 h-3.5 text-indigo-400" />
@@ -279,10 +274,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
             </button>
           ) : (
             <button
-              onClick={() => {
-                setCompareInitialType('inventory');
-                setCompareOpen(true);
-              }}
+              onClick={() => onCompare(profile.id, 'inventory')}
               className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-gold-primary/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
             >
               <GitCompare className="w-3.5 h-3.5 text-gold-primary" />
@@ -682,17 +674,6 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
         username={profile.name}
       />
 
-      <CompareModal
-        isOpen={compareOpen}
-        onClose={() => setCompareOpen(false)}
-        primaryProfile={profile}
-        primaryInventory={inventory}
-        marketPrices={marketPrices}
-        fallbackRenders={fallbackRenders}
-        publicItems={publicItems}
-        allItemData={allItemData}
-        initialType={compareInitialType}
-      />
     </div>
   );
 };
