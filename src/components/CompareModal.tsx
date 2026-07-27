@@ -46,14 +46,13 @@ export const CompareModal: React.FC<CompareModalProps> = ({
   const [mySelected, setMySelected] = useState<Record<string, number>>({}); // id -> quantity
   const [theirSelected, setTheirSelected] = useState<Record<string, number>>({}); // id -> quantity
 
-  // Search filter inside comparison view
-  const [itemSearchTerm, setItemSearchTerm] = useState('');
+  // Search filters for both columns
+  const [mySearchTerm, setMySearchTerm] = useState('');
+  const [theirSearchTerm, setTheirSearchTerm] = useState('');
 
-  // active inventory view tab: 'mine' or 'theirs'
-  const [activeInventoryTab, setActiveInventoryTab] = useState<'mine' | 'theirs'>('mine');
-
-  // Pagination states to avoid rendering lag
-  const [visibleCount, setVisibleCount] = useState(15);
+  // Pagination states for both columns to ensure lag-free rendering
+  const [myVisibleCount, setMyVisibleCount] = useState(15);
+  const [theirVisibleCount, setTheirVisibleCount] = useState(15);
 
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -66,18 +65,23 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       setCompareInventory([]);
       setMySelected({});
       setTheirSelected({});
-      setItemSearchTerm('');
-      setActiveInventoryTab('mine');
-      setVisibleCount(15);
+      setMySearchTerm('');
+      setTheirSearchTerm('');
+      setMyVisibleCount(15);
+      setTheirVisibleCount(15);
       setError(null);
       setCopySuccess(false);
     }
   }, [isOpen, initialType]);
 
-  // Reset visible counts when typing or changing tabs
+  // Reset visible counts when typing in search bars
   useEffect(() => {
-    setVisibleCount(15);
-  }, [itemSearchTerm, activeInventoryTab]);
+    setMyVisibleCount(15);
+  }, [mySearchTerm]);
+
+  useEffect(() => {
+    setTheirVisibleCount(15);
+  }, [theirSearchTerm]);
 
   // Helper to resolve skin image render URL
   const getItemRenderUrl = (item: any) => {
@@ -182,16 +186,16 @@ export const CompareModal: React.FC<CompareModalProps> = ({
     return [...primaryInventory]
       .filter(i => i && i.item && i.item.name)
       .sort((a, b) => getItemPrice(b.item) - getItemPrice(a.item))
-      .filter(i => i.item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()));
-  }, [primaryInventory, itemSearchTerm]);
+      .filter(i => i.item.name.toLowerCase().includes(mySearchTerm.toLowerCase()));
+  }, [primaryInventory, mySearchTerm]);
 
   const sortedTheirInventory = useMemo(() => {
     if (!Array.isArray(compareInventory)) return [];
     return [...compareInventory]
       .filter(i => i && i.item && i.item.name)
       .sort((a, b) => getItemPrice(b.item) - getItemPrice(a.item))
-      .filter(i => i.item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()));
-  }, [compareInventory, itemSearchTerm]);
+      .filter(i => i.item.name.toLowerCase().includes(theirSearchTerm.toLowerCase()));
+  }, [compareInventory, theirSearchTerm]);
 
   // Click selectors for items
   const handleToggleMyItem = (itemId: string) => {
@@ -264,7 +268,6 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       const match = primaryInventory.find(i => i && i.item && i.item.id === id);
       if (match && match.item && match.item.name) {
         const cleanName = match.item.name.replace(/^_+/, '');
-        // Omit "x1" suffix if quantity is 1
         const qtyStr = qty > 1 ? `x${qty}` : '';
         myOffers.push(`${cleanName}${qtyStr}`);
       }
@@ -275,7 +278,6 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       const match = compareInventory.find(i => i && i.item && i.item.id === id);
       if (match && match.item && match.item.name) {
         const cleanName = match.item.name.replace(/^_+/, '');
-        // Omit "x1" suffix if quantity is 1
         const qtyStr = qty > 1 ? `x${qty}` : '';
         theirOffers.push(`${cleanName}${qtyStr}`);
       }
@@ -301,8 +303,6 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       .catch(err => console.error('Failed to copy trade offer command:', err));
   };
 
-  
-
   const renderComparisonRow = (label: string, val1: number, val2: number, formatFn: (v: number) => string, higherIsBetter = true) => {
     const total = val1 + val2;
     const pct1 = total > 0 ? (val1 / total) * 100 : 50;
@@ -313,13 +313,13 @@ export const CompareModal: React.FC<CompareModalProps> = ({
     const isEqual = val1 === val2;
 
     return (
-      <div className="space-y-2 py-4 border-b border-white/5">
+      <div className="space-y-2 py-4 border-b border-white/5 font-mono">
         <div className="flex justify-between items-center text-xs">
-          <span className={`font-mono font-bold ${isEqual ? 'text-slate-300' : isVal1Better ? 'text-emerald-400 font-extrabold text-sm' : 'text-rose-500/80'}`}>
+          <span className={`font-bold ${isEqual ? 'text-slate-300' : isVal1Better ? 'text-emerald-400 font-extrabold text-sm' : 'text-rose-500/80'}`}>
             {formatFn(val1)}
           </span>
-          <span className="font-mono text-[9px] tracking-wider text-slate-500 uppercase font-black">{label}</span>
-          <span className={`font-mono font-bold ${isEqual ? 'text-slate-300' : isVal2Better ? 'text-emerald-400 font-extrabold text-sm' : 'text-rose-500/80'}`}>
+          <span className="text-[9px] tracking-wider text-slate-500 uppercase font-black">{label}</span>
+          <span className={`font-bold ${isEqual ? 'text-slate-300' : isVal2Better ? 'text-emerald-400 font-extrabold text-sm' : 'text-rose-500/80'}`}>
             {formatFn(val2)}
           </span>
         </div>
@@ -343,9 +343,6 @@ export const CompareModal: React.FC<CompareModalProps> = ({
   const mySelectedCount = Object.keys(mySelected).length;
   const theirSelectedCount = Object.keys(theirSelected).length;
 
-  // Select items list based on inventory tab choice
-  const activeItemsList = activeInventoryTab === 'mine' ? sortedMyInventory : sortedTheirInventory;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Background Mask overlay */}
@@ -355,7 +352,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       />
 
       {/* Modal Box */}
-      <div className="relative max-w-2xl w-full bg-[#12141D] border border-obsidian-border rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] select-text animate-fade-in">
+      <div className="relative max-w-6xl w-full bg-[#12141D] border border-obsidian-border rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] select-text animate-fade-in">
         
         {/* Header Block */}
         <div className="p-6 border-b border-obsidian-border/50 bg-[#0b0c13] flex justify-between items-center flex-shrink-0">
@@ -523,9 +520,10 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   </div>
                 </div>
               ) : (
-                /* INVENTORY VALUATION VIEW (Unified select, matching user screenshot) */
+                /* INVENTORY VALUATION SPLIT VIEW (Matches Customize Valuation side-by-side design) */
                 <div className="flex-grow flex flex-col min-h-0 space-y-4">
-                  {/* Top Stats summary row */}
+                  
+                  {/* Valuation Summary row */}
                   <div className="grid grid-cols-3 gap-3 border-b border-white/5 pb-4 select-none">
                     <div className="bg-[#090A0F]/80 p-2 text-center rounded-lg">
                       <span className="text-slate-500 text-[8px] font-mono uppercase block">Metric</span>
@@ -546,138 +544,257 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Horizontal Tabs to choose whose inventory to browse */}
-                  <div className="flex bg-[#0b0c13] p-1 rounded-xl border border-white/5 select-none">
-                    <button
-                      onClick={() => setActiveInventoryTab('mine')}
-                      className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all cursor-pointer ${activeInventoryTab === 'mine' ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/20' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                      Your Skins {mySelectedCount > 0 && <span className="ml-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-indigo-500 text-white font-extrabold">{mySelectedCount}</span>}
-                    </button>
-                    <button
-                      onClick={() => setActiveInventoryTab('theirs')}
-                      className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all cursor-pointer ${activeInventoryTab === 'theirs' ? 'bg-gold-primary/15 text-gold-bright border border-gold-primary/20' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                      {compareProfile.name}'s Skins {theirSelectedCount > 0 && <span className="ml-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-gold-primary text-white font-extrabold">{theirSelectedCount}</span>}
-                    </button>
-                  </div>
+                  {/* SIDE-BY-SIDE SPLIT PANELS (NO TABBING) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-grow overflow-hidden min-h-0">
+                    
+                    {/* LEFT PANEL: Player 1 (My) Inventory Selector */}
+                    <div className="flex flex-col min-h-0 bg-[#090A0F]/30 border border-white/5 rounded-2xl p-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-white/5 mb-3 select-none">
+                        <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">Your Skins</span>
+                        {mySelectedCount > 0 && (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-indigo-500 text-white font-extrabold">{mySelectedCount} Selected</span>
+                        )}
+                      </div>
 
-                  {/* Search box for filtering items */}
-                  <div className="relative">
-                    <Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder={`Search ${activeInventoryTab === 'mine' ? 'your' : compareProfile.name + "'s"} inventory...`}
-                      value={itemSearchTerm}
-                      onChange={(e) => setItemSearchTerm(e.target.value)}
-                      className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-11 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
-                    />
-                  </div>
+                      {/* Search box for filtering my items */}
+                      <div className="relative mb-3">
+                        <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search your skins..."
+                          value={mySearchTerm}
+                          onChange={(e) => setMySearchTerm(e.target.value)}
+                          className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/20 transition-all"
+                        />
+                      </div>
 
-                  {/* Spacious single list of items (Matching User Customization screenshot layout) */}
-                  <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
-                    {activeItemsList.slice(0, visibleCount).map((invItem) => {
-                      const isSelected = activeInventoryTab === 'mine' ? !!mySelected[invItem.item.id] : !!theirSelected[invItem.item.id];
-                      const price = getItemPrice(invItem.item);
-                      const renderUrl = getItemRenderUrl(invItem.item);
-                      const cleanName = invItem.item.name.replace(/^_+/, '');
+                      {/* Scrollable checklist */}
+                      <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
+                        {sortedMyInventory.slice(0, myVisibleCount).map((invItem) => {
+                          const isSelected = !!mySelected[invItem.item.id];
+                          const price = getItemPrice(invItem.item);
+                          const renderUrl = getItemRenderUrl(invItem.item);
+                          const cleanName = invItem.item.name.replace(/^_+/, '');
 
-                      return (
-                        <div
-                          key={invItem.item.id}
-                          className={`group relative border rounded-2xl p-4 flex items-center justify-between transition-all select-none border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'shadow-[0_0_12px_rgba(212,175,55,0.05)] border-gold-primary/30 bg-gold-primary/[0.02]' : ''}`}
-                        >
-                          <div className="flex items-center space-x-4 flex-grow min-w-0">
-                            {/* Checkbox Box */}
-                            <button
-                              onClick={() => activeInventoryTab === 'mine' ? handleToggleMyItem(invItem.item.id) : handleToggleTheirItem(invItem.item.id)}
-                              className={`w-5.5 h-5.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${isSelected ? 'border-gold-primary bg-gold-primary text-slate-900' : 'border-white/10 bg-[#090A0F] hover:border-white/20'}`}
+                          return (
+                            <div
+                              key={invItem.item.id}
+                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all select-none border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : ''}`}
                             >
-                              {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                            </button>
+                              <div className="flex items-center space-x-3 flex-grow min-w-0">
+                                {/* Checkbox */}
+                                <button
+                                  onClick={() => handleToggleMyItem(invItem.item.id)}
+                                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer ${isSelected ? 'border-indigo-500 bg-indigo-500 text-slate-900' : 'border-white/10 bg-[#090A0F] hover:border-white/20'}`}
+                                >
+                                  {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                </button>
 
-                            {/* Render Preview Box */}
-                            <div className="w-12 h-12 rounded-xl bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0 select-none">
-                              {renderUrl ? (
-                                <img
-                                  src={renderUrl}
-                                  alt={cleanName}
-                                  className="w-10 h-10 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] transform group-hover:scale-110 transition-transform duration-300"
-                                />
-                              ) : (
-                                <div className="text-slate-600">
-                                  {invItem.item.type === 'BODY_SKIN' ? (
-                                    <Shield className="w-5 h-5 opacity-30" />
+                                {/* Render Preview Box */}
+                                <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {renderUrl ? (
+                                    <img
+                                      src={renderUrl}
+                                      alt={cleanName}
+                                      className="w-8 h-8 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] transform group-hover:scale-110 transition-transform duration-300"
+                                    />
                                   ) : (
-                                    <Layers className="w-5 h-5 opacity-30" />
+                                    <div className="text-slate-600">
+                                      {invItem.item.type === 'BODY_SKIN' ? (
+                                        <Shield className="w-4 h-4 opacity-30" />
+                                      ) : (
+                                        <Layers className="w-4 h-4 opacity-30" />
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
 
-                            {/* Skin Info */}
-                            <div className="truncate pr-4 min-w-0">
-                              <span 
-                                onClick={() => activeInventoryTab === 'mine' ? handleToggleMyItem(invItem.item.id) : handleToggleTheirItem(invItem.item.id)}
-                                className="font-extrabold text-sm text-slate-200 block truncate uppercase tracking-wide cursor-pointer hover:text-gold-bright transition-colors"
-                              >
-                                {cleanName}
-                              </span>
-                              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block mt-0.5">x{invItem.amount} Units</span>
-                            </div>
-                          </div>
-
-                          {/* Right Side: Quantity selectors and Price badge */}
-                          <div className="flex items-center space-x-4 flex-shrink-0">
-                            {/* Quantity Adjustment Overlay when checked */}
-                            {isSelected && (
-                              <div className="flex items-center bg-[#090A0F] border border-white/10 rounded-xl overflow-hidden shadow-md animate-fade-in">
-                                <button
-                                  onClick={() => activeInventoryTab === 'mine' ? handleAdjustMyItemQty(invItem.item.id, false, invItem.amount) : handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount)}
-                                  className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <span className="px-3.5 font-mono font-bold text-xs text-white">
-                                  {activeInventoryTab === 'mine' ? mySelected[invItem.item.id] : theirSelected[invItem.item.id]}
-                                </span>
-                                <button
-                                  onClick={() => activeInventoryTab === 'mine' ? handleAdjustMyItemQty(invItem.item.id, true, invItem.amount) : handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount)}
-                                  className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
+                                {/* Skin Info */}
+                                <div className="truncate pr-2 min-w-0">
+                                  <span 
+                                    onClick={() => handleToggleMyItem(invItem.item.id)}
+                                    className="font-extrabold text-xs text-slate-200 block truncate uppercase tracking-wide cursor-pointer hover:text-indigo-400 transition-colors"
+                                  >
+                                    {cleanName}
+                                  </span>
+                                  <span className="text-[9px] font-mono text-slate-500 uppercase block mt-0.5">x{invItem.amount} Units</span>
+                                </div>
                               </div>
-                            )}
 
-                            {/* Price Badge Bubble */}
-                            <div className="bg-[#090A0F] border border-white/5 px-4.5 py-2.5 rounded-2xl flex items-center space-x-2 text-xs font-mono font-black text-slate-100 shadow-inner">
-                              <img
-                                src="kirka_coin.png"
-                                alt="coin"
-                                className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]"
-                              />
-                              <span className="text-slate-200">{formatValue(price)}</span>
+                              {/* Right Side: Qty Adjuster & Price Badge */}
+                              <div className="flex items-center space-x-2.5 flex-shrink-0">
+                                {isSelected && (
+                                  <div className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow">
+                                    <button
+                                      onClick={() => handleAdjustMyItemQty(invItem.item.id, false, invItem.amount)}
+                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    >
+                                      <Minus className="w-2.5 h-2.5" />
+                                    </button>
+                                    <span className="px-2 font-mono font-bold text-xs text-white">
+                                      {mySelected[invItem.item.id]}
+                                    </span>
+                                    <button
+                                      onClick={() => handleAdjustMyItemQty(invItem.item.id, true, invItem.amount)}
+                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    >
+                                      <Plus className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
+                                )}
+
+                                <div className="bg-[#090A0F] border border-white/5 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
+                                  <img
+                                    src="kirka_coin.png"
+                                    alt="coin"
+                                    className="w-3.5 h-3.5 object-contain"
+                                  />
+                                  <span>{formatValue(price)}</span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
 
-                    {activeItemsList.length === 0 && (
-                      <div className="text-center py-20 text-slate-500 text-xs border border-dashed border-white/5 rounded-3xl select-none">
-                        No skins found matching search query.
+                        {sortedMyInventory.length === 0 && (
+                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
+                        )}
+
+                        {sortedMyInventory.length > myVisibleCount && (
+                          <button
+                            onClick={() => setMyVisibleCount(prev => prev + 15)}
+                            className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
+                          >
+                            Load More Skins
+                          </button>
+                        )}
                       </div>
-                    )}
+                    </div>
 
-                    {activeItemsList.length > visibleCount && (
-                      <button
-                        onClick={() => setVisibleCount(prev => prev + 15)}
-                        className="w-full py-3 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-2xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
-                      >
-                        Load More Skins
-                      </button>
-                    )}
+                    {/* RIGHT PANEL: Player 2 (Their) Inventory Selector */}
+                    <div className="flex flex-col min-h-0 bg-[#090A0F]/30 border border-white/5 rounded-2xl p-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-white/5 mb-3 select-none">
+                        <span className="text-xs font-black uppercase text-gold-bright tracking-wider">{compareProfile.name}'s Skins</span>
+                        {theirSelectedCount > 0 && (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-gold-primary text-slate-900 font-extrabold">{theirSelectedCount} Selected</span>
+                        )}
+                      </div>
+
+                      {/* Search box for filtering opponent's items */}
+                      <div className="relative mb-3">
+                        <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder={`Search ${compareProfile.name}'s skins...`}
+                          value={theirSearchTerm}
+                          onChange={(e) => setTheirSearchTerm(e.target.value)}
+                          className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
+                        />
+                      </div>
+
+                      {/* Scrollable checklist */}
+                      <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
+                        {sortedTheirInventory.slice(0, theirVisibleCount).map((invItem) => {
+                          const isSelected = !!theirSelected[invItem.item.id];
+                          const price = getItemPrice(invItem.item);
+                          const renderUrl = getItemRenderUrl(invItem.item);
+                          const cleanName = invItem.item.name.replace(/^_+/, '');
+
+                          return (
+                            <div
+                              key={invItem.item.id}
+                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all select-none border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-gold-primary/30 bg-gold-primary/[0.01]' : ''}`}
+                            >
+                              <div className="flex items-center space-x-3 flex-grow min-w-0">
+                                {/* Checkbox */}
+                                <button
+                                  onClick={() => handleToggleTheirItem(invItem.item.id)}
+                                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer ${isSelected ? 'border-gold-primary bg-gold-primary text-slate-900' : 'border-white/10 bg-[#090A0F] hover:border-white/20'}`}
+                                >
+                                  {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                </button>
+
+                                {/* Render Preview Box */}
+                                <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {renderUrl ? (
+                                    <img
+                                      src={renderUrl}
+                                      alt={cleanName}
+                                      className="w-8 h-8 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] transform group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                  ) : (
+                                    <div className="text-slate-600">
+                                      {invItem.item.type === 'BODY_SKIN' ? (
+                                        <Shield className="w-4 h-4 opacity-30" />
+                                      ) : (
+                                        <Layers className="w-4 h-4 opacity-30" />
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Skin Info */}
+                                <div className="truncate pr-2 min-w-0">
+                                  <span 
+                                    onClick={() => handleToggleTheirItem(invItem.item.id)}
+                                    className="font-extrabold text-xs text-slate-200 block truncate uppercase tracking-wide cursor-pointer hover:text-gold-bright transition-colors"
+                                  >
+                                    {cleanName}
+                                  </span>
+                                  <span className="text-[9px] font-mono text-slate-500 uppercase block mt-0.5">x{invItem.amount} Units</span>
+                                </div>
+                              </div>
+
+                              {/* Right Side: Qty Adjuster & Price Badge */}
+                              <div className="flex items-center space-x-2.5 flex-shrink-0">
+                                {isSelected && (
+                                  <div className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow">
+                                    <button
+                                      onClick={() => handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount)}
+                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    >
+                                      <Minus className="w-2.5 h-2.5" />
+                                    </button>
+                                    <span className="px-2 font-mono font-bold text-xs text-white">
+                                      {theirSelected[invItem.item.id]}
+                                    </span>
+                                    <button
+                                      onClick={() => handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount)}
+                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    >
+                                      <Plus className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
+                                )}
+
+                                <div className="bg-[#090A0F] border border-white/5 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
+                                  <img
+                                    src="kirka_coin.png"
+                                    alt="coin"
+                                    className="w-3.5 h-3.5 object-contain"
+                                  />
+                                  <span>{formatValue(price)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {sortedTheirInventory.length === 0 && (
+                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
+                        )}
+
+                        {sortedTheirInventory.length > theirVisibleCount && (
+                          <button
+                            onClick={() => setTheirVisibleCount(prev => prev + 15)}
+                            className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
+                          >
+                            Load More Skins
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
                   </div>
 
                   {/* QUICK TRADE PANEL (Renders trade commands) */}
@@ -720,7 +837,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                       </div>
                     ) : (
                       <p className="text-xs text-slate-500 text-center py-2 font-mono">
-                        Select skins from Your Skins or Opponent's Skins above to formulate a trade command.
+                        Select skins from Your Skins (left) and Opponent's Skins (right) to formulate a trade command.
                       </p>
                     )}
                   </div>
@@ -736,7 +853,8 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   setCompareInventory([]);
                   setMySelected({});
                   setTheirSelected({});
-                  setItemSearchTerm('');
+                  setMySearchTerm('');
+                  setTheirSearchTerm('');
                   setSearchQuery('');
                   setError(null);
                   setCopySuccess(false);
