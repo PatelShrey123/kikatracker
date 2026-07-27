@@ -65,7 +65,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
               {/* Mascot Avatar Frame */}
               <div className="w-28 h-28 rounded-full overflow-hidden border border-indigo-500/35 bg-[#090A0F] flex items-center justify-center p-1.5 shadow-[0_0_20px_rgba(99,102,241,0.15)]">
                 <img
-                  src="/kikatracker_mascot.jpg"
+                  src={`${import.meta.env.BASE_URL}kikatracker_mascot.png`}
                   alt="Mascot Logo"
                   className="w-full h-full rounded-full object-cover brightness-105 contrast-105"
                 />
