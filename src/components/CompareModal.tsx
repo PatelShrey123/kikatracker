@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Search, GitCompare, Swords, Copy, Check, Plus, Minus, ArrowRightLeft } from 'lucide-react';
+import { X, Search, GitCompare, Swords, Copy, Check, Plus, Minus, ArrowRightLeft, Shield, Layers } from 'lucide-react';
 import { fetchUserProfile, fetchUserInventory } from '../utils/api';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
@@ -29,6 +29,8 @@ export const CompareModal: React.FC<CompareModalProps> = ({
   primaryProfile,
   primaryInventory,
   marketPrices,
+  fallbackRenders,
+  publicItems,
   initialType,
 }) => {
   const [compareType, setCompareType] = useState<'stats' | 'inventory'>(initialType);
@@ -47,9 +49,11 @@ export const CompareModal: React.FC<CompareModalProps> = ({
   // Search filter inside comparison view
   const [itemSearchTerm, setItemSearchTerm] = useState('');
 
-  // Pagination states for both inventories to avoid any rendering lag
-  const [myVisibleCount, setMyVisibleCount] = useState(15);
-  const [theirVisibleCount, setTheirVisibleCount] = useState(15);
+  // active inventory view tab: 'mine' or 'theirs'
+  const [activeInventoryTab, setActiveInventoryTab] = useState<'mine' | 'theirs'>('mine');
+
+  // Pagination states to avoid rendering lag
+  const [visibleCount, setVisibleCount] = useState(15);
 
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -63,20 +67,42 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       setMySelected({});
       setTheirSelected({});
       setItemSearchTerm('');
-      setMyVisibleCount(15);
-      setTheirVisibleCount(15);
+      setActiveInventoryTab('mine');
+      setVisibleCount(15);
       setError(null);
       setCopySuccess(false);
     }
   }, [isOpen, initialType]);
 
-  // Reset visible counts when typing search query
+  // Reset visible counts when typing or changing tabs
   useEffect(() => {
-    setMyVisibleCount(15);
-    setTheirVisibleCount(15);
-  }, [itemSearchTerm]);
+    setVisibleCount(15);
+  }, [itemSearchTerm, activeInventoryTab]);
 
-  
+  // Helper to resolve skin image render URL
+  const getItemRenderUrl = (item: any) => {
+    if (!item) return null;
+    if (item.renderUrl) return item.renderUrl;
+
+    const cleanName = item.name.replace(/^_+/, '');
+    const nameKey = cleanName.toLowerCase();
+    const fallback = fallbackRenders[nameKey];
+    if (fallback && fallback.renderurl) return fallback.renderurl;
+
+    if (item.parent?.name) {
+      const comboKey = `${cleanName.toLowerCase()} ${item.parent.name.toLowerCase()}`;
+      const comboFallback = fallbackRenders[comboKey];
+      if (comboFallback && comboFallback.renderurl) return comboFallback.renderurl;
+    }
+    
+    const matched = publicItems.find(
+      (p) =>
+        p.id === item.id ||
+        (p.name.toLowerCase() === cleanName.toLowerCase() &&
+          p.type.toLowerCase() === item.type.toLowerCase())
+    );
+    return matched ? matched.renderUrl : null;
+  };
 
   // Resolve item price helper
   const getItemPrice = (item: any) => {
@@ -92,8 +118,6 @@ export const CompareModal: React.FC<CompareModalProps> = ({
     const matched = marketPrices ? (marketPrices.get(compositeKey) || marketPrices.get(nameKey)) : null;
     return matched ? matched.baseValue : (item.salePrice || 0);
   };
-
-  
 
   // Perform search and load comparison user profile/inventory
   const handleLoadCompareUser = async (idOrName: string) => {
@@ -237,19 +261,23 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
     // Parse my offers
     Object.entries(mySelected).forEach(([id, qty]) => {
-      const match = primaryInventory.find(i => i.item.id === id);
-      if (match) {
+      const match = primaryInventory.find(i => i && i.item && i.item.id === id);
+      if (match && match.item && match.item.name) {
         const cleanName = match.item.name.replace(/^_+/, '');
-        myOffers.push(`${cleanName}x${qty}`);
+        // Omit "x1" suffix if quantity is 1
+        const qtyStr = qty > 1 ? `x${qty}` : '';
+        myOffers.push(`${cleanName}${qtyStr}`);
       }
     });
 
     // Parse their offers
     Object.entries(theirSelected).forEach(([id, qty]) => {
-      const match = compareInventory.find(i => i.item.id === id);
-      if (match) {
+      const match = compareInventory.find(i => i && i.item && i.item.id === id);
+      if (match && match.item && match.item.name) {
         const cleanName = match.item.name.replace(/^_+/, '');
-        theirOffers.push(`${cleanName}x${qty}`);
+        // Omit "x1" suffix if quantity is 1
+        const qtyStr = qty > 1 ? `x${qty}` : '';
+        theirOffers.push(`${cleanName}${qtyStr}`);
       }
     });
 
@@ -273,21 +301,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       .catch(err => console.error('Failed to copy trade offer command:', err));
   };
 
-  const getRarityBadgeColor = (rarity: string) => {
-    switch (rarity.toUpperCase()) {
-      case 'MYTHICAL':
-      case 'MYTHIC':
-        return 'bg-rarity-mythic/10 text-rarity-mythic border-rarity-mythic/20';
-      case 'LEGENDARY':
-        return 'bg-rarity-legendary/10 text-rarity-legendary border-rarity-legendary/20';
-      case 'EPIC':
-        return 'bg-rarity-epic/10 text-rarity-epic border-rarity-epic/20';
-      case 'RARE':
-        return 'bg-rarity-rare/10 text-rarity-rare border-rarity-rare/20';
-      default:
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
-    }
-  };
+  
 
   const renderComparisonRow = (label: string, val1: number, val2: number, formatFn: (v: number) => string, higherIsBetter = true) => {
     const total = val1 + val2;
@@ -325,6 +339,13 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Selected counts
+  const mySelectedCount = Object.keys(mySelected).length;
+  const theirSelectedCount = Object.keys(theirSelected).length;
+
+  // Select items list based on inventory tab choice
+  const activeItemsList = activeInventoryTab === 'mine' ? sortedMyInventory : sortedTheirInventory;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Background Mask overlay */}
@@ -334,7 +355,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       />
 
       {/* Modal Box */}
-      <div className="relative max-w-4xl w-full bg-[#12141D] border border-obsidian-border rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] select-text animate-fade-in">
+      <div className="relative max-w-2xl w-full bg-[#12141D] border border-obsidian-border rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] select-text animate-fade-in">
         
         {/* Header Block */}
         <div className="p-6 border-b border-obsidian-border/50 bg-[#0b0c13] flex justify-between items-center flex-shrink-0">
@@ -502,30 +523,43 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   </div>
                 </div>
               ) : (
-                /* INVENTORY VALUATION VIEW (Searchable, selectable side-by-side) */
+                /* INVENTORY VALUATION VIEW (Unified select, matching user screenshot) */
                 <div className="flex-grow flex flex-col min-h-0 space-y-4">
                   {/* Top Stats summary row */}
                   <div className="grid grid-cols-3 gap-3 border-b border-white/5 pb-4 select-none">
-                    <div className="bg-[#090A0F]/80 p-2.5 rounded-xl border border-white/5 text-center">
+                    <div className="bg-[#090A0F]/80 p-2 text-center rounded-lg">
                       <span className="text-slate-500 text-[8px] font-mono uppercase block">Metric</span>
-                      <span className="text-[10px] text-slate-300 font-bold block mt-1.5 uppercase font-mono">Net Worth</span>
-                      <span className="text-[10px] text-slate-300 font-bold block mt-1.5 uppercase font-mono">Total Units</span>
-                      <span className="text-[10px] text-slate-300 font-bold block mt-1.5 uppercase font-mono">Unique Types</span>
+                      <span className="text-[9px] text-slate-400 font-bold block mt-1 uppercase font-mono">Net Worth</span>
+                      <span className="text-[9px] text-slate-400 font-bold block mt-1 uppercase font-mono">Total Units</span>
                     </div>
 
-                    <div className="bg-indigo-950/10 p-2.5 rounded-xl border border-indigo-500/10 text-center">
+                    <div className="bg-indigo-950/10 p-2 rounded-lg border border-indigo-500/10 text-center">
                       <span className="text-indigo-400 text-[8px] font-mono uppercase block">{primaryProfile.name}</span>
-                      <span className="text-[10px] text-emerald-400 font-black block mt-1.5 font-mono">{formatValue(netWorth1)}</span>
-                      <span className="text-[10px] text-slate-200 font-bold block mt-1.5 font-mono">{units1.toLocaleString()}</span>
-                      <span className="text-[10px] text-slate-200 font-bold block mt-1.5 font-mono">{primaryInventory.length}</span>
+                      <span className="text-[10px] text-emerald-400 font-black block mt-1 font-mono">{formatValue(netWorth1)}</span>
+                      <span className="text-[10px] text-slate-200 font-bold block mt-1 font-mono">{units1.toLocaleString()}</span>
                     </div>
 
-                    <div className="bg-gold-primary/5 p-2.5 rounded-xl border border-gold-primary/10 text-center">
+                    <div className="bg-gold-primary/5 p-2 rounded-lg border border-gold-primary/10 text-center">
                       <span className="text-gold-bright text-[8px] font-mono uppercase block">{compareProfile.name}</span>
-                      <span className="text-[10px] text-emerald-400 font-black block mt-1.5 font-mono">{formatValue(netWorth2)}</span>
-                      <span className="text-[10px] text-slate-200 font-bold block mt-1.5 font-mono">{units2.toLocaleString()}</span>
-                      <span className="text-[10px] text-slate-200 font-bold block mt-1.5 font-mono">{compareInventory.length}</span>
+                      <span className="text-[10px] text-emerald-400 font-black block mt-1 font-mono">{formatValue(netWorth2)}</span>
+                      <span className="text-[10px] text-slate-200 font-bold block mt-1 font-mono">{units2.toLocaleString()}</span>
                     </div>
+                  </div>
+
+                  {/* Horizontal Tabs to choose whose inventory to browse */}
+                  <div className="flex bg-[#0b0c13] p-1 rounded-xl border border-white/5 select-none">
+                    <button
+                      onClick={() => setActiveInventoryTab('mine')}
+                      className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all cursor-pointer ${activeInventoryTab === 'mine' ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/20' : 'text-slate-400 hover:text-slate-200'}`}
+                    >
+                      Your Skins {mySelectedCount > 0 && <span className="ml-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-indigo-500 text-white font-extrabold">{mySelectedCount}</span>}
+                    </button>
+                    <button
+                      onClick={() => setActiveInventoryTab('theirs')}
+                      className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all cursor-pointer ${activeInventoryTab === 'theirs' ? 'bg-gold-primary/15 text-gold-bright border border-gold-primary/20' : 'text-slate-400 hover:text-slate-200'}`}
+                    >
+                      {compareProfile.name}'s Skins {theirSelectedCount > 0 && <span className="ml-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-gold-primary text-white font-extrabold">{theirSelectedCount}</span>}
+                    </button>
                   </div>
 
                   {/* Search box for filtering items */}
@@ -533,174 +567,120 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                     <Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
-                      placeholder="Search and filter skins in both inventories..."
+                      placeholder={`Search ${activeInventoryTab === 'mine' ? 'your' : compareProfile.name + "'s"} inventory...`}
                       value={itemSearchTerm}
                       onChange={(e) => setItemSearchTerm(e.target.value)}
                       className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-11 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
                     />
                   </div>
 
-                  {/* Dual Grid lists side by side */}
-                  <div className="grid grid-cols-2 gap-4 flex-grow overflow-hidden min-h-0">
-                    
-                    {/* Left: My inventory selection grid */}
-                    <div className="flex flex-col min-h-0 border border-white/5 bg-[#090A0F]/30 rounded-2xl p-3">
-                      <span className="text-[8px] font-mono text-indigo-400 uppercase tracking-widest font-black block pb-2 border-b border-white/5 mb-2 select-none">
-                        Your Items ({sortedMyInventory.length} matched)
-                      </span>
-                      <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
-                        {sortedMyInventory.slice(0, myVisibleCount).map((invItem) => {
-                          const isSelected = !!mySelected[invItem.item.id];
-                          const price = getItemPrice(invItem.item);
-                          const cleanName = invItem.item.name.replace(/^_+/, '');
+                  {/* Spacious single list of items (Matching User Customization screenshot layout) */}
+                  <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
+                    {activeItemsList.slice(0, visibleCount).map((invItem) => {
+                      const isSelected = activeInventoryTab === 'mine' ? !!mySelected[invItem.item.id] : !!theirSelected[invItem.item.id];
+                      const price = getItemPrice(invItem.item);
+                      const renderUrl = getItemRenderUrl(invItem.item);
+                      const cleanName = invItem.item.name.replace(/^_+/, '');
 
-                          return (
-                            <div
-                              key={invItem.item.id}
-                              className={`group relative border rounded-xl p-2.5 flex items-center justify-between text-xs transition-all cursor-pointer select-none ${isSelected ? 'border-indigo-500 bg-indigo-950/20 shadow-sm' : 'border-white/5 bg-[#0b0c13] hover:border-white/10'}`}
+                      return (
+                        <div
+                          key={invItem.item.id}
+                          className={`group relative border rounded-2xl p-4 flex items-center justify-between transition-all select-none border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'shadow-[0_0_12px_rgba(212,175,55,0.05)] border-gold-primary/30 bg-gold-primary/[0.02]' : ''}`}
+                        >
+                          <div className="flex items-center space-x-4 flex-grow min-w-0">
+                            {/* Checkbox Box */}
+                            <button
+                              onClick={() => activeInventoryTab === 'mine' ? handleToggleMyItem(invItem.item.id) : handleToggleTheirItem(invItem.item.id)}
+                              className={`w-5.5 h-5.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${isSelected ? 'border-gold-primary bg-gold-primary text-slate-900' : 'border-white/10 bg-[#090A0F] hover:border-white/20'}`}
                             >
-                              <div 
-                                onClick={() => handleToggleMyItem(invItem.item.id)}
-                                className="flex-grow pr-2 min-w-0"
-                              >
-                                <div className="flex items-center space-x-1.5">
-                                  {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />}
-                                  <span className="font-extrabold text-slate-200 block truncate uppercase">{cleanName}</span>
+                              {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                            </button>
+
+                            {/* Render Preview Box */}
+                            <div className="w-12 h-12 rounded-xl bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0 select-none">
+                              {renderUrl ? (
+                                <img
+                                  src={renderUrl}
+                                  alt={cleanName}
+                                  className="w-10 h-10 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] transform group-hover:scale-110 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="text-slate-600">
+                                  {invItem.item.type === 'BODY_SKIN' ? (
+                                    <Shield className="w-5 h-5 opacity-30" />
+                                  ) : (
+                                    <Layers className="w-5 h-5 opacity-30" />
+                                  )}
                                 </div>
-                                <span className={`inline-block text-[7px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border mt-1 ${getRarityBadgeColor(invItem.item.rarity)}`}>
-                                  {invItem.item.rarity || 'Common'}
-                                </span>
-                                <span className="text-[8px] font-mono text-slate-500 ml-1.5">Price: <strong className="text-gold-bright">{formatValue(price)}</strong></span>
-                              </div>
-
-                              <div className="flex flex-col items-end space-y-1.5">
-                                <span className="text-[9px] font-mono font-bold text-slate-400">Own: x{invItem.amount}</span>
-                                
-                                {/* Quantity Adjuster overlay when selected */}
-                                {isSelected ? (
-                                  <div className="flex items-center bg-[#090A0F] border border-indigo-500/35 rounded-lg overflow-hidden">
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, false, invItem.amount); }}
-                                      className="p-1 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
-                                    >
-                                      <Minus className="w-2.5 h-2.5" />
-                                    </button>
-                                    <span className="px-2 font-mono font-bold text-[10px] text-white">
-                                      {mySelected[invItem.item.id]}
-                                    </span>
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, true, invItem.amount); }}
-                                      className="p-1 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
-                                    >
-                                      <Plus className="w-2.5 h-2.5" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => handleToggleMyItem(invItem.item.id)}
-                                    className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-lg p-1 transition-all cursor-pointer"
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
-                              </div>
+                              )}
                             </div>
-                          );
-                        })}
-                        {sortedMyInventory.length === 0 && (
-                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
-                        )}
-                        {sortedMyInventory.length > myVisibleCount && (
-                          <button
-                            onClick={() => setMyVisibleCount(prev => prev + 15)}
-                            className="w-full py-2 bg-white/5 border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
-                          >
-                            Load More
-                          </button>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Right: Their inventory selection grid */}
-                    <div className="flex flex-col min-h-0 border border-white/5 bg-[#090A0F]/30 rounded-2xl p-3">
-                      <span className="text-[8px] font-mono text-gold-bright uppercase tracking-widest font-black block pb-2 border-b border-white/5 mb-2 select-none">
-                        {compareProfile.name}'s Items ({sortedTheirInventory.length} matched)
-                      </span>
-                      <div className="flex-grow overflow-y-auto space-y-2 pr-1 min-h-0">
-                        {sortedTheirInventory.slice(0, theirVisibleCount).map((invItem) => {
-                          const isSelected = !!theirSelected[invItem.item.id];
-                          const price = getItemPrice(invItem.item);
-                          const cleanName = invItem.item.name.replace(/^_+/, '');
-
-                          return (
-                            <div
-                              key={invItem.item.id}
-                              className={`group relative border rounded-xl p-2.5 flex items-center justify-between text-xs transition-all cursor-pointer select-none ${isSelected ? 'border-gold-primary bg-gold-primary/10 shadow-sm' : 'border-white/5 bg-[#0b0c13] hover:border-white/10'}`}
-                            >
-                              <div 
-                                onClick={() => handleToggleTheirItem(invItem.item.id)}
-                                className="flex-grow pr-2 min-w-0"
+                            {/* Skin Info */}
+                            <div className="truncate pr-4 min-w-0">
+                              <span 
+                                onClick={() => activeInventoryTab === 'mine' ? handleToggleMyItem(invItem.item.id) : handleToggleTheirItem(invItem.item.id)}
+                                className="font-extrabold text-sm text-slate-200 block truncate uppercase tracking-wide cursor-pointer hover:text-gold-bright transition-colors"
                               >
-                                <div className="flex items-center space-x-1.5">
-                                  {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-gold-primary" />}
-                                  <span className="font-extrabold text-slate-200 block truncate uppercase">{cleanName}</span>
-                                </div>
-                                <span className={`inline-block text-[7px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border mt-1 ${getRarityBadgeColor(invItem.item.rarity)}`}>
-                                  {invItem.item.rarity || 'Common'}
-                                </span>
-                                <span className="text-[8px] font-mono text-slate-500 ml-1.5">Price: <strong className="text-gold-bright">{formatValue(price)}</strong></span>
-                              </div>
-
-                              <div className="flex flex-col items-end space-y-1.5">
-                                <span className="text-[9px] font-mono font-bold text-slate-400">Own: x{invItem.amount}</span>
-                                
-                                {isSelected ? (
-                                  <div className="flex items-center bg-[#090A0F] border border-gold-primary/35 rounded-lg overflow-hidden">
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount); }}
-                                      className="p-1 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
-                                    >
-                                      <Minus className="w-2.5 h-2.5" />
-                                    </button>
-                                    <span className="px-2 font-mono font-bold text-[10px] text-white">
-                                      {theirSelected[invItem.item.id]}
-                                    </span>
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount); }}
-                                      className="p-1 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
-                                    >
-                                      <Plus className="w-2.5 h-2.5" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => handleToggleTheirItem(invItem.item.id)}
-                                    className="bg-gold-primary/10 hover:bg-gold-primary/20 text-gold-bright border border-gold-primary/30 rounded-lg p-1 transition-all cursor-pointer"
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
-                              </div>
+                                {cleanName}
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block mt-0.5">x{invItem.amount} Units</span>
                             </div>
-                          );
-                        })}
-                        {sortedTheirInventory.length === 0 && (
-                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
-                        )}
-                        {sortedTheirInventory.length > theirVisibleCount && (
-                          <button
-                            onClick={() => setTheirVisibleCount(prev => prev + 15)}
-                            className="w-full py-2 bg-white/5 border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
-                          >
-                            Load More
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                          </div>
 
+                          {/* Right Side: Quantity selectors and Price badge */}
+                          <div className="flex items-center space-x-4 flex-shrink-0">
+                            {/* Quantity Adjustment Overlay when checked */}
+                            {isSelected && (
+                              <div className="flex items-center bg-[#090A0F] border border-white/10 rounded-xl overflow-hidden shadow-md animate-fade-in">
+                                <button
+                                  onClick={() => activeInventoryTab === 'mine' ? handleAdjustMyItemQty(invItem.item.id, false, invItem.amount) : handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount)}
+                                  className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </button>
+                                <span className="px-3.5 font-mono font-bold text-xs text-white">
+                                  {activeInventoryTab === 'mine' ? mySelected[invItem.item.id] : theirSelected[invItem.item.id]}
+                                </span>
+                                <button
+                                  onClick={() => activeInventoryTab === 'mine' ? handleAdjustMyItemQty(invItem.item.id, true, invItem.amount) : handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount)}
+                                  className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Price Badge Bubble */}
+                            <div className="bg-[#090A0F] border border-white/5 px-4.5 py-2.5 rounded-2xl flex items-center space-x-2 text-xs font-mono font-black text-slate-100 shadow-inner">
+                              <img
+                                src="kirka_coin.png"
+                                alt="coin"
+                                className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]"
+                              />
+                              <span className="text-slate-200">{formatValue(price)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {activeItemsList.length === 0 && (
+                      <div className="text-center py-20 text-slate-500 text-xs border border-dashed border-white/5 rounded-3xl select-none">
+                        No skins found matching search query.
+                      </div>
+                    )}
+
+                    {activeItemsList.length > visibleCount && (
+                      <button
+                        onClick={() => setVisibleCount(prev => prev + 15)}
+                        className="w-full py-3 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-2xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
+                      >
+                        Load More Skins
+                      </button>
+                    )}
                   </div>
 
-                  {/* QUICK TRADE PANEL (Renders when items selected) */}
+                  {/* QUICK TRADE PANEL (Renders trade commands) */}
                   <div className="bg-[#0b0c13] border border-obsidian-border rounded-2xl p-4 space-y-3 flex-shrink-0 select-none">
                     <div className="flex justify-between items-center border-b border-white/5 pb-2">
                       <span className="text-[10px] font-mono text-indigo-400 tracking-wider font-black uppercase flex items-center space-x-1.5">
@@ -740,7 +720,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                       </div>
                     ) : (
                       <p className="text-xs text-slate-500 text-center py-2 font-mono">
-                        Select skins from Your Items (left) and Opponent's Items (right) to formulate a trade command.
+                        Select skins from Your Skins or Opponent's Skins above to formulate a trade command.
                       </p>
                     )}
                   </div>
