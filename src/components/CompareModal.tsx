@@ -269,7 +269,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       if (match && match.item && match.item.name) {
         const cleanName = match.item.name.replace(/^_+/, '');
         const qtyStr = qty > 1 ? `x${qty}` : '';
-        myOffers.push(`${cleanName}${qtyStr}`);
+        myOffers.push(`[${cleanName}]${qtyStr}`);
       }
     });
 
@@ -279,7 +279,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       if (match && match.item && match.item.name) {
         const cleanName = match.item.name.replace(/^_+/, '');
         const qtyStr = qty > 1 ? `x${qty}` : '';
-        theirOffers.push(`${cleanName}${qtyStr}`);
+        theirOffers.push(`[${cleanName}]${qtyStr}`);
       }
     });
 
@@ -569,7 +569,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                       </div>
 
                       {/* Spacious list with fixed height */}
-                      <div className="h-[380px] overflow-y-auto space-y-2 pr-1 select-none">
+                      <div style={{ height: '380px', minHeight: '380px' }} className="overflow-y-auto space-y-2 pr-1 select-none">
                         {sortedMyInventory.slice(0, myVisibleCount).map((invItem) => {
                           const isSelected = !!mySelected[invItem.item.id];
                           const price = getItemPrice(invItem.item);
@@ -693,7 +693,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                       </div>
 
                       {/* Spacious list with fixed height */}
-                      <div className="h-[380px] overflow-y-auto space-y-2 pr-1 select-none">
+                      <div style={{ height: '380px', minHeight: '380px' }} className="overflow-y-auto space-y-2 pr-1 select-none">
                         {sortedTheirInventory.slice(0, theirVisibleCount).map((invItem) => {
                           const isSelected = !!theirSelected[invItem.item.id];
                           const price = getItemPrice(invItem.item);
