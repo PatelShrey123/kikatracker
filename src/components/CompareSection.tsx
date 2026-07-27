@@ -24,9 +24,21 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
   fallbackRenders,
   publicItems,
 }) => {
+  // Local state to track URL search query string reactively
+  const [urlQuery, setUrlQuery] = useState(window.location.search);
+
+  // Sync state with urlQuery state variable changes on back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      setUrlQuery(window.location.search);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Query parameters parsing
-  const getQueryParams = () => {
-    const params = new URLSearchParams(window.location.search);
+  const getQueryParams = (searchStr: string) => {
+    const params = new URLSearchParams(searchStr);
     return {
       p1Query: params.get('p1') || '',
       p2Query: params.get('p2') || '',
@@ -34,13 +46,21 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
     };
   };
 
-  const { p1Query, p2Query, typeQuery } = getQueryParams();
+  const { p1Query, p2Query, typeQuery } = getQueryParams(urlQuery);
 
   const [compareType, setCompareType] = useState<'stats' | 'inventory'>(typeQuery);
   const [p1Search, setP1Search] = useState(p1Query);
   const [p2Search, setP2Search] = useState(p2Query);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync inputs when urlQuery changes
+  useEffect(() => {
+    const { p1Query, p2Query, typeQuery } = getQueryParams(urlQuery);
+    setCompareType(typeQuery);
+    setP1Search(p1Query);
+    setP2Search(p2Query);
+  }, [urlQuery]);
 
   // Loaded profiles and inventories
   const [primaryProfile, setPrimaryProfile] = useState<UserProfile | null>(null);
@@ -65,7 +85,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
   // Sync state with URL change
   useEffect(() => {
     const loadFromUrl = async () => {
-      const { p1Query, p2Query, typeQuery } = getQueryParams();
+      const { p1Query, p2Query, typeQuery } = getQueryParams(urlQuery);
       setCompareType(typeQuery);
       setP1Search(p1Query);
       setP2Search(p2Query);
@@ -132,7 +152,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
     };
 
     loadFromUrl();
-  }, [window.location.search]);
+  }, [urlQuery]);
 
   // Reset pagination counters
   useEffect(() => {
@@ -470,7 +490,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
               onClick={handlePerformComparison}
               className="bg-gradient-to-r from-gold-primary to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-slate-900 font-extrabold text-sm px-12 py-3.5 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
             >
-              {loading ? 'Initializing Comparison...' : 'Compare Combatants'}
+              {loading ? 'Initializing Comparison...' : 'Compare'}
             </button>
           </div>
         </div>
