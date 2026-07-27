@@ -12,6 +12,7 @@ import { ClansSection } from './components/ClansSection';
 import { ChatSection } from './components/ChatSection';
 import { TradesSection } from './components/TradesSection';
 import { ItemInspectModal } from './components/ItemInspectModal';
+import { PriceViewerSection } from './components/PriceViewerSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -104,6 +105,9 @@ function App() {
     }
     if (cleanPath === '/chat') {
       return { tab: 'chat', player: null, clan: null };
+    }
+    if (cleanPath === '/prices') {
+      return { tab: 'prices', player: null, clan: null };
     }
     return { tab: 'search', player: null, clan: null };
   };
@@ -326,6 +330,7 @@ function App() {
                           isLoading={searchLoading}
                           searchError={searchError}
                           onClearError={() => setSearchError(null)}
+                          onNavigateToPrices={() => handleTabChange('prices')}
                         />
                       )}
                     </>
@@ -371,6 +376,14 @@ function App() {
                       onInspectItem={(name, type) => {
                         setInspectItem({ name, type, amount: 1 });
                       }}
+                    />
+                  )}
+
+                  {activeTab === 'prices' && (
+                    <PriceViewerSection
+                      marketPrices={marketPrices}
+                      publicItems={publicItems}
+                      fallbackRenders={fallbackRenders}
                     />
                   )}
                 </motion.div>

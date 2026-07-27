@@ -8,6 +8,7 @@ interface SearchSectionProps {
   isLoading: boolean;
   searchError: string | null;
   onClearError: () => void;
+  onNavigateToPrices?: () => void;
 }
 
 interface FeaturedProfile {
@@ -30,6 +31,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   isLoading,
   searchError,
   onClearError,
+  onNavigateToPrices,
 }) => {
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
@@ -222,9 +224,14 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
                 Calculations are mapped instantly to market valuation updates fetched directly from public sheets via OpenSheet JSON networks.
               </p>
             </div>
-            <div className="bg-[#04050a]/80 border border-white/5 px-4 py-2.5 rounded-xl text-[10px] font-mono text-slate-400 text-center flex-shrink-0">
-              PRICING STATUS: <span className="text-emerald-400 font-bold">ONLINE</span>
-            </div>
+            <button
+              onClick={onNavigateToPrices}
+              className="bg-[#04050a]/80 border border-white/5 hover:border-gold-primary/30 hover:bg-[#0c0d15] px-4 py-2.5 rounded-xl text-[10px] font-mono text-slate-400 text-center flex-shrink-0 cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] group flex items-center space-x-1.5"
+              title="Click to view all item prices"
+            >
+              <span>PRICING STATUS:</span>
+              <span className="text-emerald-400 font-bold group-hover:text-gold-bright transition-colors">ONLINE</span>
+            </button>
           </div>
         </div>
 
