@@ -12,11 +12,12 @@ interface CompareSectionProps {
   allItemData: any[];
 }
 
-const QUICK_COMPARE_PROFILES = [
-  { name: 'shadow', shortId: 'HESHPY' },
-  { name: 'Hisoka', shortId: 'S2WVOK' },
-  { name: 'Bot#0', shortId: '9VECSU' }
-];
+const isValidKirkaId = (id: string) => {
+  const clean = id.trim();
+  const isShortId = clean.length === 6 && /^[a-zA-Z0-9]{6}$/.test(clean);
+  const isUuid = clean.length === 36 && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(clean);
+  return isShortId || isUuid;
+};
 
 export const CompareSection: React.FC<CompareSectionProps> = ({
   marketPrices,
@@ -79,11 +80,22 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
         return;
       }
 
-      setLoading(true);
       setError(null);
+
+      // Validate inputs
+      if (p1Query && !isValidKirkaId(p1Query)) {
+        setError(`Player 1 ID format is invalid ("${p1Query}"). Must be a 6-character Short ID or UUID.`);
+        return;
+      }
+      if (p2Query && !isValidKirkaId(p2Query)) {
+        setError(`Player 2 ID format is invalid ("${p2Query}"). Must be a 6-character Short ID or UUID.`);
+        return;
+      }
+
+      setLoading(true);
       try {
         if (p1Query) {
-          const isShortId = p1Query.trim().length === 6 && /^[A-Z0-9]+$/i.test(p1Query.trim());
+          const isShortId = p1Query.trim().length === 6;
           const prof1 = await fetchUserProfile(p1Query.trim(), isShortId);
           if (prof1) {
             setPrimaryProfile(prof1);
@@ -98,7 +110,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
         }
 
         if (p2Query) {
-          const isShortId = p2Query.trim().length === 6 && /^[A-Z0-9]+$/i.test(p2Query.trim());
+          const isShortId = p2Query.trim().length === 6;
           const prof2 = await fetchUserProfile(p2Query.trim(), isShortId);
           if (prof2) {
             setCompareProfile(prof2);
@@ -184,11 +196,22 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
 
   // Trigger search comparison manually
   const handlePerformComparison = () => {
-    if (!p1Search.trim() || !p2Search.trim()) {
-      setError('Please fill in both player IDs or names.');
+    const val1 = p1Search.trim();
+    const val2 = p2Search.trim();
+    if (!val1 || !val2) {
+      setError('Please fill in both player IDs.');
       return;
     }
-    updateUrlParams(p1Search.trim(), p2Search.trim(), compareType);
+    if (!isValidKirkaId(val1)) {
+      setError('Player 1 ID format is invalid. Must be a 6-character Short ID or UUID.');
+      return;
+    }
+    if (!isValidKirkaId(val2)) {
+      setError('Player 2 ID format is invalid. Must be a 6-character Short ID or UUID.');
+      return;
+    }
+    setError(null);
+    updateUrlParams(val1, val2, compareType);
   };
 
   const handleResetComparison = () => {
@@ -402,17 +425,17 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
           <div className="text-center space-y-2.5 max-w-lg mx-auto">
             <Swords className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
             <h3 className="text-lg font-black text-white uppercase tracking-wider">Select Players to compare</h3>
-            <p className="text-xs text-slate-400">Provide user tags/names for both combatants to initialize full-screen statistics & valuation grid comparisons.</p>
+            <p className="text-xs text-slate-400">Provide Kirka Player IDs for both combatants to initialize full-screen statistics & valuation comparisons.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <div className="space-y-2">
-              <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold">Player 1 (Name or ID)</label>
+              <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold">Player 1 ID (6-Char Short ID or UUID)</label>
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Enter Player 1..."
+                  placeholder="Enter Player 1 ID (e.g. HESHPY)..."
                   value={p1Search}
                   onChange={(e) => setP1Search(e.target.value)}
                   className="w-full bg-[#090A0F] border border-obsidian-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/25 transition-all"
@@ -421,12 +444,12 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold">Player 2 (Name or ID)</label>
+              <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold">Player 2 ID (6-Char Short ID or UUID)</label>
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Enter Player 2..."
+                  placeholder="Enter Player 2 ID (e.g. S2WVOK)..."
                   value={p2Search}
                   onChange={(e) => setP2Search(e.target.value)}
                   className="w-full bg-[#090A0F] border border-obsidian-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
@@ -449,27 +472,6 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
             >
               {loading ? 'Initializing Comparison...' : 'Compare Combatants'}
             </button>
-          </div>
-
-          <div className="pt-6 border-t border-white/5 max-w-xl mx-auto space-y-4">
-            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold text-center">Quick Compare Options</span>
-            <div className="grid grid-cols-3 gap-3">
-              {QUICK_COMPARE_PROFILES.map((p) => (
-                <button
-                  key={p.shortId}
-                  disabled={loading}
-                  onClick={() => {
-                    setP1Search('shadow');
-                    setP2Search(p.shortId);
-                    updateUrlParams('shadow', p.shortId, compareType);
-                  }}
-                  className="bg-[#161825] hover:bg-[#1f2235] border border-white/5 rounded-xl py-2.5 px-3 text-center transition-all cursor-pointer group hover:scale-[1.03]"
-                >
-                  <span className="text-xs font-bold text-slate-300 group-hover:text-gold-bright transition-colors block truncate">{p.name}</span>
-                  <span className="text-[8px] font-mono text-slate-500 tracking-wider block mt-0.5">{p.shortId}</span>
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       ) : (
