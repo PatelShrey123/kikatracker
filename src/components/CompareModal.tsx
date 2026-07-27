@@ -80,7 +80,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
   // Resolve item price helper
   const getItemPrice = (item: any) => {
-    if (!item) return 0;
+    if (!item || !item.name) return 0;
     const cleanName = item.name.replace(/^_+/, '');
     const isCharacter = item.type === 'BODY_SKIN';
     const parentName = item.parent?.name || '';
@@ -89,7 +89,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
     const compositeKey = `${cleanName.toLowerCase()}_${itemTypeKey.toLowerCase()}`;
     const nameKey = cleanName.toLowerCase();
 
-    const matched = marketPrices.get(compositeKey) || marketPrices.get(nameKey);
+    const matched = marketPrices ? (marketPrices.get(compositeKey) || marketPrices.get(nameKey)) : null;
     return matched ? matched.baseValue : (item.salePrice || 0);
   };
 
@@ -124,11 +124,13 @@ export const CompareModal: React.FC<CompareModalProps> = ({
   };
 
   const getNetWorth = (inv: UserInventoryItem[]) => {
-    return inv.reduce((sum, current) => sum + getItemPrice(current.item) * current.amount, 0);
+    if (!Array.isArray(inv)) return 0;
+    return inv.reduce((sum, current) => sum + (current && current.item ? getItemPrice(current.item) * (current.amount || 0) : 0), 0);
   };
 
   const getUnitCount = (inv: UserInventoryItem[]) => {
-    return inv.reduce((sum, current) => sum + current.amount, 0);
+    if (!Array.isArray(inv)) return 0;
+    return inv.reduce((sum, current) => sum + (current ? (current.amount || 0) : 0), 0);
   };
 
   // Metrics extraction helpers
@@ -152,13 +154,17 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
   // Filtered inventory lists (descending order of price)
   const sortedMyInventory = useMemo(() => {
+    if (!Array.isArray(primaryInventory)) return [];
     return [...primaryInventory]
+      .filter(i => i && i.item && i.item.name)
       .sort((a, b) => getItemPrice(b.item) - getItemPrice(a.item))
       .filter(i => i.item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()));
   }, [primaryInventory, itemSearchTerm]);
 
   const sortedTheirInventory = useMemo(() => {
+    if (!Array.isArray(compareInventory)) return [];
     return [...compareInventory]
+      .filter(i => i && i.item && i.item.name)
       .sort((a, b) => getItemPrice(b.item) - getItemPrice(a.item))
       .filter(i => i.item.name.toLowerCase().includes(itemSearchTerm.toLowerCase()));
   }, [compareInventory, itemSearchTerm]);
