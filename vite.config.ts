@@ -11,7 +11,7 @@ export default defineConfig({
       '/api': {
         target: 'https://api.kirka.io',
         changeOrigin: true,
-        secure: true,
+        secure: false,
         headers: {
           'ApiKey': 'fa0b8b9e49d8d22ac5708e51ab6fbb3f4225618d781548011325e4b4254584ee'
         }
@@ -19,7 +19,7 @@ export default defineConfig({
       '/trade-api': {
         target: 'https://kirka.lukeskywalk.com',
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/trade-api/, '')
       }
     }

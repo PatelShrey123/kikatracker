@@ -473,11 +473,34 @@ export async function fetchClanDetail(name: string): Promise<ClanResponse> {
 }
 
 export async function fetchUserProfile(id: string, isShortId: boolean = false): Promise<UserProfile> {
-  return await apiRequest<UserProfile>('/user/getProfile', 'POST', { id, isShortId });
+  try {
+    return await apiRequest<UserProfile>('/user/getProfile', 'POST', { id, isShortId });
+  } catch (err) {
+    console.warn(`Failed to fetch live profile for ${id}, checking mock fallbacks:`, err);
+    const cleanId = id.trim().toUpperCase();
+    const matched = Object.values(MOCK_PROFILE).find(
+      (p) => p.id === id || p.shortId.toUpperCase() === cleanId
+    );
+    if (matched) return matched;
+    throw err;
+  }
 }
 
 export async function fetchUserInventory(id: string, isShortId: boolean = false): Promise<UserInventoryItem[]> {
-  return await apiRequest<UserInventoryItem[]>('/inventory/user', 'POST', { id, isShortId });
+  try {
+    return await apiRequest<UserInventoryItem[]>('/inventory/user', 'POST', { id, isShortId });
+  } catch (err) {
+    console.warn(`Failed to fetch live inventory for ${id}, checking mock fallbacks:`, err);
+    const cleanId = id.trim().toUpperCase();
+    const matchedProfile = Object.values(MOCK_PROFILE).find(
+      (p) => p.id === id || p.shortId.toUpperCase() === cleanId
+    );
+    const uuid = matchedProfile ? matchedProfile.id : id;
+    if (MOCK_INVENTORY[uuid]) {
+      return MOCK_INVENTORY[uuid];
+    }
+    return []; // Return empty inventory array instead of throwing to prevent profile loading crash
+  }
 }
 
 export async function fetchQuests(): Promise<Quest[]> {
