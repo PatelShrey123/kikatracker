@@ -24,15 +24,23 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
   fallbackRenders,
   publicItems,
 }) => {
+  // Debugging logs to display on-screen for local diagnostics
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const addLog = (msg: string) => {
+    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
+  };
+
   // Local state to track URL search query string reactively
   const [urlQuery, setUrlQuery] = useState(window.location.search);
 
   // Sync state with urlQuery state variable changes on back/forward
   useEffect(() => {
     const handlePopState = () => {
+      addLog(`popstate triggered. New search: "${window.location.search}"`);
       setUrlQuery(window.location.search);
     };
     window.addEventListener('popstate', handlePopState);
+    addLog(`Initialized popstate history listeners.`);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
@@ -54,14 +62,6 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Sync inputs when urlQuery changes
-  useEffect(() => {
-    const { p1Query, p2Query, typeQuery } = getQueryParams(urlQuery);
-    setCompareType(typeQuery);
-    setP1Search(p1Query);
-    setP2Search(p2Query);
-  }, [urlQuery]);
-
   // Loaded profiles and inventories
   const [primaryProfile, setPrimaryProfile] = useState<UserProfile | null>(null);
   const [primaryInventory, setPrimaryInventory] = useState<UserInventoryItem[]>([]);
@@ -82,15 +82,23 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
 
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Sync inputs when urlQuery changes
+  useEffect(() => {
+    const { p1Query, p2Query, typeQuery } = getQueryParams(urlQuery);
+    addLog(`urlQuery synced inputs. p1: "${p1Query}", p2: "${p2Query}", type: "${typeQuery}"`);
+    setCompareType(typeQuery);
+    setP1Search(p1Query);
+    setP2Search(p2Query);
+  }, [urlQuery]);
+
   // Sync state with URL change
   useEffect(() => {
     const loadFromUrl = async () => {
-      const { p1Query, p2Query, typeQuery } = getQueryParams(urlQuery);
-      setCompareType(typeQuery);
-      setP1Search(p1Query);
-      setP2Search(p2Query);
+      const { p1Query, p2Query } = getQueryParams(urlQuery);
+      addLog(`loadFromUrl starting fetch. p1: "${p1Query}", p2: "${p2Query}"`);
 
       if (!p1Query && !p2Query) {
+        addLog(`No query parameters present. Resetting profiles.`);
         setPrimaryProfile(null);
         setPrimaryInventory([]);
         setCompareProfile(null);
@@ -103,51 +111,69 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
       setError(null);
 
       // Validate inputs
-      if (p1Query && !isValidKirkaId(p1Query)) {
-        setError(`Player 1 ID format is invalid ("${p1Query}"). Must be a 6-character Short ID or UUID.`);
+      const upperP1 = p1Query.trim().toUpperCase();
+      const upperP2 = p2Query.trim().toUpperCase();
+
+      if (p1Query && !isValidKirkaId(upperP1)) {
+        const errMsg = `Player 1 ID format is invalid ("${p1Query}"). Must be a 6-character Short ID or UUID.`;
+        addLog(`Validation failure: ${errMsg}`);
+        setError(errMsg);
         return;
       }
-      if (p2Query && !isValidKirkaId(p2Query)) {
-        setError(`Player 2 ID format is invalid ("${p2Query}"). Must be a 6-character Short ID or UUID.`);
+      if (p2Query && !isValidKirkaId(upperP2)) {
+        const errMsg = `Player 2 ID format is invalid ("${p2Query}"). Must be a 6-character Short ID or UUID.`;
+        addLog(`Validation failure: ${errMsg}`);
+        setError(errMsg);
         return;
       }
 
+      addLog(`Inputs validated. Starting API fetches...`);
       setLoading(true);
       try {
-        if (p1Query) {
-          const isShortId = p1Query.trim().length === 6;
-          const prof1 = await fetchUserProfile(p1Query.trim(), isShortId);
+        if (upperP1) {
+          addLog(`Fetching Player 1: ${upperP1}`);
+          const isShortId = upperP1.length === 6;
+          const prof1 = await fetchUserProfile(upperP1, isShortId);
+          addLog(`Player 1 profile resolved: ${prof1 ? prof1.name : 'null'}`);
           if (prof1) {
             setPrimaryProfile(prof1);
+            addLog(`Fetching Player 1 inventory...`);
             const inv1 = await fetchUserInventory(prof1.id);
+            addLog(`Player 1 inventory resolved: ${inv1 ? inv1.length : 0} items`);
             setPrimaryInventory(inv1 || []);
           } else {
-            setError(`Player 1 (${p1Query}) not found.`);
+            setError(`Player 1 (${upperP1}) not found.`);
           }
         } else {
           setPrimaryProfile(null);
           setPrimaryInventory([]);
         }
 
-        if (p2Query) {
-          const isShortId = p2Query.trim().length === 6;
-          const prof2 = await fetchUserProfile(p2Query.trim(), isShortId);
+        if (upperP2) {
+          addLog(`Fetching Player 2: ${upperP2}`);
+          const isShortId = upperP2.length === 6;
+          const prof2 = await fetchUserProfile(upperP2, isShortId);
+          addLog(`Player 2 profile resolved: ${prof2 ? prof2.name : 'null'}`);
           if (prof2) {
             setCompareProfile(prof2);
+            addLog(`Fetching Player 2 inventory...`);
             const inv2 = await fetchUserInventory(prof2.id);
+            addLog(`Player 2 inventory resolved: ${inv2 ? inv2.length : 0} items`);
             setCompareInventory(inv2 || []);
           } else {
-            setError(`Player 2 (${p2Query}) not found.`);
+            setError(`Player 2 (${upperP2}) not found.`);
           }
         } else {
           setCompareProfile(null);
           setCompareInventory([]);
         }
-      } catch (err) {
+      } catch (err: any) {
+        addLog(`Fetch caught exception: ${err.message}`);
         console.error(err);
         setError('Error loading player profile details.');
       } finally {
         setLoading(false);
+        addLog(`Finished loading sequence.`);
       }
     };
 
@@ -171,7 +197,9 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
     if (p2) qParts.push(`p2=${p2}`);
     qParts.push(`type=${type}`);
     const searchString = qParts.length > 0 ? `?${qParts.join('&')}` : '';
+    addLog(`updateUrlParams called. Pushing URL: ${prefix}/compare${searchString}`);
     window.history.pushState(null, '', `${prefix}/compare${searchString}`);
+    setUrlQuery(searchString);
   };
 
   // Helper to resolve skin image render URL
@@ -216,8 +244,9 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
 
   // Trigger search comparison manually
   const handlePerformComparison = () => {
-    const val1 = p1Search.trim();
-    const val2 = p2Search.trim();
+    const val1 = p1Search.trim().toUpperCase();
+    const val2 = p2Search.trim().toUpperCase();
+    addLog(`handlePerformComparison clicked. val1: "${val1}", val2: "${val2}"`);
     if (!val1 || !val2) {
       setError('Please fill in both player IDs.');
       return;
@@ -235,6 +264,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
   };
 
   const handleResetComparison = () => {
+    addLog(`Resetting comparison and clearing state.`);
     setP1Search('');
     setP2Search('');
     updateUrlParams('', '', 'stats');
@@ -345,7 +375,6 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
     });
   };
 
-  // Trade offer generators
   const generatedTradeCommand = useMemo(() => {
     if (!compareProfile) return '';
 
@@ -492,6 +521,20 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
             >
               {loading ? 'Initializing Comparison...' : 'Compare'}
             </button>
+          </div>
+
+          {/* Diagnostic Log Panel for Client-Side Debugging */}
+          <div className="mt-8 pt-6 border-t border-white/5 space-y-2 select-text max-w-2xl mx-auto">
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-black block">Client Diagnostics Console Logs</span>
+            <div className="bg-[#040509]/80 border border-white/5 rounded-xl p-4 font-mono text-[9px] text-slate-400 space-y-1 max-h-48 overflow-y-auto">
+              {debugLogs.length === 0 ? (
+                <div className="text-slate-600 italic">No diagnostics logs registered. Initialize query filters to log actions.</div>
+              ) : (
+                debugLogs.map((log, idx) => (
+                  <div key={idx} className="break-all">{log}</div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       ) : (
