@@ -4,6 +4,7 @@ import { fetchUserProfile, fetchUserInventory } from '../utils/api';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
+import { cropMinecraftHead } from '../utils/skinCropper';
 
 interface CompareSectionProps {
   marketPrices: Map<string, MarketItem>;
@@ -23,6 +24,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
   marketPrices,
   fallbackRenders,
   publicItems,
+  allItemData,
 }) => {
   // Debugging logs to display on-screen for local diagnostics
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -67,6 +69,50 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
   const [primaryInventory, setPrimaryInventory] = useState<UserInventoryItem[]>([]);
   const [compareProfile, setCompareProfile] = useState<UserProfile | null>(null);
   const [compareInventory, setCompareInventory] = useState<UserInventoryItem[]>([]);
+
+  // Cropped face texture URLs
+  const [croppedHead1, setCroppedHead1] = useState<string | null>(null);
+  const [croppedHead2, setCroppedHead2] = useState<string | null>(null);
+
+  // Crop Player 1 body skin to head face
+  useEffect(() => {
+    setCroppedHead1(null);
+    if (primaryProfile && primaryProfile.activeBodySkin) {
+      let texture = primaryProfile.activeBodySkin.textureUrl;
+      if (!texture && allItemData && Array.isArray(allItemData)) {
+        const nameKey = primaryProfile.activeBodySkin.name.toLowerCase();
+        const matched = allItemData.find(
+          (i) => i.name.toLowerCase() === nameKey && i.type === 'BODY_SKIN'
+        );
+        if (matched) texture = matched.textureUrl;
+      }
+      if (texture) {
+        cropMinecraftHead(texture)
+          .then((headUrl) => setCroppedHead1(headUrl))
+          .catch((err) => console.error('Failed to crop player 1 head:', err));
+      }
+    }
+  }, [primaryProfile, allItemData]);
+
+  // Crop Player 2 body skin to head face
+  useEffect(() => {
+    setCroppedHead2(null);
+    if (compareProfile && compareProfile.activeBodySkin) {
+      let texture = compareProfile.activeBodySkin.textureUrl;
+      if (!texture && allItemData && Array.isArray(allItemData)) {
+        const nameKey = compareProfile.activeBodySkin.name.toLowerCase();
+        const matched = allItemData.find(
+          (i) => i.name.toLowerCase() === nameKey && i.type === 'BODY_SKIN'
+        );
+        if (matched) texture = matched.textureUrl;
+      }
+      if (texture) {
+        cropMinecraftHead(texture)
+          .then((headUrl) => setCroppedHead2(headUrl))
+          .catch((err) => console.error('Failed to crop player 2 head:', err));
+      }
+    }
+  }, [compareProfile, allItemData]);
 
   // Selection states for Quick Trade Offer
   const [mySelected, setMySelected] = useState<Record<string, number>>({});
@@ -401,12 +447,13 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
 
     if (myOffers.length === 0 && theirOffers.length === 0) return '';
 
-    const finalMyOffers = (myOffers.length === 0 && theirOffers.length > 0) ? ['[wood]'] : myOffers;
-    const finalTheirOffers = (theirOffers.length === 0 && myOffers.length > 0) ? ['[wood]'] : theirOffers;
+    if (myOffers.length === 0 && theirOffers.length > 0) {
+      myOffers.push('[wood]');
+    }
 
     const opponentId = compareProfile.shortId || compareProfile.id;
-    const myPart = finalMyOffers.length > 0 ? ` my:${finalMyOffers.join(',')}` : '';
-    const yourPart = finalTheirOffers.length > 0 ? ` your:${finalTheirOffers.join(',')}` : '';
+    const myPart = myOffers.length > 0 ? ` my:${myOffers.join(',')}` : '';
+    const yourPart = theirOffers.length > 0 ? ` your:${theirOffers.join(',')}` : '';
 
     return `/trade offer #${opponentId}${myPart}${yourPart}`;
   }, [compareProfile, mySelected, theirSelected, primaryInventory, compareInventory]);
@@ -548,12 +595,31 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
           <div className="bg-[#0b0c13] border border-obsidian-border rounded-3xl p-6 grid grid-cols-3 items-center text-center select-none relative overflow-hidden">
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/5 rounded-full filter blur-3xl pointer-events-none" />
             
-            <div className="space-y-1.5 z-10">
-              <span className="text-lg font-black text-white uppercase tracking-wider block">{primaryProfile.name}</span>
-              {primaryProfile.clan && (
-                <span className="text-xs font-mono font-bold text-indigo-400 block">CLAN: {primaryProfile.clan}</span>
-              )}
-              <span className="inline-block text-[9px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 rounded uppercase font-bold mt-2">LEVEL {primaryProfile.level}</span>
+            <div className="flex items-center space-x-4 z-10 text-left">
+              {/* P1 Avatar */}
+              <div className="relative w-16 h-16 bg-[#040509] border border-indigo-500/25 rounded-xl flex items-center justify-center p-1 shadow-indigo-500/10 overflow-hidden flex-shrink-0">
+                {croppedHead1 ? (
+                  <img
+                    src={croppedHead1}
+                    alt={primaryProfile.activeBodySkin?.name || 'Body Skin'}
+                    className="w-11 h-11 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                  />
+                ) : (
+                  <svg viewBox="0 0 8 8" className="w-11 h-11 text-slate-600 fill-current">
+                    <rect width="8" height="8" fill="#374151" />
+                    <rect x="1" y="1" width="6" height="5" fill="#6b7280" />
+                    <rect x="2" y="4" width="1" height="1" fill="#000" />
+                    <rect x="5" y="4" width="1" height="1" fill="#000" />
+                  </svg>
+                )}
+              </div>
+              <div className="space-y-1">
+                <span className="text-lg font-black text-white uppercase tracking-wider block leading-tight">{primaryProfile.name}</span>
+                {primaryProfile.clan && (
+                  <span className="text-xs font-mono font-bold text-indigo-400 block">[{primaryProfile.clan}]</span>
+                )}
+                <span className="inline-block text-[8px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-2 py-0.5 rounded uppercase font-bold mt-1">LEVEL {primaryProfile.level}</span>
+              </div>
             </div>
 
             <div className="flex justify-center z-10">
@@ -562,12 +628,31 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
               </div>
             </div>
 
-            <div className="space-y-1.5 z-10">
-              <span className="text-lg font-black text-white uppercase tracking-wider block">{compareProfile.name}</span>
-              {compareProfile.clan && (
-                <span className="text-xs font-mono font-bold text-gold-bright block">CLAN: {compareProfile.clan}</span>
-              )}
-              <span className="inline-block text-[9px] font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/30 px-3 py-1 rounded uppercase font-bold mt-2">LEVEL {compareProfile.level}</span>
+            <div className="flex items-center space-x-4 z-10 text-right justify-end">
+              <div className="space-y-1">
+                <span className="text-lg font-black text-white uppercase tracking-wider block leading-tight">{compareProfile.name}</span>
+                {compareProfile.clan && (
+                  <span className="text-xs font-mono font-bold text-gold-bright block">[{compareProfile.clan}]</span>
+                )}
+                <span className="inline-block text-[8px] font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/30 px-2 py-0.5 rounded uppercase font-bold mt-1">LEVEL {compareProfile.level}</span>
+              </div>
+              {/* P2 Avatar */}
+              <div className="relative w-16 h-16 bg-[#040509] border border-gold-primary/25 rounded-xl flex items-center justify-center p-1 shadow-gold-glow/10 overflow-hidden flex-shrink-0">
+                {croppedHead2 ? (
+                  <img
+                    src={croppedHead2}
+                    alt={compareProfile.activeBodySkin?.name || 'Body Skin'}
+                    className="w-11 h-11 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                  />
+                ) : (
+                  <svg viewBox="0 0 8 8" className="w-11 h-11 text-slate-600 fill-current">
+                    <rect width="8" height="8" fill="#374151" />
+                    <rect x="1" y="1" width="6" height="5" fill="#6b7280" />
+                    <rect x="2" y="4" width="1" height="1" fill="#000" />
+                    <rect x="5" y="4" width="1" height="1" fill="#000" />
+                  </svg>
+                )}
+              </div>
             </div>
           </div>
 
