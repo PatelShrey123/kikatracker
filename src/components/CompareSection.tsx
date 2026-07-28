@@ -401,9 +401,12 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
 
     if (myOffers.length === 0 && theirOffers.length === 0) return '';
 
+    const finalMyOffers = (myOffers.length === 0 && theirOffers.length > 0) ? ['[wood]'] : myOffers;
+    const finalTheirOffers = (theirOffers.length === 0 && myOffers.length > 0) ? ['[wood]'] : theirOffers;
+
     const opponentId = compareProfile.shortId || compareProfile.id;
-    const myPart = myOffers.length > 0 ? ` my:${myOffers.join(',')}` : '';
-    const yourPart = theirOffers.length > 0 ? ` your:${theirOffers.join(',')}` : '';
+    const myPart = finalMyOffers.length > 0 ? ` my:${finalMyOffers.join(',')}` : '';
+    const yourPart = finalTheirOffers.length > 0 ? ` your:${finalTheirOffers.join(',')}` : '';
 
     return `/trade offer #${opponentId}${myPart}${yourPart}`;
   }, [compareProfile, mySelected, theirSelected, primaryInventory, compareInventory]);
