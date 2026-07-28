@@ -309,6 +309,12 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
     updateUrlParams(val1, val2, compareType);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handlePerformComparison();
+    }
+  };
+
   const handleResetComparison = () => {
     addLog(`Resetting comparison and clearing state.`);
     setP1Search('');
@@ -537,6 +543,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                   placeholder="Enter Player 1 ID (e.g. HESHPY)..."
                   value={p1Search}
                   onChange={(e) => setP1Search(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="w-full bg-[#090A0F] border border-obsidian-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/25 transition-all"
                 />
               </div>
@@ -551,6 +558,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                   placeholder="Enter Player 2 ID (e.g. S2WVOK)..."
                   value={p2Search}
                   onChange={(e) => setP2Search(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="w-full bg-[#090A0F] border border-obsidian-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
                 />
               </div>

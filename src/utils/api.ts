@@ -473,13 +473,13 @@ export async function fetchClanDetail(name: string): Promise<ClanResponse> {
 }
 
 export async function fetchUserProfile(id: string, isShortId: boolean = false): Promise<UserProfile> {
+  const cleanId = isShortId ? id.trim().toUpperCase() : id.trim();
   try {
-    return await apiRequest<UserProfile>('/user/getProfile', 'POST', { id, isShortId });
+    return await apiRequest<UserProfile>('/user/getProfile', 'POST', { id: cleanId, isShortId });
   } catch (err) {
-    console.warn(`Failed to fetch live profile for ${id}, checking mock fallbacks:`, err);
-    const cleanId = id.trim().toUpperCase();
+    console.warn(`Failed to fetch live profile for ${cleanId}, checking mock fallbacks:`, err);
     const matched = Object.values(MOCK_PROFILE).find(
-      (p) => p.id === id || p.shortId.toUpperCase() === cleanId
+      (p) => p.id === cleanId || p.shortId.toUpperCase() === cleanId
     );
     if (matched) return matched;
     throw err;
@@ -487,15 +487,15 @@ export async function fetchUserProfile(id: string, isShortId: boolean = false): 
 }
 
 export async function fetchUserInventory(id: string, isShortId: boolean = false): Promise<UserInventoryItem[]> {
+  const cleanId = isShortId ? id.trim().toUpperCase() : id.trim();
   try {
-    return await apiRequest<UserInventoryItem[]>('/inventory/user', 'POST', { id, isShortId });
+    return await apiRequest<UserInventoryItem[]>('/inventory/user', 'POST', { id: cleanId, isShortId });
   } catch (err) {
-    console.warn(`Failed to fetch live inventory for ${id}, checking mock fallbacks:`, err);
-    const cleanId = id.trim().toUpperCase();
+    console.warn(`Failed to fetch live inventory for ${cleanId}, checking mock fallbacks:`, err);
     const matchedProfile = Object.values(MOCK_PROFILE).find(
-      (p) => p.id === id || p.shortId.toUpperCase() === cleanId
+      (p) => p.id === cleanId || p.shortId.toUpperCase() === cleanId
     );
-    const uuid = matchedProfile ? matchedProfile.id : id;
+    const uuid = matchedProfile ? matchedProfile.id : cleanId;
     if (MOCK_INVENTORY[uuid]) {
       return MOCK_INVENTORY[uuid];
     }
