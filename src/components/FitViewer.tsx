@@ -149,35 +149,59 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     return { bodies, primaries, secondaries, melees };
   }, [publicItems]);
 
+  const getProxiedImageUrl = (url: string | null) => {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('/') || url.startsWith('http://localhost') || url.includes(window.location.host)) {
+      return url;
+    }
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
+  };
+
   // Resolve texture URL helper
   const getTextureUrl = (bodySkin: any) => {
     if (!bodySkin) return '';
-    if (bodySkin.textureUrl) return bodySkin.textureUrl;
+    let raw = bodySkin.textureUrl;
     
-    // Look up in allItemData
-    const nameKey = bodySkin.name.toLowerCase();
-    const matched = allItemData.find(
-      (i) => i.name.toLowerCase() === nameKey && i.type === 'BODY_SKIN'
-    );
-    return matched ? matched.textureUrl : '';
+    if (!raw) {
+      // Look up in allItemData
+      const nameKey = bodySkin.name.toLowerCase();
+      const matched = allItemData.find(
+        (i) => i.name.toLowerCase() === nameKey && i.type === 'BODY_SKIN'
+      );
+      raw = matched ? matched.textureUrl : '';
+    }
+
+    if (!raw) return '';
+
+    // Handle corrupted base64 prefix typo "https://kirka.iodata:image/png;base64,..."
+    if (raw.includes('data:image/')) {
+      const idx = raw.indexOf('data:image/');
+      return raw.substring(idx);
+    }
+
+    return raw;
   };
 
   // Helper to resolve skin image render URL
   const getItemRenderUrl = (item: any) => {
     if (!item) return null;
-    if (item.renderUrl) return item.renderUrl;
+    let url = item.renderUrl;
 
-    const cleanName = item.name.replace(/^_+/, '');
-    const nameKey = cleanName.toLowerCase();
-    const fallback = fallbackRenders[nameKey];
-    if (fallback && fallback.renderurl) return fallback.renderurl;
-
-    if (item.parent?.name) {
-      const comboKey = `${cleanName.toLowerCase()} ${item.parent.name.toLowerCase()}`;
-      const comboFallback = fallbackRenders[comboKey];
-      if (comboFallback && comboFallback.renderurl) return comboFallback.renderurl;
+    if (!url) {
+      const cleanName = item.name.replace(/^_+/, '');
+      const nameKey = cleanName.toLowerCase();
+      const fallback = fallbackRenders[nameKey];
+      if (fallback && fallback.renderurl) {
+        url = fallback.renderurl;
+      } else if (item.parent?.name) {
+        const comboKey = `${cleanName.toLowerCase()} ${item.parent.name.toLowerCase()}`;
+        const comboFallback = fallbackRenders[comboKey];
+        if (comboFallback && comboFallback.renderurl) {
+          url = comboFallback.renderurl;
+        }
+      }
     }
-    return null;
+    return url ? getProxiedImageUrl(url) : null;
   };
 
   // 1. Initialize slots with profile's currently equipped skins on load
@@ -308,191 +332,206 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     leftArmRef.current = null;
 
     // Default skin texture (Steve fallback)
-    const fallbackTexture = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2hpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnNtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGV4dD0iQWRvYmUgWE1QIENvcmUgNS4zLWMwMTEgNjYuMTQ1NjYxLCAyMDEyLzAyLzA2LTE0OjU2OjI3ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpydGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9jccontainment.org/xap/1.0/sType/ResourceRef#\"IHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjBFODAxMTc0MDcyMDY4MTE4MDgzRkNDNkRDMTAzOTdFIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkM2ODNBNDA0REYyMzExRTJCRDFDODRCQUJDNEYzNjU4IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkM2ODNBNDAzREYyMzExRTJCRDFDODRCQUJDNEYzNjU4IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RUE2RTAxN0I1MzlFRTFGMTk3OTFDMTRGN0MxOTgzRDkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MEU4MDExNzQwNzIwNjgxMTgwODNGQ0M2REMxMDM5N0UiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnNtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InciPz5512BfAAACbklEQVR42uxdy2sCMRQebx9VfFTwUfFR8VHFV/FRxUfFRxUfVXwVPFR8VPFRxVfxUcVHxUcVHxV8VPFR8d/v1EwhaTsz2bS7Nf1gIFwSwvnl/M45t7m5S8PhkBYWFqilpSXK5/OpQCDAti2VSlF7eztFo9HU399Pzc3NFIsB5HI5am1tpa6uLurnL7z88/n39+Xg4KCrp6cnwN/r9Qaor68vQK2trdTa2jquEydD63j5Z/Ovs7vDwsLC8/j5W7oD4Q7u7+8LpZJp4H9nfwQ99q332A/D4XCIv0PqgO7g8vKyUCqbBv6X/k7Q49h6j+MwHA6H9Pv1fQAOw+FwSGoH6E1dXV0oQ3oFvX6/P0APaA5Q/tQC3UGpVCoU2gH6F4A5AP0LwByA/gVgDkD/AjAHoH8BmAPQvwDMAehfAOUAwCE4DIejvwC6u7sLhZYyqX8BmAPQvwDMAehfAOUAwCE4DIejv4CHh4dCoaxMAnD/AjAHoH8BmAPQvwDKAYBDcBgOR3+BDw8PhUJZ6Qfg/gVgDkD/AjAHoH8BlAMAh+AwHI7+Ah4eHgqFsjIJwP0LwByA/gVgDkD/AigHAA7BYTgc/QU+PDwUCmWlH4D7F4A5AP0LwByA/gUoDwCH4TCc/8g4gK8oHA4HgD88Ph4Kh/z8qA6A/wD4D4D/APgPgP8A+A+A/wD4D4D/APjPI3gH8C04/4HzHxn/gfMfGf8B8P9T+wD5D4D/APgPgP8A+A+A/wD4D4D/APhPBgDwHwD/AfAfAP8B8B8A/wF4vwDDAAEASB5VqV876zUAAAAASUVORK5CYII=';
+    const fallbackTexture = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2hpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnNtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGV4dD0iQWRvYmUgWE1QIENvcmUgNS4zLWMwMTEgNjYuMTQ1NjYxLCAyMDEyLzAyLzA2LTE0OjU2OjI3ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpydGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9jccontainment.org/xap/1.0/sType/ResourceRef#\"IHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjBFODAxMTc0MDcyMDY4MTE4MDgzRkNDNkRDMTAzOTdFIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkM2ODNBNDA0REYyMzExRTJCRDFDODRCQUJDNEYzNjU4IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkM2ODNBNDA0REYyMzExRTJCRDFDODRCQUJDNEYzNjU4IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RUE2RTAxN0I1MzlFRTFGMTk3OTFDMTRGN0MxOTgzRDkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MEU4MDExNzQwNzIwNjgxMTgwODNGQ0M2REMxMDM5N0UiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnNtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InciPz5512BfAAACbklEQVR42uxdy2sCMRQebx9VfFTwUfFR8VHFV/FRxUfFRxUfVXwVPFR8VPFRxVfxUcVHxUcVHxV8VPFR8d/v1EwhaTsz2bS7Nf1gIFwSwvnl/M45t7m5S8PhkBYWFqilpSXK5/OpQCDAti2VSlF7eztFo9HU399Pzc3NFIsB5HI5am1tpa6uLurnL7z88/n39+Xg4KCrp6cnwN/r9Qaor68vQK2trdTa2jquEydD63j5Z/Ovs7vDwsLC8/j5W7oD4Q7u7+8LpZJp4H9nfwQ99q332A/D4XCIv0PqgO7g8vKyUCqbBv6X/k7Q49h6j+MwHA6H9Pv1fQAOw+FwSGoH6E1dXV0oQ3oFvX6/P0APaA5Q/tQC3UGpVCoU2gH6F4A5AP0LwByA/gVgDkD/AjAHoH8BmAPQvwDMAehfAOUAwCE4DIejvwC6u7sLhZYyqX8BmAPQvwDMAehfAOUAwCE4DIejv4CHh4dCoaxMAnD/AjAHoH8BmAPQvwDKAYBDcBgOR3+BDw8PhUJZ6Qfg/gVgDkD/AjAHoH8BlAMAh+AwHI7+Ah4eHgqFsjIJwP0LwByA/gVgDkD/AigHAA7BYTgc/QU+PDwUCmWlH4D7F4A5AP0LwByA/gUoDwCH4TCc/8g4gK8oHA4HgD88Ph4Kh/z8qA6A/wD4D4D/APgPgP8A+A+A/wD4D4D/APjPI3gH8C04/4HzHxn/gfMfGf8B8P9T+wD5D4D/APgPgP8A+A+A/wD4D4D/APhPBgDwHwD/AfAfAP8B8B8A/wF4vwDDAAEASB5VqV876zUAAAAASUVORK5CYII=';
 
     const textureUrl = getTextureUrl(selectedBody) || fallbackTexture;
 
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = textureUrl;
+    const loadSkinTexture = (url: string) => {
+      let cleanUrl = url.trim();
+      if (cleanUrl.includes('data:image/')) {
+        const idx = cleanUrl.indexOf('data:image/');
+        cleanUrl = cleanUrl.substring(idx);
+      } else if (cleanUrl && !cleanUrl.startsWith('data:')) {
+        cleanUrl = getProxiedImageUrl(cleanUrl);
+      }
 
-    img.onload = () => {
-      const isLegacy = img.height === img.width / 2;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = cleanUrl || fallbackTexture;
 
-      // Extract canvas textures for each face of the body parts
-      const extractFace = (x: number, y: number, w: number, h: number) => {
-        const faceCanvas = document.createElement('canvas');
-        faceCanvas.width = w * 8; // upscale for crisp retro pixel scaling
-        faceCanvas.height = h * 8;
-        const ctx = faceCanvas.getContext('2d');
-        if (ctx) {
-          ctx.imageSmoothingEnabled = false;
-          const scale = img.width / 64;
-          ctx.drawImage(img, x * scale, y * scale, w * scale, h * scale, 0, 0, faceCanvas.width, faceCanvas.height);
+      img.onload = () => {
+        const isLegacy = img.height === img.width / 2;
+
+        // Extract canvas textures for each face of the body parts
+        const extractFace = (x: number, y: number, w: number, h: number) => {
+          const faceCanvas = document.createElement('canvas');
+          faceCanvas.width = w * 8; // upscale for crisp retro pixel scaling
+          faceCanvas.height = h * 8;
+          const ctx = faceCanvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = false;
+            const scale = img.width / 64;
+            ctx.drawImage(img, x * scale, y * scale, w * scale, h * scale, 0, 0, faceCanvas.width, faceCanvas.height);
+          }
+          const texture = new THREE.CanvasTexture(faceCanvas);
+          texture.magFilter = THREE.NearestFilter;
+          texture.minFilter = THREE.NearestFilter;
+          return new THREE.MeshLambertMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+        };
+
+        const getMaterials = (mapping: any) => [
+          extractFace(mapping.right[0], mapping.right[1], mapping.right[2], mapping.right[3]), // +X
+          extractFace(mapping.left[0], mapping.left[1], mapping.left[2], mapping.left[3]),   // -X
+          extractFace(mapping.top[0], mapping.top[1], mapping.top[2], mapping.top[3]),       // +Y
+          extractFace(mapping.bottom[0], mapping.bottom[1], mapping.bottom[2], mapping.bottom[3]), // -Y
+          extractFace(mapping.front[0], mapping.front[1], mapping.front[2], mapping.front[3]), // +Z
+          extractFace(mapping.back[0], mapping.back[1], mapping.back[2], mapping.back[3])    // -Z
+        ];
+
+        // 1. HEAD (8x8x8)
+        const headGeo = new THREE.BoxGeometry(8, 8, 8);
+        const headMats = getMaterials(MAPPINGS.head);
+        const head = new THREE.Mesh(headGeo, headMats);
+        head.position.set(0, 10, 0);
+        group.add(head);
+
+        // HEAD OVERLAY (slightly larger)
+        const headOverlayGeo = new THREE.BoxGeometry(8.5, 8.5, 8.5);
+        const headOverlayMats = getMaterials(MAPPINGS.headOverlay);
+        const headOverlay = new THREE.Mesh(headOverlayGeo, headOverlayMats);
+        head.add(headOverlay); // nested inside head so it rotates with it
+
+        // 2. TORSO (8x12x4)
+        const torsoGeo = new THREE.BoxGeometry(8, 12, 4);
+        const torsoMats = getMaterials(MAPPINGS.torso);
+        const torso = new THREE.Mesh(torsoGeo, torsoMats);
+        torso.position.set(0, 0, 0);
+        group.add(torso);
+
+        // TORSO OVERLAY
+        if (!isLegacy) {
+          const torsoOverlayGeo = new THREE.BoxGeometry(8.5, 12.5, 4.5);
+          const torsoOverlayMats = getMaterials(MAPPINGS.torsoOverlay);
+          const torsoOverlay = new THREE.Mesh(torsoOverlayGeo, torsoOverlayMats);
+          torso.add(torsoOverlay);
         }
-        const texture = new THREE.CanvasTexture(faceCanvas);
-        texture.magFilter = THREE.NearestFilter;
-        texture.minFilter = THREE.NearestFilter;
-        return new THREE.MeshLambertMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+
+        // 3. RIGHT ARM (4x12x4) - Pivot at top corner
+        const armGeo = new THREE.BoxGeometry(4, 12, 4);
+        // Shift origin to top of arm for natural joint rotations
+        armGeo.translate(0, -6, 0); 
+        const rightArmMats = getMaterials(MAPPINGS.rightArm);
+        const rightArm = new THREE.Mesh(armGeo, rightArmMats);
+        rightArm.position.set(6, 6, 0); // attached at top-right of torso
+        group.add(rightArm);
+        rightArmRef.current = rightArm;
+
+        if (!isLegacy) {
+          const rightArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
+          rightArmOverlayGeo.translate(0, -6.25, 0);
+          const rightArmOverlay = new THREE.Mesh(rightArmOverlayGeo, getMaterials(MAPPINGS.rightArmOverlay));
+          rightArm.add(rightArmOverlay);
+        }
+
+        // 4. LEFT ARM (4x12x4)
+        const leftArmGeo = new THREE.BoxGeometry(4, 12, 4);
+        leftArmGeo.translate(0, -6, 0);
+        const leftArmMats = getMaterials(isLegacy ? MAPPINGS.rightArm : MAPPINGS.leftArm);
+        const leftArm = new THREE.Mesh(leftArmGeo, leftArmMats);
+        leftArm.position.set(-6, 6, 0);
+        group.add(leftArm);
+        leftArmRef.current = leftArm;
+
+        if (!isLegacy) {
+          const leftArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
+          leftArmOverlayGeo.translate(0, -6.25, 0);
+          const leftArmOverlay = new THREE.Mesh(leftArmOverlayGeo, getMaterials(MAPPINGS.leftArmOverlay));
+          leftArm.add(leftArmOverlay);
+        }
+
+        // 5. RIGHT LEG (4x12x4)
+        const legGeo = new THREE.BoxGeometry(4, 12, 4);
+        legGeo.translate(0, -6, 0);
+        const rightLeg = new THREE.Mesh(legGeo, getMaterials(MAPPINGS.rightLeg));
+        rightLeg.position.set(2, -6, 0);
+        group.add(rightLeg);
+
+        if (!isLegacy) {
+          const rightLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
+          rightLegOverlayGeo.translate(0, -6.25, 0);
+          const rightLegOverlay = new THREE.Mesh(rightLegOverlayGeo, getMaterials(MAPPINGS.rightLegOverlay));
+          rightLeg.add(rightLegOverlay);
+        }
+
+        // 6. LEFT LEG (4x12x4)
+        const leftLegGeo = new THREE.BoxGeometry(4, 12, 4);
+        leftLegGeo.translate(0, -6, 0);
+        const leftLeg = new THREE.Mesh(leftLegGeo, getMaterials(isLegacy ? MAPPINGS.rightLeg : MAPPINGS.leftLeg));
+        leftLeg.position.set(-2, -6, 0);
+        group.add(leftLeg);
+
+        if (!isLegacy) {
+          const leftLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
+          leftLegOverlayGeo.translate(0, -6.25, 0);
+          const leftLegOverlay = new THREE.Mesh(leftLegOverlayGeo, getMaterials(MAPPINGS.leftLegOverlay));
+          leftLeg.add(leftLegOverlay);
+        }
+
+        // 7. WEAPON IN HAND (2D Plane Sprite in 3D Space)
+        const activeWeapon = selectedPrimary;
+        if (activeWeapon) {
+          const renderUrl = getItemRenderUrl(activeWeapon);
+          if (renderUrl) {
+            const loader = new THREE.TextureLoader();
+            loader.setCrossOrigin('anonymous');
+            loader.load(
+              renderUrl,
+              (weaponTex) => {
+                weaponTex.magFilter = THREE.NearestFilter;
+                weaponTex.minFilter = THREE.NearestFilter;
+
+                const weaponGeo = new THREE.PlaneGeometry(11, 5.5);
+                const weaponMat = new THREE.MeshBasicMaterial({
+                  map: weaponTex,
+                  transparent: true,
+                  side: THREE.DoubleSide
+                });
+                const weaponMesh = new THREE.Mesh(weaponGeo, weaponMat);
+
+                // Position weapon relative to Right Arm bottom joint
+                rightArm.add(weaponMesh);
+                
+                const weaponType = activeWeapon.parent?.type || 'WEAPON_1';
+
+                if (weaponType === 'WEAPON_1') {
+                  // Rifle hold pose: Both arms raised forward
+                  rightArm.rotation.set(-Math.PI / 3, -Math.PI / 8, 0);
+                  leftArm.rotation.set(-Math.PI / 3.5, Math.PI / 6, 0);
+                  
+                  weaponMesh.position.set(-1, -7, 3);
+                  weaponMesh.rotation.set(0, Math.PI / 2.2, -Math.PI / 10);
+                } else if (weaponType === 'WEAPON_2') {
+                  // Pistol pose: One arm straight forward
+                  rightArm.rotation.set(-Math.PI / 2, 0, 0);
+                  leftArm.rotation.set(0, 0, 0);
+                  
+                  weaponMesh.position.set(0.5, -7.5, 2.5);
+                  weaponMesh.rotation.set(0, Math.PI / 2, 0);
+                } else {
+                  // Melee knife pose: Arm raised slightly, knife held ready
+                  rightArm.rotation.set(-Math.PI / 3.5, 0, 0);
+                  leftArm.rotation.set(0, 0, 0);
+                  
+                  weaponMesh.position.set(0.5, -7.5, 2);
+                  weaponMesh.rotation.set(0, Math.PI / 2, -Math.PI / 4);
+                }
+              },
+              undefined,
+              (err) => console.warn('Failed to load weapon texture in FitViewer:', err)
+            );
+          }
+        }
       };
 
-      const getMaterials = (mapping: any) => [
-        extractFace(mapping.right[0], mapping.right[1], mapping.right[2], mapping.right[3]), // +X
-        extractFace(mapping.left[0], mapping.left[1], mapping.left[2], mapping.left[3]),   // -X
-        extractFace(mapping.top[0], mapping.top[1], mapping.top[2], mapping.top[3]),       // +Y
-        extractFace(mapping.bottom[0], mapping.bottom[1], mapping.bottom[2], mapping.bottom[3]), // -Y
-        extractFace(mapping.front[0], mapping.front[1], mapping.front[2], mapping.front[3]), // +Z
-        extractFace(mapping.back[0], mapping.back[1], mapping.back[2], mapping.back[3])    // -Z
-      ];
-
-      // 1. HEAD (8x8x8)
-      const headGeo = new THREE.BoxGeometry(8, 8, 8);
-      const headMats = getMaterials(MAPPINGS.head);
-      const head = new THREE.Mesh(headGeo, headMats);
-      head.position.set(0, 10, 0);
-      group.add(head);
-
-      // HEAD OVERLAY (slightly larger)
-      const headOverlayGeo = new THREE.BoxGeometry(8.5, 8.5, 8.5);
-      const headOverlayMats = getMaterials(MAPPINGS.headOverlay);
-      const headOverlay = new THREE.Mesh(headOverlayGeo, headOverlayMats);
-      head.add(headOverlay); // nested inside head so it rotates with it
-
-      // 2. TORSO (8x12x4)
-      const torsoGeo = new THREE.BoxGeometry(8, 12, 4);
-      const torsoMats = getMaterials(MAPPINGS.torso);
-      const torso = new THREE.Mesh(torsoGeo, torsoMats);
-      torso.position.set(0, 0, 0);
-      group.add(torso);
-
-      // TORSO OVERLAY
-      if (!isLegacy) {
-        const torsoOverlayGeo = new THREE.BoxGeometry(8.5, 12.5, 4.5);
-        const torsoOverlayMats = getMaterials(MAPPINGS.torsoOverlay);
-        const torsoOverlay = new THREE.Mesh(torsoOverlayGeo, torsoOverlayMats);
-        torso.add(torsoOverlay);
-      }
-
-      // 3. RIGHT ARM (4x12x4) - Pivot at top corner
-      const armGeo = new THREE.BoxGeometry(4, 12, 4);
-      // Shift origin to top of arm for natural joint rotations
-      armGeo.translate(0, -6, 0); 
-      const rightArmMats = getMaterials(MAPPINGS.rightArm);
-      const rightArm = new THREE.Mesh(armGeo, rightArmMats);
-      rightArm.position.set(6, 6, 0); // attached at top-right of torso
-      group.add(rightArm);
-      rightArmRef.current = rightArm;
-
-      if (!isLegacy) {
-        const rightArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
-        rightArmOverlayGeo.translate(0, -6.25, 0);
-        const rightArmOverlay = new THREE.Mesh(rightArmOverlayGeo, getMaterials(MAPPINGS.rightArmOverlay));
-        rightArm.add(rightArmOverlay);
-      }
-
-      // 4. LEFT ARM (4x12x4)
-      const leftArmGeo = new THREE.BoxGeometry(4, 12, 4);
-      leftArmGeo.translate(0, -6, 0);
-      const leftArmMats = getMaterials(isLegacy ? MAPPINGS.rightArm : MAPPINGS.leftArm);
-      const leftArm = new THREE.Mesh(leftArmGeo, leftArmMats);
-      leftArm.position.set(-6, 6, 0);
-      group.add(leftArm);
-      leftArmRef.current = leftArm;
-
-      if (!isLegacy) {
-        const leftArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
-        leftArmOverlayGeo.translate(0, -6.25, 0);
-        const leftArmOverlay = new THREE.Mesh(leftArmOverlayGeo, getMaterials(MAPPINGS.leftArmOverlay));
-        leftArm.add(leftArmOverlay);
-      }
-
-      // 5. RIGHT LEG (4x12x4)
-      const legGeo = new THREE.BoxGeometry(4, 12, 4);
-      legGeo.translate(0, -6, 0);
-      const rightLeg = new THREE.Mesh(legGeo, getMaterials(MAPPINGS.rightLeg));
-      rightLeg.position.set(2, -6, 0);
-      group.add(rightLeg);
-
-      if (!isLegacy) {
-        const rightLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
-        rightLegOverlayGeo.translate(0, -6.25, 0);
-        const rightLegOverlay = new THREE.Mesh(rightLegOverlayGeo, getMaterials(MAPPINGS.rightLegOverlay));
-        rightLeg.add(rightLegOverlay);
-      }
-
-      // 6. LEFT LEG (4x12x4)
-      const leftLegGeo = new THREE.BoxGeometry(4, 12, 4);
-      leftLegGeo.translate(0, -6, 0);
-      const leftLeg = new THREE.Mesh(leftLegGeo, getMaterials(isLegacy ? MAPPINGS.rightLeg : MAPPINGS.leftLeg));
-      leftLeg.position.set(-2, -6, 0);
-      group.add(leftLeg);
-
-      if (!isLegacy) {
-        const leftLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
-        leftLegOverlayGeo.translate(0, -6.25, 0);
-        const leftLegOverlay = new THREE.Mesh(leftLegOverlayGeo, getMaterials(MAPPINGS.leftLegOverlay));
-        leftLeg.add(leftLegOverlay);
-      }
-
-      // 7. WEAPON IN HAND (2D Plane Sprite in 3D Space)
-      const activeWeapon = selectedPrimary;
-      if (activeWeapon) {
-        const renderUrl = getItemRenderUrl(activeWeapon);
-        if (renderUrl) {
-          const loader = new THREE.TextureLoader();
-          loader.setCrossOrigin('anonymous');
-          loader.load(
-            renderUrl,
-            (weaponTex) => {
-              weaponTex.magFilter = THREE.NearestFilter;
-              weaponTex.minFilter = THREE.NearestFilter;
-
-              const weaponGeo = new THREE.PlaneGeometry(11, 5.5);
-              const weaponMat = new THREE.MeshBasicMaterial({
-                map: weaponTex,
-                transparent: true,
-                side: THREE.DoubleSide
-              });
-              const weaponMesh = new THREE.Mesh(weaponGeo, weaponMat);
-
-              // Position weapon relative to Right Arm bottom joint
-              rightArm.add(weaponMesh);
-              
-              const weaponType = activeWeapon.parent?.type || 'WEAPON_1';
-
-              if (weaponType === 'WEAPON_1') {
-                // Rifle hold pose: Both arms raised forward
-                rightArm.rotation.set(-Math.PI / 3, -Math.PI / 8, 0);
-                leftArm.rotation.set(-Math.PI / 3.5, Math.PI / 6, 0);
-                
-                weaponMesh.position.set(-1, -7, 3);
-                weaponMesh.rotation.set(0, Math.PI / 2.2, -Math.PI / 10);
-              } else if (weaponType === 'WEAPON_2') {
-                // Pistol pose: One arm straight forward
-                rightArm.rotation.set(-Math.PI / 2, 0, 0);
-                leftArm.rotation.set(0, 0, 0);
-                
-                weaponMesh.position.set(0.5, -7.5, 2.5);
-                weaponMesh.rotation.set(0, Math.PI / 2, 0);
-              } else {
-                // Melee knife pose: Arm raised slightly, knife held ready
-                rightArm.rotation.set(-Math.PI / 3.5, 0, 0);
-                leftArm.rotation.set(0, 0, 0);
-                
-                weaponMesh.position.set(0.5, -7.5, 2);
-                weaponMesh.rotation.set(0, Math.PI / 2, -Math.PI / 4);
-              }
-            },
-            undefined,
-            (err) => console.warn('Failed to load weapon texture in FitViewer:', err)
-          );
+      img.onerror = () => {
+        console.warn('Failed to load character body texture in FitViewer, falling back:', cleanUrl);
+        if (cleanUrl !== fallbackTexture) {
+          loadSkinTexture(fallbackTexture);
         }
-      }
+      };
     };
 
-    img.onerror = () => {
-      console.error('Failed to load character body texture in FitViewer:', textureUrl);
-    };
+    loadSkinTexture(textureUrl);
   }, [selectedBody, selectedPrimary, allItemData]);
 
   // Mouse Interaction handlers
