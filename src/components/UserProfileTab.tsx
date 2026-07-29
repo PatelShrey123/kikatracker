@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera, GitCompare } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
+import { FitViewer } from './FitViewer';
 import { fetchUserInventory, fetchAllPublicItems } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
@@ -27,7 +28,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   allItemData,
   onCompare
 }) => {
-  const [profileTab, setProfileTab] = useState<'stats' | 'inventory'>('stats');
+  const [profileTab, setProfileTab] = useState<'stats' | 'inventory' | 'fit'>('stats');
   const [inventory, setInventory] = useState<UserInventoryItem[]>([]);
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
@@ -260,25 +261,36 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
             <Database className="w-4 h-4" />
             <span>Inventory Valuation</span>
           </button>
+          <button
+            onClick={() => setProfileTab('fit')}
+            className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+              profileTab === 'fit'
+                ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>3D Fit Viewer</span>
+          </button>
         </div>
 
         {/* Compare Profile Buttons aligned right */}
         <div className="px-4 pb-2.5 sm:pb-0">
-          {profileTab === 'stats' ? (
-            <button
-              onClick={() => onCompare(profile.id, 'stats')}
-              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-indigo-500/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <GitCompare className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Compare Stats</span>
-            </button>
-          ) : (
+          {profileTab === 'inventory' ? (
             <button
               onClick={() => onCompare(profile.id, 'inventory')}
               className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-gold-primary/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
             >
               <GitCompare className="w-3.5 h-3.5 text-gold-primary" />
               <span>Compare Inventory</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onCompare(profile.id, 'stats')}
+              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-indigo-500/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <GitCompare className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Compare Stats</span>
             </button>
           )}
         </div>
@@ -531,7 +543,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               </div>
             </div>
           </div>
-        ) : (
+        ) : profileTab === 'inventory' ? (
           /* Inventory Valuation Tab */
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -658,6 +670,13 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               </div>
             )}
           </div>
+        ) : (
+          <FitViewer
+            profile={profile}
+            publicItems={publicItems}
+            allItemData={allItemData}
+            fallbackRenders={fallbackRenders}
+          />
         )}
       </div>
       {/* Subtle render attribution footer */}
