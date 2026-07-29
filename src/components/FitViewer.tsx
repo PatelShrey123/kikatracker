@@ -130,14 +130,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
 
   // Three.js instances refs
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const playerGroupRef = useRef<THREE.Group | null>(null);
-  const rightArmRef = useRef<THREE.Mesh | null>(null);
-  const leftArmRef = useRef<THREE.Mesh | null>(null);
-
-  // Drag interaction states
-  const isDragging = useRef(false);
-  const previousMousePosition = useRef({ x: 0, y: 0 });
 
   // Pre-grouped catalog filters
   const catalog = useMemo(() => {
@@ -210,7 +203,6 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       if (profile.activeBodySkin) {
         setSelectedBody(profile.activeBodySkin);
       } else {
-        // Use default mock body skin if none equipped
         setSelectedBody(catalog.bodies[0] || null);
       }
 
@@ -220,7 +212,6 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         setSelectedPrimary(catalog.primaries[0] || null);
       }
 
-      // Default secondary and melee selections if not directly on profile
       setSelectedSecondary(catalog.secondaries[0] || null);
       setSelectedMelee(catalog.melees[0] || null);
     }
@@ -237,12 +228,11 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     // Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = null; // transparent to use CSS backdrops
+    scene.background = null;
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 2, 25);
-    cameraRef.current = camera;
+    // Camera - Very low FOV (16 degrees) to create a flat, crisp orthographic look!
+    const camera = new THREE.PerspectiveCamera(16, width / height, 0.1, 150);
+    camera.position.set(0, 1.2, 58);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -251,50 +241,23 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    // Ambient light - high intensity for full brightness flat colors
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
-
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
-    dirLight1.position.set(5, 10, 7);
-    scene.add(dirLight1);
-
-    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.25);
-    dirLight2.position.set(-5, -5, -5);
-    scene.add(dirLight2);
 
     // Main Player Group
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
     playerGroupRef.current = playerGroup;
 
-    // Animation Loop
-    let animationFrameId: number;
-    let clock = new THREE.Clock();
+    // Static pose setups - Rotate group slightly to reveal side depth
+    playerGroup.rotation.y = -0.32; // -18 degrees Y
+    playerGroup.rotation.x = 0.05;  // 3 degrees X (slight forward tilt)
 
+    // Render loop (no auto spin, fully static as requested)
+    let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-
-      // Subtle breathing idle animations
-      const time = clock.getElapsedTime();
-      const group = playerGroupRef.current;
-      if (group) {
-        // Player bobbing
-        group.position.y = Math.sin(time * 2) * 0.12 - 2.8;
-        
-        // Auto slow spin when not dragging
-        if (!isDragging.current) {
-          group.rotation.y += 0.005;
-        }
-      }
-
-      // Sync weapon with breathing bobbing
-      if (rightArmRef.current && leftArmRef.current) {
-        // Subtle arm movements
-        rightArmRef.current.rotation.z = Math.sin(time * 2) * 0.02 - 0.05;
-        leftArmRef.current.rotation.z = -Math.sin(time * 2) * 0.02 + 0.05;
-      }
-
       renderer.render(scene, camera);
     };
     animate();
@@ -327,9 +290,6 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     while (group.children.length > 0) {
       group.remove(group.children[0]);
     }
-
-    rightArmRef.current = null;
-    leftArmRef.current = null;
 
     // Default skin texture (Steve fallback)
     const fallbackTexture = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2hpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnNtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGV4dD0iQWRvYmUgWE1QIENvcmUgNS4zLWMwMTEgNjYuMTQ1NjYxLCAyMDEyLzAyLzA2LTE0OjU2OjI3ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpydGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9jccontainment.org/xap/1.0/sType/ResourceRef#\"IHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjBFODAxMTc0MDcyMDY4MTE4MDgzRkNDNkRDMTAzOTdFIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkM2ODNBNDA0REYyMzExRTJCRDFDODRCQUJDNEYzNjU4IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkM2ODNBNDA0REYyMzExRTJCRDFDODRCQUJDNEYzNjU4IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RUE2RTAxN0I1MzlFRTFGMTk3OTFDMTRGN0MxOTgzRDkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MEU4MDExNzQwNzIwNjgxMTgwODNGQ0M2REMxMDM5N0UiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnNtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InciPz5512BfAAACbklEQVR42uxdy2sCMRQebx9VfFTwUfFR8VHFV/FRxUfFRxUfVXwVPFR8VPFRxVfxUcVHxUcVHxV8VPFR8d/v1EwhaTsz2bS7Nf1gIFwSwvnl/M45t7m5S8PhkBYWFqilpSXK5/OpQCDAti2VSlF7eztFo9HU399Pzc3NFIsB5HI5am1tpa6uLurnL7z88/n39+Xg4KCrp6cnwN/r9Qaor68vQK2trdTa2jquEydD63j5Z/Ovs7vDwsLC8/j5W7oD4Q7u7+8LpZJp4H9nfwQ99q332A/D4XCIv0PqgO7g8vKyUCqbBv6X/k7Q49h6j+MwHA6H9Pv1fQAOw+FwSGoH6E1dXV0oQ3oFvX6/P0APaA5Q/tQC3UGpVCoU2gH6F4A5AP0LwByA/gVgDkD/AjAHoH8BmAPQvwDMAehfAOUAwCE4DIejvwC6u7sLhZYyqX8BmAPQvwDMAehfAOUAwCE4DIejv4CHh4dCoaxMAnD/AjAHoH8BmAPQvwDKAYBDcBgOR3+BDw8PhUJZ6Qfg/gVgDkD/AjAHoH8BlAMAh+AwHI7+Ah4eHgqFsjIJwP0LwByA/gVgDkD/AigHAA7BYTgc/QU+PDwUCmWlH4D7F4A5AP0LwByA/gUoDwCH4TCc/8g4gK8oHA4HgD88Ph4Kh/z8qA6A/wD4D4D/APgPgP8A+A+A/wD4D4D/APjPI3gH8C04/4HzHxn/gfMfGf8B8P9T+wD5D4D/APgPgP8A+A+A/wD4D4D/APhPBgDwHwD/AfAfAP8B8B8A/wF4vwDDAAEASB5VqV876zUAAAAASUVORK5CYII=';
@@ -364,9 +324,13 @@ export const FitViewer: React.FC<FitViewerProps> = ({
             ctx.drawImage(img, x * scale, y * scale, w * scale, h * scale, 0, 0, faceCanvas.width, faceCanvas.height);
           }
           const texture = new THREE.CanvasTexture(faceCanvas);
+          // Set nearest filters to guarantee pixel art stays perfectly sharp and 0% blurry!
           texture.magFilter = THREE.NearestFilter;
           texture.minFilter = THREE.NearestFilter;
-          return new THREE.MeshLambertMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+          texture.generateMipmaps = false;
+          
+          // MeshBasicMaterial yields full unshaded colors, exactly preserving skin shading!
+          return new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
         };
 
         const getMaterials = (mapping: any) => [
@@ -389,7 +353,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         const headOverlayGeo = new THREE.BoxGeometry(8.5, 8.5, 8.5);
         const headOverlayMats = getMaterials(MAPPINGS.headOverlay);
         const headOverlay = new THREE.Mesh(headOverlayGeo, headOverlayMats);
-        head.add(headOverlay); // nested inside head so it rotates with it
+        head.add(headOverlay);
 
         // 2. TORSO (8x12x4)
         const torsoGeo = new THREE.BoxGeometry(8, 12, 4);
@@ -406,15 +370,16 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           torso.add(torsoOverlay);
         }
 
-        // 3. RIGHT ARM (4x12x4) - Pivot at top corner
+        // 3. RIGHT ARM (4x12x4) - Pivot at top corner. Bent to stylishly hold the weapon!
         const armGeo = new THREE.BoxGeometry(4, 12, 4);
-        // Shift origin to top of arm for natural joint rotations
         armGeo.translate(0, -6, 0); 
         const rightArmMats = getMaterials(MAPPINGS.rightArm);
         const rightArm = new THREE.Mesh(armGeo, rightArmMats);
-        rightArm.position.set(6, 6, 0); // attached at top-right of torso
+        rightArm.position.set(6, 6, 0); 
         group.add(rightArm);
-        rightArmRef.current = rightArm;
+
+        // Raised forward hold pose
+        rightArm.rotation.set(-0.8, -0.3, 0.15);
 
         if (!isLegacy) {
           const rightArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -430,7 +395,9 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         const leftArm = new THREE.Mesh(leftArmGeo, leftArmMats);
         leftArm.position.set(-6, 6, 0);
         group.add(leftArm);
-        leftArmRef.current = leftArm;
+
+        // Raised forward hold pose
+        leftArm.rotation.set(-0.7, 0.35, -0.15);
 
         if (!isLegacy) {
           const leftArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -439,12 +406,14 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           leftArm.add(leftArmOverlay);
         }
 
-        // 5. RIGHT LEG (4x12x4)
+        // 5. RIGHT LEG (4x12x4) - Straight down
         const legGeo = new THREE.BoxGeometry(4, 12, 4);
         legGeo.translate(0, -6, 0);
         const rightLeg = new THREE.Mesh(legGeo, getMaterials(MAPPINGS.rightLeg));
         rightLeg.position.set(2, -6, 0);
         group.add(rightLeg);
+
+        rightLeg.rotation.set(-0.02, 0.05, 0.02);
 
         if (!isLegacy) {
           const rightLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -453,12 +422,14 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           rightLeg.add(rightLegOverlay);
         }
 
-        // 6. LEFT LEG (4x12x4)
+        // 6. LEFT LEG (4x12x4) - Leaning stand pose rotated outwards (leaning stance)
         const leftLegGeo = new THREE.BoxGeometry(4, 12, 4);
         leftLegGeo.translate(0, -6, 0);
         const leftLeg = new THREE.Mesh(leftLegGeo, getMaterials(isLegacy ? MAPPINGS.rightLeg : MAPPINGS.leftLeg));
         leftLeg.position.set(-2, -6, 0);
         group.add(leftLeg);
+
+        leftLeg.rotation.set(0.12, 0.08, -0.05);
 
         if (!isLegacy) {
           const leftLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -467,8 +438,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           leftLeg.add(leftLegOverlay);
         }
 
-        // 7. WEAPON IN HAND (2D Plane Sprite in 3D Space)
-        const activeWeapon = selectedPrimary;
+        // 7. WEAPON IN HAND (2D Plane Sprite, flat front-facing overlay for high resolution)
+        const activeWeapon = selectedPrimary || selectedSecondary || selectedMelee;
         if (activeWeapon) {
           const renderUrl = getItemRenderUrl(activeWeapon);
           if (renderUrl) {
@@ -477,10 +448,13 @@ export const FitViewer: React.FC<FitViewerProps> = ({
             loader.load(
               renderUrl,
               (weaponTex) => {
+                // Keep weapon textures perfectly crisp!
                 weaponTex.magFilter = THREE.NearestFilter;
                 weaponTex.minFilter = THREE.NearestFilter;
+                weaponTex.generateMipmaps = false;
 
-                const weaponGeo = new THREE.PlaneGeometry(11, 5.5);
+                // Stance aspect ratio box sizing
+                const weaponGeo = new THREE.PlaneGeometry(12, 6);
                 const weaponMat = new THREE.MeshBasicMaterial({
                   map: weaponTex,
                   transparent: true,
@@ -488,33 +462,15 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 });
                 const weaponMesh = new THREE.Mesh(weaponGeo, weaponMat);
 
-                // Position weapon relative to Right Arm bottom joint
-                rightArm.add(weaponMesh);
+                // Add to player group directly so it aligns with body but remains face-facing
+                group.add(weaponMesh);
                 
-                const weaponType = activeWeapon.parent?.type || 'WEAPON_1';
-
-                if (weaponType === 'WEAPON_1') {
-                  // Rifle hold pose: Both arms raised forward
-                  rightArm.rotation.set(-Math.PI / 3, -Math.PI / 8, 0);
-                  leftArm.rotation.set(-Math.PI / 3.5, Math.PI / 6, 0);
-                  
-                  weaponMesh.position.set(-1, -7, 3);
-                  weaponMesh.rotation.set(0, Math.PI / 2.2, -Math.PI / 10);
-                } else if (weaponType === 'WEAPON_2') {
-                  // Pistol pose: One arm straight forward
-                  rightArm.rotation.set(-Math.PI / 2, 0, 0);
-                  leftArm.rotation.set(0, 0, 0);
-                  
-                  weaponMesh.position.set(0.5, -7.5, 2.5);
-                  weaponMesh.rotation.set(0, Math.PI / 2, 0);
-                } else {
-                  // Melee knife pose: Arm raised slightly, knife held ready
-                  rightArm.rotation.set(-Math.PI / 3.5, 0, 0);
-                  leftArm.rotation.set(0, 0, 0);
-                  
-                  weaponMesh.position.set(0.5, -7.5, 2);
-                  weaponMesh.rotation.set(0, Math.PI / 2, -Math.PI / 4);
-                }
+                // Position right in front of chest
+                weaponMesh.position.set(0.2, 1.2, 3.8);
+                
+                // Angle the gun across the body (-14 degrees Z-axis)
+                // Counteract Y-axis body rotation (+0.32) to keep the weapon flat to the screen!
+                weaponMesh.rotation.set(0, 0.32, -0.22);
               },
               undefined,
               (err) => console.warn('Failed to load weapon texture in FitViewer:', err)
@@ -532,66 +488,26 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     };
 
     loadSkinTexture(textureUrl);
-  }, [selectedBody, selectedPrimary, allItemData]);
-
-  // Mouse Interaction handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isDragging.current = true;
-    previousMousePosition.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const group = playerGroupRef.current;
-    if (!isDragging.current || !group) return;
-    
-    const deltaX = e.clientX - previousMousePosition.current.x;
-    const deltaY = e.clientY - previousMousePosition.current.y;
-
-    group.rotation.y += deltaX * 0.012;
-    group.rotation.x += deltaY * 0.006;
-    group.rotation.x = Math.max(-0.4, Math.min(0.4, group.rotation.x));
-
-    previousMousePosition.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseUpOrLeave = () => {
-    isDragging.current = false;
-  };
-
-  const handleWheel = (e: React.WheelEvent) => {
-    const camera = cameraRef.current;
-    if (!camera) return;
-    camera.position.z += e.deltaY * 0.015;
-    camera.position.z = Math.max(10, Math.min(38, camera.position.z));
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      isDragging.current = true;
-      previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const group = playerGroupRef.current;
-    if (!isDragging.current || !group || e.touches.length !== 1) return;
-    
-    const deltaX = e.touches[0].clientX - previousMousePosition.current.x;
-    const deltaY = e.touches[0].clientY - previousMousePosition.current.y;
-
-    group.rotation.y += deltaX * 0.015;
-    group.rotation.x += deltaY * 0.008;
-    group.rotation.x = Math.max(-0.4, Math.min(0.4, group.rotation.x));
-
-    previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  };
+  }, [selectedBody, selectedPrimary, selectedSecondary, selectedMelee, allItemData]);
 
   // Handle dropdown selections
   const handleSelectSkin = (slot: 'body' | 'primary' | 'secondary' | 'melee', item: any) => {
     if (slot === 'body') setSelectedBody(item);
-    if (slot === 'primary') setSelectedPrimary(item);
-    if (slot === 'secondary') setSelectedSecondary(item);
-    if (slot === 'melee') setSelectedMelee(item);
+    if (slot === 'primary') {
+      setSelectedPrimary(item);
+      setSelectedSecondary(null);
+      setSelectedMelee(null);
+    }
+    if (slot === 'secondary') {
+      setSelectedSecondary(item);
+      setSelectedPrimary(null);
+      setSelectedMelee(null);
+    }
+    if (slot === 'melee') {
+      setSelectedMelee(item);
+      setSelectedPrimary(null);
+      setSelectedSecondary(null);
+    }
     setActiveDropdown(null);
     setSearchFilter('');
   };
@@ -627,33 +543,17 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">3D Fit Showroom</span>
       </div>
 
-      {/* 3D Viewport Area */}
-      <div className="relative w-full h-[420px] bg-gradient-to-b from-[#08090f] to-[#0d0f17] border border-white/5 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
-        {/* Subtle grid background layer */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+      {/* 3D Viewport Area - Solid royal-blue backdrop to match reference! */}
+      <div className="relative w-full h-[450px] bg-[#104cc7] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
+        {/* Shadow circle on floor */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/25 rounded-full filter blur-md pointer-events-none" />
 
         {/* THREE.js Container */}
-        <div 
-          ref={containerRef} 
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUpOrLeave}
-          onMouseLeave={handleMouseUpOrLeave}
-          onWheel={handleWheel}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleMouseUpOrLeave}
-          className="w-full h-full cursor-grab active:cursor-grabbing" 
-        />
-
-        {/* Orbit indicator hint overlay */}
-        <div className="absolute bottom-3 left-4 text-[9px] font-mono text-slate-600 bg-[#040509]/60 px-3 py-1.5 rounded-lg border border-white/5 pointer-events-none select-none uppercase tracking-wider">
-          Drag to Rotate • Scroll to Zoom
-        </div>
+        <div ref={containerRef} className="w-full h-full pointer-events-none" />
 
         {/* Selected Body Skin name indicator */}
         {selectedBody && (
-          <div className="absolute top-3 left-4 text-[10px] font-mono bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg text-indigo-400 font-bold uppercase tracking-wider">
+          <div className="absolute top-3 left-4 text-[10px] font-mono bg-black/40 border border-white/10 px-3 py-1.5 rounded-lg text-white font-bold uppercase tracking-wider">
             Outfit: {selectedBody.name}
           </div>
         )}
@@ -693,7 +593,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 <span className="text-[8px] font-mono text-gold-bright uppercase tracking-wider block mt-1">{selectedPrimary.parent?.name || 'WEAPON'} Skin</span>
               </div>
             ) : (
-              <span className="text-xs text-slate-600 font-bold flex items-center space-x-1"><Plus className="w-3.5 h-3.5" /> <span>Equip Weapon</span></span>
+              <span className="text-xs text-slate-400/50 font-bold flex items-center space-x-1"><Plus className="w-3.5 h-3.5" /> <span>Unequipped</span></span>
             )}
           </div>
         </div>
@@ -711,7 +611,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 <span className="text-[8px] font-mono text-gold-bright uppercase tracking-wider block mt-1">{selectedSecondary.parent?.name || 'WEAPON'} Skin</span>
               </div>
             ) : (
-              <span className="text-xs text-slate-600 font-bold flex items-center space-x-1"><Plus className="w-3.5 h-3.5" /> <span>Equip Sidearm</span></span>
+              <span className="text-xs text-slate-400/50 font-bold flex items-center space-x-1"><Plus className="w-3.5 h-3.5" /> <span>Unequipped</span></span>
             )}
           </div>
         </div>
@@ -729,7 +629,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 <span className="text-[8px] font-mono text-gold-bright uppercase tracking-wider block mt-1">{selectedMelee.parent?.name || 'WEAPON'} Skin</span>
               </div>
             ) : (
-              <span className="text-xs text-slate-600 font-bold flex items-center space-x-1"><Plus className="w-3.5 h-3.5" /> <span>Equip Knife</span></span>
+              <span className="text-xs text-slate-400/50 font-bold flex items-center space-x-1"><Plus className="w-3.5 h-3.5" /> <span>Unequipped</span></span>
             )}
           </div>
         </div>
