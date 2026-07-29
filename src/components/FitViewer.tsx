@@ -221,9 +221,9 @@ export const FitViewer: React.FC<FitViewerProps> = ({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Dimensions
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight || 420;
+    // Fixed aspect ratio viewport container box (centered card)
+    const width = 360;
+    const height = 480;
 
     // Scene
     const scene = new THREE.Scene();
@@ -232,7 +232,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
 
     // Camera - Very low FOV (16 degrees) to create a flat, crisp orthographic look!
     const camera = new THREE.PerspectiveCamera(16, width / height, 0.1, 150);
-    camera.position.set(0, 1.2, 58);
+    camera.position.set(0, 0.8, 55);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -250,7 +250,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     scene.add(playerGroup);
     playerGroupRef.current = playerGroup;
 
-    // Static pose setups - Rotate group slightly to reveal side depth
+    // Static pose setups - Rotate group slightly to reveal side depth (leaning stance)
     playerGroup.rotation.y = -0.32; // -18 degrees Y
     playerGroup.rotation.x = 0.05;  // 3 degrees X (slight forward tilt)
 
@@ -262,20 +262,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     };
     animate();
 
-    // Handle resize
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      const w = containerRef.current.clientWidth;
-      const h = containerRef.current.clientHeight || 420;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener('resize', handleResize);
-
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
   }, []);
@@ -454,7 +442,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 weaponTex.generateMipmaps = false;
 
                 // Stance aspect ratio box sizing
-                const weaponGeo = new THREE.PlaneGeometry(12, 6);
+                const weaponGeo = new THREE.PlaneGeometry(16, 8);
                 const weaponMat = new THREE.MeshBasicMaterial({
                   map: weaponTex,
                   transparent: true,
@@ -466,7 +454,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 group.add(weaponMesh);
                 
                 // Position right in front of chest
-                weaponMesh.position.set(0.2, 1.2, 3.8);
+                weaponMesh.position.set(-0.2, 0.4, 3.2);
                 
                 // Angle the gun across the body (-14 degrees Z-axis)
                 // Counteract Y-axis body rotation (+0.32) to keep the weapon flat to the screen!
@@ -543,8 +531,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">3D Fit Showroom</span>
       </div>
 
-      {/* 3D Viewport Area - Solid royal-blue backdrop to match reference! */}
-      <div className="relative w-full h-[450px] bg-[#104cc7] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
+      {/* 3D Viewport Card - Exactly 360px by 480px, centered matching the screenshot! */}
+      <div className="w-[360px] h-[480px] mx-auto bg-[#104cc7] border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative flex items-center justify-center">
         {/* Shadow circle on floor */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/25 rounded-full filter blur-md pointer-events-none" />
 
