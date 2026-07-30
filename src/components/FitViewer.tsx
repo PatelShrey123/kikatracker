@@ -230,11 +230,11 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     sceneRef.current = scene;
     scene.background = null;
 
-    // Camera - Very low FOV (16 degrees) to create a flat, crisp orthographic look!
-    // Moved Z back to 135 to center the player model fully without cutoffs!
-    const camera = new THREE.PerspectiveCamera(16, width / height, 0.1, 200);
-    camera.position.set(0, -2.0, 135);
-    camera.lookAt(0, -2.0, 0);
+    // Camera — 14 degree FOV gives near-orthographic flatness, Z=160 shows full body head-to-toe
+    const camera = new THREE.PerspectiveCamera(14, width / height, 0.1, 300);
+    // Y=-4 centers camera on the character's torso midpoint
+    camera.position.set(0, -4, 160);
+    camera.lookAt(0, -4, 0);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -252,9 +252,9 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     scene.add(playerGroup);
     playerGroupRef.current = playerGroup;
 
-    // Static pose setups - Rotate group slightly to reveal side depth (leaning stance)
-    playerGroup.rotation.y = -0.32; // -18 degrees Y
-    playerGroup.rotation.x = 0.05;  // 3 degrees X (slight forward tilt)
+    // Static pose — 22 degrees Y to reveal left arm + slight X for 3/4 depth effect
+    playerGroup.rotation.y = -0.38; // ~22 degrees Y
+    playerGroup.rotation.x = 0.04;  // ~2 degrees X tilt
 
     // Render loop (no auto spin, fully static as requested)
     let animationFrameId: number;
@@ -368,8 +368,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         rightArm.position.set(6, 6, 0); 
         group.add(rightArm);
 
-        // Hugging chest holding pose (Z-rotation is negative to rotate inward!)
-        rightArm.rotation.set(-0.95, -0.25, -0.05);
+        // Right arm: pitched forward (-56°) and slightly inward to hold rifle
+        rightArm.rotation.set(-0.98, -0.2, -0.08);
 
         if (!isLegacy) {
           const rightArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -386,8 +386,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftArm.position.set(-6, 6, 0);
         group.add(leftArm);
 
-        // Hugging chest holding pose (Z-rotation is positive to rotate inward!)
-        leftArm.rotation.set(-0.85, 0.25, 0.05);
+        // Left arm: pitched forward (-50°) and slightly outward to support the rifle barrel
+        leftArm.rotation.set(-0.88, 0.28, 0.08);
 
         if (!isLegacy) {
           const leftArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -396,14 +396,13 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           leftArm.add(leftArmOverlay);
         }
 
-        // 5. RIGHT LEG (4x12x4) - Straight down
+        // 5. RIGHT LEG — angled slightly right
         const legGeo = new THREE.BoxGeometry(4, 12, 4);
         legGeo.translate(0, -6, 0);
         const rightLeg = new THREE.Mesh(legGeo, getMaterials(MAPPINGS.rightLeg));
         rightLeg.position.set(2, -6, 0);
         group.add(rightLeg);
-
-        rightLeg.rotation.set(-0.02, 0.05, 0.02);
+        rightLeg.rotation.set(0.05, 0.04, 0.03);
 
         if (!isLegacy) {
           const rightLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -412,14 +411,13 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           rightLeg.add(rightLegOverlay);
         }
 
-        // 6. LEFT LEG (4x12x4) - Leaning stand pose rotated outwards (leaning stance)
+        // 6. LEFT LEG — angled slightly left/forward for natural stance
         const leftLegGeo = new THREE.BoxGeometry(4, 12, 4);
         leftLegGeo.translate(0, -6, 0);
         const leftLeg = new THREE.Mesh(leftLegGeo, getMaterials(isLegacy ? MAPPINGS.rightLeg : MAPPINGS.leftLeg));
         leftLeg.position.set(-2, -6, 0);
         group.add(leftLeg);
-
-        leftLeg.rotation.set(0.12, 0.08, -0.05);
+        leftLeg.rotation.set(0.10, 0.06, -0.04);
 
         if (!isLegacy) {
           const leftLegOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -428,7 +426,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           leftLeg.add(leftLegOverlay);
         }
 
-        // 7. WEAPON IN HAND (2D Plane Sprite, flat front-facing overlay for high resolution)
+        // 7. WEAPON — attached as child of rightArm at the wrist/hand end
         const activeWeapon = selectedPrimary || selectedSecondary || selectedMelee;
         if (activeWeapon) {
           const renderUrl = getItemRenderUrl(activeWeapon);
@@ -438,29 +436,26 @@ export const FitViewer: React.FC<FitViewerProps> = ({
             loader.load(
               renderUrl,
               (weaponTex) => {
-                // Keep weapon textures perfectly crisp!
                 weaponTex.magFilter = THREE.NearestFilter;
                 weaponTex.minFilter = THREE.NearestFilter;
                 weaponTex.generateMipmaps = false;
 
-                // Stance aspect ratio box sizing
-                const weaponGeo = new THREE.PlaneGeometry(16, 8);
+                const weaponGeo = new THREE.PlaneGeometry(20, 10);
                 const weaponMat = new THREE.MeshBasicMaterial({
                   map: weaponTex,
                   transparent: true,
-                  side: THREE.DoubleSide
+                  side: THREE.DoubleSide,
+                  depthWrite: false,
                 });
                 const weaponMesh = new THREE.Mesh(weaponGeo, weaponMat);
 
-                // Add to player group directly so it aligns with body but remains face-facing
-                group.add(weaponMesh);
-                
-                // Position right in front of chest (Z offset set to 4.8 to avoid torso intersections!)
-                weaponMesh.position.set(-0.2, 1.2, 4.8);
-                
-                // Angle the gun across the body (-14 degrees Z-axis)
-                // Counteract Y-axis body rotation (+0.32) to keep the weapon flat to the screen!
-                weaponMesh.rotation.set(0, 0.32, -0.22);
+                // Attach to rightArm so it moves with the arm pose.
+                // Position at arm's wrist end (arm origin is top shoulder, length 12, so wrist at y=-12)
+                rightArm.add(weaponMesh);
+                // Place horizontally across the hands: slightly left, at wrist level, pushed forward
+                weaponMesh.position.set(-5, -10, 2);
+                // Tilt to match the arm angle and make gun read as horizontal
+                weaponMesh.rotation.set(1.1, 0.0, 0.22);
               },
               undefined,
               (err) => console.warn('Failed to load weapon texture in FitViewer:', err)
