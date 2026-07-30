@@ -231,8 +231,10 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     scene.background = null;
 
     // Camera - Very low FOV (16 degrees) to create a flat, crisp orthographic look!
-    const camera = new THREE.PerspectiveCamera(16, width / height, 0.1, 150);
-    camera.position.set(0, 0.8, 55);
+    // Moved Z back to 135 to center the player model fully without cutoffs!
+    const camera = new THREE.PerspectiveCamera(16, width / height, 0.1, 200);
+    camera.position.set(0, -2.0, 135);
+    camera.lookAt(0, -2.0, 0);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -358,7 +360,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
           torso.add(torsoOverlay);
         }
 
-        // 3. RIGHT ARM (4x12x4) - Pivot at top corner. Bent to stylishly hold the weapon!
+        // 3. RIGHT ARM (4x12x4) - Pivot at top corner. Snug holds hugging inward!
         const armGeo = new THREE.BoxGeometry(4, 12, 4);
         armGeo.translate(0, -6, 0); 
         const rightArmMats = getMaterials(MAPPINGS.rightArm);
@@ -366,8 +368,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         rightArm.position.set(6, 6, 0); 
         group.add(rightArm);
 
-        // Raised forward hold pose
-        rightArm.rotation.set(-0.8, -0.3, 0.15);
+        // Hugging chest holding pose (Z-rotation is negative to rotate inward!)
+        rightArm.rotation.set(-0.95, -0.25, -0.05);
 
         if (!isLegacy) {
           const rightArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -384,8 +386,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftArm.position.set(-6, 6, 0);
         group.add(leftArm);
 
-        // Raised forward hold pose
-        leftArm.rotation.set(-0.7, 0.35, -0.15);
+        // Hugging chest holding pose (Z-rotation is positive to rotate inward!)
+        leftArm.rotation.set(-0.85, 0.25, 0.05);
 
         if (!isLegacy) {
           const leftArmOverlayGeo = new THREE.BoxGeometry(4.5, 12.5, 4.5);
@@ -453,8 +455,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 // Add to player group directly so it aligns with body but remains face-facing
                 group.add(weaponMesh);
                 
-                // Position right in front of chest
-                weaponMesh.position.set(-0.2, 0.4, 3.2);
+                // Position right in front of chest (Z offset set to 4.8 to avoid torso intersections!)
+                weaponMesh.position.set(-0.2, 1.2, 4.8);
                 
                 // Angle the gun across the body (-14 degrees Z-axis)
                 // Counteract Y-axis body rotation (+0.32) to keep the weapon flat to the screen!
