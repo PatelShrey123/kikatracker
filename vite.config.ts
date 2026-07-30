@@ -6,10 +6,13 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const apiKey = env.KIRKA_API_KEY;
-  if (!apiKey) {
-    throw new Error('KIRKA_API_KEY is not set in .env — please add it before running the dev server.');
-  }
 
+  // The API key is only needed for the local dev proxy.
+  // In production (Vercel), the serverless function in api/proxy.js
+  // reads the key from process.env at runtime — no key needed at build time.
+  if (!apiKey && mode === 'development') {
+    console.warn('WARNING: KIRKA_API_KEY is not set in .env — dev proxy will not work without it.');
+  }
 
   return {
     base: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? '/' : './',
@@ -21,7 +24,8 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
           headers: {
-            'ApiKey': apiKey
+            // Only inject ApiKey header if key is available (dev mode)
+            ...(apiKey ? { 'ApiKey': apiKey } : {})
           }
         },
         '/trade-api': {
