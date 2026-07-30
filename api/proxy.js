@@ -1,6 +1,4 @@
-// api/proxy.js - Secure Backend API Proxy (Vercel Serverless Function)
-// The ApiKey is stored in Vercel Environment Variables and NEVER sent to the browser.
-// In dev, Vite's proxy (vite.config.ts) injects it server-side too.
+// api/proxy.js - Secure Backend API Proxy to hide the Kirka.io ApiKey from client F12 DevTools
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -16,20 +14,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Read API key from Vercel environment variable — never hardcoded here
-  const apiKey = process.env.KIRKA_API_KEY;
-  if (!apiKey) {
-    console.error('KIRKA_API_KEY environment variable is not set!');
-    res.status(500).json({ error: 'Server configuration error: API key not set' });
-    return;
-  }
-
-  // Parse target path from the incoming /api/... URL
+  // Parse target path
   const path = req.url.replace(/^\/api/, '');
   const targetUrl = `https://api.kirka.io/api${path}`;
 
   const headers = {
-    'ApiKey': apiKey,
+    'ApiKey': 'fa0b8b9e49d8d22ac5708e51ab6fbb3f4225618d781548011325e4b4254584ee',
     'Content-Type': 'application/json'
   };
 
@@ -46,7 +36,8 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(targetUrl, options);
-
+    
+    // Check if the response is JSON
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
