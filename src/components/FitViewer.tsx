@@ -151,12 +151,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
-    // ── Directional shading light matching official renders ──
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    // ── Bright, clean directional shading matching official renders ──
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.45);
-    dirLight.position.set(20, 40, 30);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.65);
+    dirLight.position.set(15, 35, 25);
     scene.add(dirLight);
 
     const playerGroup = new THREE.Group();
@@ -250,8 +250,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       rArmGeo.translate(0, -6, 0);
       const rightArm = new THREE.Mesh(rArmGeo, mats(armMaps.rightArm));
       rightArm.position.set(6 - (isSlim ? 0.5 : 0), 24, 0);
-      // bent forward and inward holding gun grip
-      rightArm.rotation.set(-0.9, -0.6, 0.2);
+      // Correct inward rotation meeting the gun handle/grip across chest
+      rightArm.rotation.set(-0.95, 0.5, -0.4);
       group.add(rightArm);
 
       if (!isLegacy) {
@@ -265,8 +265,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       lArmGeo.translate(0, -6, 0);
       const leftArm = new THREE.Mesh(lArmGeo, mats(isLegacy ? armMaps.rightArm : armMaps.leftArm));
       leftArm.position.set(-6 + (isSlim ? 0.5 : 0), 24, 0);
-      // bent forward and inward meeting right hand
-      leftArm.rotation.set(-0.85, 0.4, -0.3);
+      // Correct inward rotation supporting the gun barrel
+      leftArm.rotation.set(-0.85, -0.6, 0.4);
       group.add(leftArm);
 
       if (!isLegacy) {
