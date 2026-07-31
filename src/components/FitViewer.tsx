@@ -310,6 +310,24 @@ export const FitViewer: React.FC<FitViewerProps> = ({
             (gltf) => {
               const model = gltf.scene;
 
+              const setupMaterials = (skinTex: THREE.Texture | null) => {
+                model.traverse((child) => {
+                  if ((child as THREE.Mesh).isMesh) {
+                    const mesh = child as THREE.Mesh;
+                    const originalMat = mesh.material as any;
+                    
+                    if (originalMat) {
+                      mesh.material = new THREE.MeshBasicMaterial({
+                        color: originalMat.color || new THREE.Color(0xffffff),
+                        map: skinTex || originalMat.map || null,
+                        transparent: true,
+                        side: THREE.DoubleSide
+                      });
+                    }
+                  }
+                });
+              };
+
               // Apply actual seamless skin texture sheet (textureUrl) to 3D GLB weapon model
               if (textureUrl) {
                 const texLoader = new THREE.TextureLoader();
@@ -318,61 +336,67 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                   skinTex.magFilter = THREE.NearestFilter;
                   skinTex.minFilter = THREE.NearestFilter;
                   skinTex.generateMipmaps = false;
-
-                  model.traverse((child) => {
-                    if ((child as THREE.Mesh).isMesh) {
-                      const mesh = child as THREE.Mesh;
-                      mesh.material = new THREE.MeshBasicMaterial({
-                        map: skinTex,
-                        side: THREE.DoubleSide
-                      });
-                    }
-                  });
-                });
+                  setupMaterials(skinTex);
+                }, undefined, () => setupMaterials(null));
               } else {
-                model.traverse((child) => {
-                  if ((child as THREE.Mesh).isMesh) {
-                    const mesh = child as THREE.Mesh;
-                    if (mesh.material) {
-                      (mesh.material as any).side = THREE.DoubleSide;
-                    }
-                  }
-                });
+                setupMaterials(null);
               }
 
               // Adjust scaling, positioning, and rotation based on weapon type to hold it realistically
               const weaponName = activeWeapon.parent?.name || activeWeapon.name || '';
               const weaponType = activeWeapon.parent?.type || activeWeapon.type || '';
               
-              let scaleVal = 7;
+              // Wrap inside a parent group to center and scale uniformly
+              const wrapper = new THREE.Group();
+              wrapper.add(model);
+
+              // Center geometry relative to the wrapper pivot
+              const box = new THREE.Box3().setFromObject(model);
+              const center = new THREE.Vector3();
+              box.getCenter(center);
+              model.position.sub(center);
+
+              const size = new THREE.Vector3();
+              box.getSize(size);
+              const currentWidth = size.x || 1.0;
+
+              // Size to absolute physical dimensions in scene units
+              let targetWidth = 14.5;
+              if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
+                targetWidth = 9.0;
+              } else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
+                targetWidth = 10.0;
+              }
+
+              const scaleFactor = targetWidth / currentWidth;
+              wrapper.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+              // Position right in front of chest/hands level
               let posX = -0.2;
-              let posY = 15.0; // held in front of the waist/stomach matching the reference pose!
-              let posZ = 4.5;
+              let posY = 18.0; // held in front of the lower chest matching the reference pose!
+              let posZ = 3.6;
               let rotX = 0.1;
               let rotY = -0.05;
               let rotZ = -0.20;
 
               // Melee / Knife positioning
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
-                scaleVal = 5.5;
-                posY = 14.5;
-                posZ = 4.8;
+                posY = 17.5;
+                posZ = 3.8;
                 rotZ = -0.55; 
               }
               // Pistol / Revolver positioning
               else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
-                scaleVal = 6.0;
                 posX = 0.0;
-                posY = 14.8;
-                posZ = 4.8;
+                posY = 17.5;
+                posZ = 3.8;
                 rotZ = -0.15;
               }
 
-              model.scale.set(scaleVal, scaleVal, scaleVal);
-              model.position.set(posX, posY, posZ);
-              model.rotation.set(rotX, rotY, rotZ);
+              wrapper.position.set(posX, posY, posZ);
+              wrapper.rotation.set(rotX, rotY, rotZ);
 
-              group.add(model);
+              group.add(wrapper);
             },
             undefined,
             (err) => console.warn('GLB load failed:', err)
