@@ -18,8 +18,9 @@ export default async function handler(req, res) {
   const path = req.url.replace(/^\/api/, '');
   const targetUrl = `https://api.kirka.io/api${path}`;
 
+  const apiKey = process.env.KIRKA_API_KEY || '01d50491829d6991b64f116b1f34b70924889a2f99a7ea81820fe8a3323da060';
   const headers = {
-    'ApiKey': 'fa0b8b9e49d8d22ac5708e51ab6fbb3f4225618d781548011325e4b4254584ee',
+    'ApiKey': apiKey,
     'Content-Type': 'application/json'
   };
 
