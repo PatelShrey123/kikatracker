@@ -157,8 +157,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     scene.add(playerGroup);
     playerGroupRef.current = playerGroup;
 
-    // Exact official Kirka Y rotation for 3/4 view
-    playerGroup.rotation.y = -0.35;
+    // Exact Y rotation matching the official Kirka player dashboard angle
+    playerGroup.rotation.y = -0.25;
 
     let animId: number;
     const animate = () => { animId = requestAnimationFrame(animate); renderer.render(scene, camera); };
@@ -221,10 +221,10 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         extractFace(m.back[0],   m.back[1],   m.back[2],   m.back[3]),
       ];
 
-      // HEAD: 8x8x8, center at y=28
+      // HEAD: 8x8x8, center at y=28 (rotated slightly to face viewer)
       const head = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), mats(STEVE_MAPPINGS.head));
       head.position.set(0, 28, 0);
-      head.rotation.y = 0.1;
+      head.rotation.y = 0.2;
       group.add(head);
 
       const headOL = new THREE.Mesh(new THREE.BoxGeometry(8.5, 8.5, 8.5), mats(STEVE_MAPPINGS.headOverlay));
@@ -239,13 +239,13 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         torso.add(new THREE.Mesh(new THREE.BoxGeometry(8.5, 12.5, 4.5), mats(STEVE_MAPPINGS.torsoOL)));
       }
 
-      // RIGHT ARM: pivot at shoulder (6, 24, 0), extends downward
+      // RIGHT ARM: pivot at shoulder (6, 24, 0)
       const rArmGeo = new THREE.BoxGeometry(armWidth, 12, 4);
       rArmGeo.translate(0, -6, 0);
       const rightArm = new THREE.Mesh(rArmGeo, mats(armMaps.rightArm));
       rightArm.position.set(6 - (isSlim ? 0.5 : 0), 24, 0);
-      // Official Kirka rifle-hold pose across chest
-      rightArm.rotation.set(-1.0, -0.25, 0.15);
+      // Inward bend holding grip in front of navel
+      rightArm.rotation.set(-0.85, -0.4, -0.2);
       group.add(rightArm);
 
       if (!isLegacy) {
@@ -259,8 +259,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       lArmGeo.translate(0, -6, 0);
       const leftArm = new THREE.Mesh(lArmGeo, mats(isLegacy ? armMaps.rightArm : armMaps.leftArm));
       leftArm.position.set(-6 + (isSlim ? 0.5 : 0), 24, 0);
-      // Support arm holding front handguard/barrel
-      leftArm.rotation.set(-0.8, 0.35, -0.2);
+      // Inward bend holding front handguard meeting right hand
+      leftArm.rotation.set(-0.85, 0.4, 0.2);
       group.add(leftArm);
 
       if (!isLegacy) {
@@ -269,12 +269,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftArm.add(new THREE.Mesh(lArmOLGeo, mats(armMaps.leftArmOL)));
       }
 
-      // RIGHT LEG: pivot at hip (2, 12, 0)
+      // RIGHT LEG: pivot at hip (1.6, 12, -0.4) - supporting leg
       const rLegGeo = new THREE.BoxGeometry(4, 12, 4);
       rLegGeo.translate(0, -6, 0);
       const rightLeg = new THREE.Mesh(rLegGeo, mats(STEVE_MAPPINGS.rightLeg));
-      rightLeg.position.set(2, 12, 0);
-      rightLeg.rotation.set(-0.04, 0.04, 0.06);
+      rightLeg.position.set(1.6, 12, -0.4);
+      rightLeg.rotation.set(-0.05, 0.05, 0.02);
       group.add(rightLeg);
 
       if (!isLegacy) {
@@ -283,12 +283,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         rightLeg.add(new THREE.Mesh(rLegOLGeo, mats(STEVE_MAPPINGS.rightLegOL)));
       }
 
-      // LEFT LEG: pivot at hip (-2, 12, 0) - leaning stance
+      // LEFT LEG: pivot at hip (-1.0, 12, 0.6) - Crossed in front (casual leaning stance!)
       const lLegGeo = new THREE.BoxGeometry(4, 12, 4);
       lLegGeo.translate(0, -6, 0);
       const leftLeg = new THREE.Mesh(lLegGeo, mats(isLegacy ? STEVE_MAPPINGS.rightLeg : STEVE_MAPPINGS.leftLeg));
-      leftLeg.position.set(-2, 12, 0);
-      leftLeg.rotation.set(0.1, 0.08, -0.12);
+      leftLeg.position.set(-1.0, 12, 0.6);
+      leftLeg.rotation.set(0.1, 0.08, 0.2);
       group.add(leftLeg);
 
       if (!isLegacy) {
@@ -346,8 +346,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
               
               let scaleVal = 7;
               let posX = -0.2;
-              let posY = 17.5;
-              let posZ = 3.5;
+              let posY = 15.0; // held in front of the waist/stomach matching the reference pose!
+              let posZ = 4.5;
               let rotX = 0.1;
               let rotY = -0.05;
               let rotZ = -0.20;
@@ -355,16 +355,16 @@ export const FitViewer: React.FC<FitViewerProps> = ({
               // Melee / Knife positioning
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
                 scaleVal = 5.5;
-                posY = 17.0;
-                posZ = 3.8;
+                posY = 14.5;
+                posZ = 4.8;
                 rotZ = -0.55; 
               }
               // Pistol / Revolver positioning
               else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
                 scaleVal = 6.0;
                 posX = 0.0;
-                posY = 17.2;
-                posZ = 3.8;
+                posY = 14.8;
+                posZ = 4.8;
                 rotZ = -0.15;
               }
 
