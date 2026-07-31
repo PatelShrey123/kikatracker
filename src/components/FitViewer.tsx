@@ -157,9 +157,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     scene.add(playerGroup);
     playerGroupRef.current = playerGroup;
 
-    // Exact Y rotation matching the official Kirka player dashboard angle
-    // Slight right-facing angle matching CrackedYOU reference
-    playerGroup.rotation.y = -0.30;
+    // Static straight-on profile shot - no Y rotation so character faces camera directly
+    playerGroup.rotation.y = -0.25; // slight angle so 3D depth is visible
 
     let animId: number;
     const animate = () => { animId = requestAnimationFrame(animate); renderer.render(scene, camera); };
@@ -240,12 +239,16 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         torso.add(new THREE.Mesh(new THREE.BoxGeometry(8.5, 12.5, 4.5), mats(STEVE_MAPPINGS.torsoOL)));
       }
 
-      // RIGHT ARM: hangs ~40° forward-down to grip the pistol grip area
+      // ══════════════════════════════════════════════════════════
+      // RIGHT ARM - exact -70° X rotation + -15° Y rotation
+      //   rotX = -Math.PI / 2.5  ≈ -72°  (raises arm forward)
+      //   rotY = -Math.PI / 12   ≈ -15°  (angles inward toward barrel)
+      // ══════════════════════════════════════════════════════════
       const rArmGeo = new THREE.BoxGeometry(armWidth, 12, 4);
       rArmGeo.translate(0, -6, 0);
       const rightArm = new THREE.Mesh(rArmGeo, mats(armMaps.rightArm));
       rightArm.position.set(6 - (isSlim ? 0.5 : 0), 24, 0);
-      rightArm.rotation.set(-0.45, 0.0, 0.05); // forward-down, close to body
+      rightArm.rotation.set(-Math.PI / 2.5, -Math.PI / 12, 0.0);
       group.add(rightArm);
 
       if (!isLegacy) {
@@ -254,12 +257,16 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         rightArm.add(new THREE.Mesh(rArmOLGeo, mats(armMaps.rightArmOL)));
       }
 
-      // LEFT ARM: extends ~50° forward to support the barrel/handguard
+      // ══════════════════════════════════════════════════════════
+      // LEFT ARM - exact -80° X rotation + +30° Y rotation
+      //   rotX = -Math.PI / 2.2  ≈ -82°  (raises arm forward more)
+      //   rotY = +Math.PI / 6    ≈ +30°  (crosses over to support barrel)
+      // ══════════════════════════════════════════════════════════
       const lArmGeo = new THREE.BoxGeometry(armWidth, 12, 4);
       lArmGeo.translate(0, -6, 0);
       const leftArm = new THREE.Mesh(lArmGeo, mats(isLegacy ? armMaps.rightArm : armMaps.leftArm));
       leftArm.position.set(-6 + (isSlim ? 0.5 : 0), 24, 0);
-      leftArm.rotation.set(-0.80, 0.05, -0.20); // forward into camera, slight outward swing
+      leftArm.rotation.set(-Math.PI / 2.2, Math.PI / 6, 0.0);
       group.add(leftArm);
 
       if (!isLegacy) {
@@ -296,11 +303,11 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftLeg.add(new THREE.Mesh(lLegOLGeo, mats(STEVE_MAPPINGS.leftLegOL)));
       }
 
-      // ── 3D WEAPON GLB MODEL ATTACHMENT ──────────────────────────────
+      // ── 3D WEAPON GLB MODEL - attached as CHILD of rightArm ──────────
       const activeWeapon = selectedPrimary || selectedSecondary || selectedMelee;
       if (activeWeapon) {
         const glbPath = getWeaponGlbPath(activeWeapon);
-        const textureUrl = getWeaponTextureUrl(activeWeapon);
+        const texUrl = getWeaponTextureUrl(activeWeapon);
 
         if (glbPath) {
           const gltfLoader = new GLTFLoader();
@@ -314,7 +321,6 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                   if ((child as THREE.Mesh).isMesh) {
                     const mesh = child as THREE.Mesh;
                     const originalMat = mesh.material as any;
-                    
                     if (originalMat) {
                       mesh.material = new THREE.MeshBasicMaterial({
                         color: originalMat.color || new THREE.Color(0xffffff),
@@ -327,11 +333,10 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 });
               };
 
-              // Apply actual seamless skin texture sheet (textureUrl) to 3D GLB weapon model
-              if (textureUrl) {
+              if (texUrl) {
                 const texLoader = new THREE.TextureLoader();
                 texLoader.setCrossOrigin('anonymous');
-                texLoader.load(textureUrl, (skinTex) => {
+                texLoader.load(texUrl, (skinTex) => {
                   skinTex.magFilter = THREE.NearestFilter;
                   skinTex.minFilter = THREE.NearestFilter;
                   skinTex.generateMipmaps = false;
@@ -341,61 +346,60 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 setupMaterials(null);
               }
 
-              // Adjust scaling, positioning, and rotation based on weapon type to hold it realistically
               const weaponName = activeWeapon.parent?.name || activeWeapon.name || '';
               const weaponType = activeWeapon.parent?.type || activeWeapon.type || '';
-              
-              // Wrap inside a parent group to center and scale uniformly
+
+              // Step 1: wrap in a group and center the GLB pivot
               const wrapper = new THREE.Group();
               wrapper.add(model);
-
-              // Center geometry relative to the wrapper pivot
               const box = new THREE.Box3().setFromObject(model);
               const center = new THREE.Vector3();
               box.getCenter(center);
               model.position.sub(center);
 
+              // Step 2: scale to physical scene width
               const size = new THREE.Vector3();
               box.getSize(size);
               const currentWidth = size.x || 1.0;
-
-              // Size to absolute physical dimensions in scene units
-              let targetWidth = 15.0;
+              let targetWidth = 14.0;
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
-                targetWidth = 9.5;
+                targetWidth = 9.0;
               } else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
-                targetWidth = 10.5;
+                targetWidth = 10.0;
               }
-
               const scaleFactor = targetWidth / currentWidth;
               wrapper.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-              // ── CRACKEDYOU POSE: Gun at BELT/WAIST level, barrel tilted 27° up to the right ──
-              let posX = 0.2;   // very slight right offset
-              let posY = 15.5;  // belt/waist level
-              let posZ = 3.5;   // in front of body for visibility
-              let rotX = 0.05;
-              let rotY = 0.10;
-              let rotZ = 0.47;  // ~27° upward tilt, barrel pointing upper-right
+              // Step 3: ATTACH WEAPON AS CHILD OF rightArm
+              // rightArm geometry center is at local y=-6 (translated), hand tip at y=-12
+              // We position the weapon grip at the hand tip in arm-local space.
+              // Since the arm is already rotated by the bone angles, the weapon inherits that orientation.
+              let localX = 0.0;  // centered on arm
+              let localY = -9.5; // near the hand (arm tip at y=-12)
+              let localZ = 1.0;  // slightly forward off the palm
+              // Counter-rotate the weapon IN arm-local space so it stays world-horizontal:
+              // The arm is rotated -PI/2.5 on X, so we counter-rotate +PI/2.5 to keep gun horizontal,
+              // then add a tilt angle to match the CrackedYOU diagonal.
+              let wRotX = Math.PI / 2.5;  // cancel arm X rotation
+              let wRotY = Math.PI / 12;   // cancel arm Y rotation  
+              let wRotZ = 0.42;           // diagonal tilt: barrel up to the right
 
-              // Melee / Knife positioning  
+              // Knife/melee: different offset
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
-                posY = 15.0;
-                posZ = 3.5;
-                rotZ = 0.6;
+                localY = -8.0;
+                wRotZ = 0.6;
               }
-              // Pistol / Revolver positioning
-              else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
-                posX = 0.5;
-                posY = 14.5;
-                posZ = 3.5;
-                rotZ = 0.35;
+              // Pistol
+              else if (weaponType === 'WEAPON_2') {
+                localY = -9.0;
+                wRotZ = 0.3;
               }
 
-              wrapper.position.set(posX, posY, posZ);
-              wrapper.rotation.set(rotX, rotY, rotZ);
+              wrapper.position.set(localX, localY, localZ);
+              wrapper.rotation.set(wRotX, wRotY, wRotZ);
 
-              group.add(wrapper);
+              // Attach weapon as child of right arm bone
+              rightArm.add(wrapper);
             },
             undefined,
             (err) => console.warn('GLB load failed:', err)
