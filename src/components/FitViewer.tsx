@@ -158,7 +158,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     playerGroupRef.current = playerGroup;
 
     // Exact Y rotation matching the official Kirka player dashboard angle
-    playerGroup.rotation.y = -0.25;
+    // Slight right-facing angle matching CrackedYOU reference
+    playerGroup.rotation.y = -0.35;
 
     let animId: number;
     const animate = () => { animId = requestAnimationFrame(animate); renderer.render(scene, camera); };
@@ -240,12 +241,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       }
 
       // RIGHT ARM: pivot at shoulder (6, 24, 0)
+      // In the CrackedYOU ref: right arm hangs DOWN, bent slightly forward to hold the pistol grip
       const rArmGeo = new THREE.BoxGeometry(armWidth, 12, 4);
       rArmGeo.translate(0, -6, 0);
       const rightArm = new THREE.Mesh(rArmGeo, mats(armMaps.rightArm));
       rightArm.position.set(6 - (isSlim ? 0.5 : 0), 24, 0);
-      // Clean forward grip posture (does not block face or body)
-      rightArm.rotation.set(-0.65, -0.2, 0.1);
+      rightArm.rotation.set(-0.35, -0.15, 0.08); // mostly down, slightly forward
       group.add(rightArm);
 
       if (!isLegacy) {
@@ -255,12 +256,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       }
 
       // LEFT ARM: pivot at shoulder (-6, 24, 0)
+      // In the CrackedYOU ref: left arm extends FORWARD-OUT to support the barrel/handguard
       const lArmGeo = new THREE.BoxGeometry(armWidth, 12, 4);
       lArmGeo.translate(0, -6, 0);
       const leftArm = new THREE.Mesh(lArmGeo, mats(isLegacy ? armMaps.rightArm : armMaps.leftArm));
       leftArm.position.set(-6 + (isSlim ? 0.5 : 0), 24, 0);
-      // Clean forward support posture
-      leftArm.rotation.set(-0.55, 0.2, -0.1);
+      leftArm.rotation.set(-1.1, 0.25, -0.15); // forward-left to support barrel
       group.add(leftArm);
 
       if (!isLegacy) {
@@ -269,12 +270,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftArm.add(new THREE.Mesh(lArmOLGeo, mats(armMaps.leftArmOL)));
       }
 
-      // RIGHT LEG: pivot at hip (1.5, 12, 0.5) - stepped outward (left side of screen)
+      // RIGHT LEG: natural standing, slight outward
       const rLegGeo = new THREE.BoxGeometry(4, 12, 4);
       rLegGeo.translate(0, -6, 0);
       const rightLeg = new THREE.Mesh(rLegGeo, mats(STEVE_MAPPINGS.rightLeg));
-      rightLeg.position.set(1.5, 12, 0.5);
-      rightLeg.rotation.set(0.08, 0.08, 0.14);
+      rightLeg.position.set(2.2, 12, 0);
+      rightLeg.rotation.set(0.04, 0.04, 0.08);
       group.add(rightLeg);
 
       if (!isLegacy) {
@@ -283,12 +284,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         rightLeg.add(new THREE.Mesh(rLegOLGeo, mats(STEVE_MAPPINGS.rightLegOL)));
       }
 
-      // LEFT LEG: pivot at hip (-2.0, 12, -0.5) - supporting straight leg (right side of screen)
+      // LEFT LEG: natural standing straight
       const lLegGeo = new THREE.BoxGeometry(4, 12, 4);
       lLegGeo.translate(0, -6, 0);
       const leftLeg = new THREE.Mesh(lLegGeo, mats(isLegacy ? STEVE_MAPPINGS.rightLeg : STEVE_MAPPINGS.leftLeg));
-      leftLeg.position.set(-2.0, 12, -0.5);
-      leftLeg.rotation.set(-0.05, -0.05, -0.02);
+      leftLeg.position.set(-2.2, 12, 0);
+      leftLeg.rotation.set(0.04, -0.04, -0.08);
       group.add(leftLeg);
 
       if (!isLegacy) {
@@ -371,26 +372,27 @@ export const FitViewer: React.FC<FitViewerProps> = ({
               const scaleFactor = targetWidth / currentWidth;
               wrapper.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-              // Position IN FRONT of hands & chest (posZ = 4.5) so gun is 100% crisp and visible!
-              let posX = -0.4;
-              let posY = 17.2; 
-              let posZ = 4.5; // PLACED IN FRONT OF BODY & ARMS FOR 100% VISIBILITY!
-              let rotX = 0.1;
-              let rotY = -0.05;
-              let rotZ = -0.22;
+              // ── CRACKEDYOU POSE: Gun at WAIST level, tilted diagonally barrel-up-right ──
+              // Barrel points upper-right (~25 degrees), grip at right hip, supported by left hand on barrel
+              let posX = 0.0;   // centered on body
+              let posY = 14.5;  // WAIST / HIP level (not chest!)
+              let posZ = 3.5;   // in front of body so fully visible
+              let rotX = 0.05;
+              let rotY = 0.15;  // slight inward yaw
+              let rotZ = 0.42;  // ~24 degrees - barrel tilts upward to the right
 
-              // Melee / Knife positioning
+              // Melee / Knife positioning  
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
-                posY = 16.8;
-                posZ = 4.5;
-                rotZ = -0.55; 
+                posY = 15.0;
+                posZ = 3.5;
+                rotZ = 0.6;
               }
               // Pistol / Revolver positioning
               else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
-                posX = 0.0;
-                posY = 16.8;
-                posZ = 4.5;
-                rotZ = -0.15;
+                posX = 0.5;
+                posY = 14.5;
+                posZ = 3.5;
+                rotZ = 0.35;
               }
 
               wrapper.position.set(posX, posY, posZ);
