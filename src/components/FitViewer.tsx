@@ -316,6 +316,20 @@ export const FitViewer: React.FC<FitViewerProps> = ({
             (gltf) => {
               const model = gltf.scene;
 
+              // ── PRE-PARENTING MESH CORRECTIONS ─────────────────────────────────────
+              // The SCAR GLB has a baked-in internal rotation that makes it point
+              // down-and-right in world space. We correct this BEFORE centering or
+              // parenting so the mesh geometry is flat/horizontal first.
+              //
+              // 1. Lift the barrel to horizontal: -Math.PI / 2.5 ≈ -72° on X
+              model.rotation.x = -Math.PI / 2.5;
+              // 2. Correct yaw to face forward: -Math.PI / 12 ≈ -15° on Y
+              model.rotation.y = -Math.PI / 12;
+              //
+              // After these two corrections the rifle mesh sits flat and level relative
+              // to the ground plane, ready to inherit the arm bone's transform.
+              // ───────────────────────────────────────────────────────────────────────
+
               const setupMaterials = (skinTex: THREE.Texture | null) => {
                 model.traverse((child) => {
                   if ((child as THREE.Mesh).isMesh) {
@@ -371,25 +385,24 @@ export const FitViewer: React.FC<FitViewerProps> = ({
               wrapper.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
               // Step 3: ATTACH WEAPON AS CHILD OF rightArm
-              // rightArm geometry center is at local y=-6 (translated), hand tip at y=-12
-              // We position the weapon grip at the hand tip in arm-local space.
-              // Since the arm is already rotated by the bone angles, the weapon inherits that orientation.
+              // The model's internal geometry is now corrected to be flat/horizontal.
+              // The wrapper cancels the arm bone's rotation so the rifle stays in world-correct orientation,
+              // then adds a final diagonal tilt (wRotZ) to match the CrackedYOU held pose.
               let localX = 0.0;  // centered on arm
-              let localY = -9.5; // near the hand (arm tip at y=-12)
-              let localZ = 1.0;  // slightly forward off the palm
-              // Counter-rotate the weapon IN arm-local space so it stays world-horizontal:
-              // The arm is rotated -PI/2.5 on X, so we counter-rotate +PI/2.5 to keep gun horizontal,
-              // then add a tilt angle to match the CrackedYOU diagonal.
-              let wRotX = Math.PI / 2.5;  // cancel arm X rotation
-              let wRotY = Math.PI / 12;   // cancel arm Y rotation  
-              let wRotZ = 0.42;           // diagonal tilt: barrel up to the right
+              let localY = -9.5; // near the hand (arm tip at y=-12 in arm-local space)
+              let localZ = 1.5;  // slightly in front of the palm
+              // Cancel arm bone rotations so the flat-corrected gun lands in world space correctly,
+              // then apply the final diagonal tilt:
+              let wRotX = Math.PI / 2.5;  // cancel arm's -PI/2.5 X rotation
+              let wRotY = Math.PI / 12;   // cancel arm's -PI/12 Y rotation
+              let wRotZ = 0.40;           // final diagonal tilt: barrel tilts up to the right
 
-              // Knife/melee: different offset
+              // Knife/melee
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
                 localY = -8.0;
                 wRotZ = 0.6;
               }
-              // Pistol
+              // Pistol / Revolver
               else if (weaponType === 'WEAPON_2') {
                 localY = -9.0;
                 wRotZ = 0.3;
