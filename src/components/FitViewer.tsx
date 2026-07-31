@@ -151,7 +151,13 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+    // ── Directional shading light matching official renders ──
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.45);
+    dirLight.position.set(20, 40, 30);
+    scene.add(dirLight);
 
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
@@ -198,7 +204,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       const armWidth = isSlim ? 3 : 4;
       const armMaps = isSlim ? { ...STEVE_MAPPINGS, ...ALEX_ARM_MAPPINGS } : STEVE_MAPPINGS;
 
-      // UV face extractor
+      // UV face extractor (MeshLambertMaterial for clean 3D diffuse shading!)
       const extractFace = (x: number, y: number, w: number, h: number) => {
         const fc = document.createElement('canvas');
         fc.width = w * 8; fc.height = h * 8;
@@ -209,7 +215,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         tex.magFilter = THREE.NearestFilter;
         tex.minFilter = THREE.NearestFilter;
         tex.generateMipmaps = false;
-        return new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+        return new THREE.MeshLambertMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
       };
 
       const mats = (m: any) => [
@@ -244,8 +250,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       rArmGeo.translate(0, -6, 0);
       const rightArm = new THREE.Mesh(rArmGeo, mats(armMaps.rightArm));
       rightArm.position.set(6 - (isSlim ? 0.5 : 0), 24, 0);
-      // Inward bend holding grip in front of navel
-      rightArm.rotation.set(-0.85, -0.4, -0.2);
+      // bent forward and inward holding gun grip
+      rightArm.rotation.set(-0.9, -0.6, 0.2);
       group.add(rightArm);
 
       if (!isLegacy) {
@@ -259,8 +265,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       lArmGeo.translate(0, -6, 0);
       const leftArm = new THREE.Mesh(lArmGeo, mats(isLegacy ? armMaps.rightArm : armMaps.leftArm));
       leftArm.position.set(-6 + (isSlim ? 0.5 : 0), 24, 0);
-      // Inward bend holding front handguard meeting right hand
-      leftArm.rotation.set(-0.85, 0.4, 0.2);
+      // bent forward and inward meeting right hand
+      leftArm.rotation.set(-0.85, 0.4, -0.3);
       group.add(leftArm);
 
       if (!isLegacy) {
@@ -269,12 +275,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftArm.add(new THREE.Mesh(lArmOLGeo, mats(armMaps.leftArmOL)));
       }
 
-      // RIGHT LEG: pivot at hip (1.6, 12, -0.4) - supporting leg
+      // RIGHT LEG: pivot at hip (1.5, 12, 0.5) - stepped outward and angled (left side of screen)
       const rLegGeo = new THREE.BoxGeometry(4, 12, 4);
       rLegGeo.translate(0, -6, 0);
       const rightLeg = new THREE.Mesh(rLegGeo, mats(STEVE_MAPPINGS.rightLeg));
-      rightLeg.position.set(1.6, 12, -0.4);
-      rightLeg.rotation.set(-0.05, 0.05, 0.02);
+      rightLeg.position.set(1.5, 12, 0.5);
+      rightLeg.rotation.set(0.08, 0.08, 0.14);
       group.add(rightLeg);
 
       if (!isLegacy) {
@@ -283,12 +289,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         rightLeg.add(new THREE.Mesh(rLegOLGeo, mats(STEVE_MAPPINGS.rightLegOL)));
       }
 
-      // LEFT LEG: pivot at hip (-1.0, 12, 0.6) - Crossed in front (casual leaning stance!)
+      // LEFT LEG: pivot at hip (-2.0, 12, -0.5) - supporting straight leg (right side of screen)
       const lLegGeo = new THREE.BoxGeometry(4, 12, 4);
       lLegGeo.translate(0, -6, 0);
       const leftLeg = new THREE.Mesh(lLegGeo, mats(isLegacy ? STEVE_MAPPINGS.rightLeg : STEVE_MAPPINGS.leftLeg));
-      leftLeg.position.set(-1.0, 12, 0.6);
-      leftLeg.rotation.set(0.1, 0.08, 0.2);
+      leftLeg.position.set(-2.0, 12, -0.5);
+      leftLeg.rotation.set(-0.05, -0.05, -0.02);
       group.add(leftLeg);
 
       if (!isLegacy) {
@@ -317,7 +323,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                     const originalMat = mesh.material as any;
                     
                     if (originalMat) {
-                      mesh.material = new THREE.MeshBasicMaterial({
+                      mesh.material = new THREE.MeshLambertMaterial({
                         color: originalMat.color || new THREE.Color(0xffffff),
                         map: skinTex || originalMat.map || null,
                         transparent: true,
@@ -361,7 +367,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
               const currentWidth = size.x || 1.0;
 
               // Size to absolute physical dimensions in scene units
-              let targetWidth = 14.5;
+              let targetWidth = 13.5;
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
                 targetWidth = 9.0;
               } else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
@@ -372,24 +378,24 @@ export const FitViewer: React.FC<FitViewerProps> = ({
               wrapper.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
               // Position right in front of chest/hands level
-              let posX = -0.2;
-              let posY = 18.0; // held in front of the lower chest matching the reference pose!
-              let posZ = 3.6;
+              let posX = -0.4;
+              let posY = 17.8; // held close to chest, matching the reference pose!
+              let posZ = 2.4;  // shifted back closer to chest so hands overlay IN FRONT of the gun!
               let rotX = 0.1;
               let rotY = -0.05;
-              let rotZ = -0.20;
+              let rotZ = -0.26; // correct tilt matching the reference screenshot!
 
               // Melee / Knife positioning
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
-                posY = 17.5;
-                posZ = 3.8;
+                posY = 17.2;
+                posZ = 2.6;
                 rotZ = -0.55; 
               }
               // Pistol / Revolver positioning
               else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
                 posX = 0.0;
-                posY = 17.5;
-                posZ = 3.8;
+                posY = 17.2;
+                posZ = 2.6;
                 rotZ = -0.15;
               }
 
