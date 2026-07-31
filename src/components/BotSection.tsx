@@ -23,8 +23,7 @@ export const BotSection: React.FC = () => {
     { name: '/inventory', desc: 'View a Kirka player inventory with Bolt market valuations', options: '2 options' },
     { name: '/leaderboard', desc: 'View the top players or clans leaderboard', options: '2 options' },
     { name: '/profile', desc: 'Display Kirka player profile card and stats', options: '1 option' },
-    { name: '/skin', desc: 'View pricing and render details for a Kirka skin or item', options: '1 option' },
-    { name: '/h', desc: 'Set custom background for a user profile', options: '2 options' }
+    { name: '/skin', desc: 'View pricing and render details for a Kirka skin or item', options: '1 option' }
   ];
 
   return (
