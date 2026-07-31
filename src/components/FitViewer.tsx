@@ -139,10 +139,9 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // Narrow FOV = flat orthographic-like look, no perspective distortion
+    // Narrow FOV camera - set z=145 for perfect full-body framing
     const camera = new THREE.PerspectiveCamera(16, W / H, 0.1, 500);
-    // Character: head top at y=32, feet at y=0, center at y=16
-    camera.position.set(0, 16, 130);
+    camera.position.set(0, 16, 145);
     camera.lookAt(0, 16, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -151,13 +150,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     containerRef.current.innerHTML = '';
     containerRef.current.appendChild(renderer.domElement);
 
-    // ── Bright, clean directional shading matching official renders ──
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-    scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.65);
-    dirLight.position.set(15, 35, 25);
-    scene.add(dirLight);
+    // Flat ambient light - NO dark directional lighting or heavy shadows!
+    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
 
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
@@ -204,7 +198,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       const armWidth = isSlim ? 3 : 4;
       const armMaps = isSlim ? { ...STEVE_MAPPINGS, ...ALEX_ARM_MAPPINGS } : STEVE_MAPPINGS;
 
-      // UV face extractor (MeshLambertMaterial for clean 3D diffuse shading!)
+      // UV face extractor (MeshBasicMaterial for 100% bright flat pixel art!)
       const extractFace = (x: number, y: number, w: number, h: number) => {
         const fc = document.createElement('canvas');
         fc.width = w * 8; fc.height = h * 8;
@@ -215,7 +209,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         tex.magFilter = THREE.NearestFilter;
         tex.minFilter = THREE.NearestFilter;
         tex.generateMipmaps = false;
-        return new THREE.MeshLambertMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+        return new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
       };
 
       const mats = (m: any) => [
@@ -227,7 +221,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         extractFace(m.back[0],   m.back[1],   m.back[2],   m.back[3]),
       ];
 
-      // HEAD: 8x8x8, center at y=28 (rotated slightly to face viewer)
+      // HEAD: 8x8x8, center at y=28
       const head = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), mats(STEVE_MAPPINGS.head));
       head.position.set(0, 28, 0);
       head.rotation.y = 0.2;
@@ -250,8 +244,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       rArmGeo.translate(0, -6, 0);
       const rightArm = new THREE.Mesh(rArmGeo, mats(armMaps.rightArm));
       rightArm.position.set(6 - (isSlim ? 0.5 : 0), 24, 0);
-      // Correct inward rotation meeting the gun handle/grip across chest
-      rightArm.rotation.set(-0.95, 0.5, -0.4);
+      // Clean forward grip posture (does not block face or body)
+      rightArm.rotation.set(-0.65, -0.2, 0.1);
       group.add(rightArm);
 
       if (!isLegacy) {
@@ -265,8 +259,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       lArmGeo.translate(0, -6, 0);
       const leftArm = new THREE.Mesh(lArmGeo, mats(isLegacy ? armMaps.rightArm : armMaps.leftArm));
       leftArm.position.set(-6 + (isSlim ? 0.5 : 0), 24, 0);
-      // Correct inward rotation supporting the gun barrel
-      leftArm.rotation.set(-0.85, -0.6, 0.4);
+      // Clean forward support posture
+      leftArm.rotation.set(-0.55, 0.2, -0.1);
       group.add(leftArm);
 
       if (!isLegacy) {
@@ -275,7 +269,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftArm.add(new THREE.Mesh(lArmOLGeo, mats(armMaps.leftArmOL)));
       }
 
-      // RIGHT LEG: pivot at hip (1.5, 12, 0.5) - stepped outward and angled (left side of screen)
+      // RIGHT LEG: pivot at hip (1.5, 12, 0.5) - stepped outward (left side of screen)
       const rLegGeo = new THREE.BoxGeometry(4, 12, 4);
       rLegGeo.translate(0, -6, 0);
       const rightLeg = new THREE.Mesh(rLegGeo, mats(STEVE_MAPPINGS.rightLeg));
@@ -323,7 +317,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                     const originalMat = mesh.material as any;
                     
                     if (originalMat) {
-                      mesh.material = new THREE.MeshLambertMaterial({
+                      mesh.material = new THREE.MeshBasicMaterial({
                         color: originalMat.color || new THREE.Color(0xffffff),
                         map: skinTex || originalMat.map || null,
                         transparent: true,
@@ -367,35 +361,35 @@ export const FitViewer: React.FC<FitViewerProps> = ({
               const currentWidth = size.x || 1.0;
 
               // Size to absolute physical dimensions in scene units
-              let targetWidth = 13.5;
+              let targetWidth = 15.0;
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
-                targetWidth = 9.0;
+                targetWidth = 9.5;
               } else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
-                targetWidth = 10.0;
+                targetWidth = 10.5;
               }
 
               const scaleFactor = targetWidth / currentWidth;
               wrapper.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-              // Position right in front of chest/hands level
+              // Position IN FRONT of hands & chest (posZ = 4.5) so gun is 100% crisp and visible!
               let posX = -0.4;
-              let posY = 17.8; // held close to chest, matching the reference pose!
-              let posZ = 2.4;  // shifted back closer to chest so hands overlay IN FRONT of the gun!
+              let posY = 17.2; 
+              let posZ = 4.5; // PLACED IN FRONT OF BODY & ARMS FOR 100% VISIBILITY!
               let rotX = 0.1;
               let rotY = -0.05;
-              let rotZ = -0.26; // correct tilt matching the reference screenshot!
+              let rotZ = -0.22;
 
               // Melee / Knife positioning
               if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
-                posY = 17.2;
-                posZ = 2.6;
+                posY = 16.8;
+                posZ = 4.5;
                 rotZ = -0.55; 
               }
               // Pistol / Revolver positioning
               else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
                 posX = 0.0;
-                posY = 17.2;
-                posZ = 2.6;
+                posY = 16.8;
+                posZ = 4.5;
                 rotZ = -0.15;
               }
 
