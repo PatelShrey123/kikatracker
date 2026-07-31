@@ -95,6 +95,16 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     return url ? getProxiedImageUrl(url) : null;
   };
 
+  const getWeaponTextureUrl = (item: any) => {
+    if (!item) return null;
+    let url = item.textureUrl;
+    if (!url) {
+      const matched = allItemData.find(i => i.name.toLowerCase() === item.name.toLowerCase() && i.type === 'WEAPON_SKIN');
+      url = matched?.textureUrl || null;
+    }
+    return url ? getProxiedImageUrl(url) : null;
+  };
+
   const getWeaponGlbPath = (item: any): string | null => {
     if (!item) return null;
     const nameStr = `${item.name} ${item.parent?.name || ''}`.toLowerCase();
@@ -291,7 +301,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       const activeWeapon = selectedPrimary || selectedSecondary || selectedMelee;
       if (activeWeapon) {
         const glbPath = getWeaponGlbPath(activeWeapon);
-        const renderUrl = getItemRenderUrl(activeWeapon);
+        const textureUrl = getWeaponTextureUrl(activeWeapon);
 
         if (glbPath) {
           const gltfLoader = new GLTFLoader();
@@ -300,10 +310,11 @@ export const FitViewer: React.FC<FitViewerProps> = ({
             (gltf) => {
               const model = gltf.scene;
 
-              // Apply skin texture to 3D GLB weapon if skin texture exists
-              if (renderUrl) {
+              // Apply actual seamless skin texture sheet (textureUrl) to 3D GLB weapon model
+              if (textureUrl) {
                 const texLoader = new THREE.TextureLoader();
-                texLoader.load(renderUrl, (skinTex) => {
+                texLoader.setCrossOrigin('anonymous');
+                texLoader.load(textureUrl, (skinTex) => {
                   skinTex.magFilter = THREE.NearestFilter;
                   skinTex.minFilter = THREE.NearestFilter;
                   skinTex.generateMipmaps = false;
@@ -329,10 +340,37 @@ export const FitViewer: React.FC<FitViewerProps> = ({
                 });
               }
 
-              // Position & scale GLB weapon model in player's hands across chest
-              model.scale.set(7, 7, 7);
-              model.position.set(-0.2, 17.5, 3.5);
-              model.rotation.set(0.1, -0.05, -0.20);
+              // Adjust scaling, positioning, and rotation based on weapon type to hold it realistically
+              const weaponName = activeWeapon.parent?.name || activeWeapon.name || '';
+              const weaponType = activeWeapon.parent?.type || activeWeapon.type || '';
+              
+              let scaleVal = 7;
+              let posX = -0.2;
+              let posY = 17.5;
+              let posZ = 3.5;
+              let rotX = 0.1;
+              let rotY = -0.05;
+              let rotZ = -0.20;
+
+              // Melee / Knife positioning
+              if (weaponName.toLowerCase().includes('bayonet') || weaponName.toLowerCase().includes('tomahawk') || weaponName.toLowerCase().includes('knife')) {
+                scaleVal = 5.5;
+                posY = 17.0;
+                posZ = 3.8;
+                rotZ = -0.55; 
+              }
+              // Pistol / Revolver positioning
+              else if (weaponType === 'WEAPON_2' || weaponName.toLowerCase().includes('revolver') || weaponName.toLowerCase().includes('pistol')) {
+                scaleVal = 6.0;
+                posX = 0.0;
+                posY = 17.2;
+                posZ = 3.8;
+                rotZ = -0.15;
+              }
+
+              model.scale.set(scaleVal, scaleVal, scaleVal);
+              model.position.set(posX, posY, posZ);
+              model.rotation.set(rotX, rotY, rotZ);
 
               group.add(model);
             },
@@ -380,9 +418,9 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">3D Fit Showroom</span>
       </div>
 
-      {/* 3D Viewport */}
-      <div className="w-[360px] h-[480px] mx-auto bg-[#104cc7] border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative">
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-28 h-5 bg-black/20 rounded-full filter blur-sm pointer-events-none" />
+      {/* 3D Viewport - Premium Dark Gradient card matching the official dark dashboard theme! */}
+      <div className="w-[360px] h-[480px] mx-auto bg-gradient-to-b from-[#141622] to-[#08090d] border border-white/5 rounded-2xl overflow-hidden shadow-2xl relative flex items-center justify-center">
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-28 h-5 bg-black/25 rounded-full filter blur-md pointer-events-none" />
         <div ref={containerRef} className="w-full h-full pointer-events-none" />
         {selectedBody && (
           <div className="absolute top-3 left-4 text-[10px] font-mono bg-black/40 border border-white/10 px-3 py-1.5 rounded-lg text-white font-bold uppercase tracking-wider">
