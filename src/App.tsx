@@ -14,6 +14,7 @@ import { TradesSection } from './components/TradesSection';
 import { ItemInspectModal } from './components/ItemInspectModal';
 import { PriceViewerSection } from './components/PriceViewerSection';
 import { CompareSection } from './components/CompareSection';
+import { BotSection } from './components/BotSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -112,6 +113,9 @@ function App() {
     }
     if (cleanPath.startsWith('/compare')) {
       return { tab: 'compare', player: null, clan: null };
+    }
+    if (cleanPath === '/bot') {
+      return { tab: 'bot', player: null, clan: null };
     }
     return { tab: 'search', player: null, clan: null };
   };
@@ -405,6 +409,9 @@ function App() {
                       publicItems={publicItems}
                       allItemData={allItemData}
                     />
+                  )}
+                  {activeTab === 'bot' && (
+                    <BotSection />
                   )}
                 </motion.div>
               </AnimatePresence>

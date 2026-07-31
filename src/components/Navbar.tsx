@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Tag, GitCompare } from 'lucide-react';
+import { MessageSquare, Tag, GitCompare, Bot } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface NavbarProps {
@@ -17,6 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
     { id: 'chat', label: 'Kirka Chat', icon: MessageSquare },
     { id: 'prices', label: 'Price Viewer', icon: Tag },
     { id: 'compare', label: 'Compare Arena', icon: GitCompare },
+    { id: 'bot', label: 'Discord Bot', icon: Bot },
   ];
 
   return (
