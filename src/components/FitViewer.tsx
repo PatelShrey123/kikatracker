@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Search, Layers, Plus, Sparkles } from 'lucide-react';
 import type { UserProfile } from '../utils/api';
 
@@ -94,6 +95,24 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     return url ? getProxiedImageUrl(url) : null;
   };
 
+  const getWeaponGlbPath = (item: any): string | null => {
+    if (!item) return null;
+    const nameStr = `${item.name} ${item.parent?.name || ''}`.toLowerCase();
+
+    if (nameStr.includes('scar')) return '/models/KirkaWeapons/SCAR.glb';
+    if (nameStr.includes('lar')) return '/models/KirkaWeapons/LAR.glb';
+    if (nameStr.includes('ar-9') || nameStr.includes('ar9')) return '/models/KirkaWeapons/AR-9.glb';
+    if (nameStr.includes('m60')) return '/models/KirkaWeapons/M60.glb';
+    if (nameStr.includes('mac-10') || nameStr.includes('mac10')) return '/models/KirkaWeapons/MAC-10.glb';
+    if (nameStr.includes('bayonet')) return '/models/KirkaWeapons/Bayonet.glb';
+    if (nameStr.includes('shark')) return '/models/KirkaWeapons/Shark.glb';
+    if (nameStr.includes('vita')) return '/models/KirkaWeapons/VITA.glb';
+    if (nameStr.includes('weatie')) return '/models/KirkaWeapons/Weatie.glb';
+
+    if (item.type === 'WEAPON_SKIN' && item.parent?.type === 'WEAPON_3') return '/models/KirkaWeapons/Bayonet.glb';
+    return '/models/KirkaWeapons/SCAR.glb';
+  };
+
   useEffect(() => {
     if (!profile) return;
     setSelectedBody(profile.activeBodySkin || catalog.bodies[0] || null);
@@ -128,8 +147,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     scene.add(playerGroup);
     playerGroupRef.current = playerGroup;
 
-    // Slight Y rotation for 3/4 view (like the reference image)
-    playerGroup.rotation.y = -0.28;
+    // Exact official Kirka Y rotation for 3/4 view
+    playerGroup.rotation.y = -0.35;
 
     let animId: number;
     const animate = () => { animId = requestAnimationFrame(animate); renderer.render(scene, camera); };
@@ -156,7 +175,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
     img.src = cleanUrl;
 
     img.onload = () => {
-      // ── Detect Alex/slim model by checking alpha at arm corner pixel ──
+      // Detect Alex/slim model by checking alpha at arm corner pixel
       const checkCanvas = document.createElement('canvas');
       checkCanvas.width = img.width; checkCanvas.height = img.height;
       const checkCtx = checkCanvas.getContext('2d')!;
@@ -169,7 +188,7 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       const armWidth = isSlim ? 3 : 4;
       const armMaps = isSlim ? { ...STEVE_MAPPINGS, ...ALEX_ARM_MAPPINGS } : STEVE_MAPPINGS;
 
-      // ── UV face extractor ──
+      // UV face extractor
       const extractFace = (x: number, y: number, w: number, h: number) => {
         const fc = document.createElement('canvas');
         fc.width = w * 8; fc.height = h * 8;
@@ -192,18 +211,10 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         extractFace(m.back[0],   m.back[1],   m.back[2],   m.back[3]),
       ];
 
-      // ── Minecraft body layout (feet at y=0, head top at y=32) ──
-      //
-      //  y=32 ┌─────┐ head top
-      //  y=24 └─────┘ head bottom / shoulder line
-      //  y=24 ┌─────┐ torso top
-      //  y=12 └─────┘ torso bottom / hip line
-      //  y=12 ┌─────┐ leg top
-      //  y=0  └─────┘ feet
-
       // HEAD: 8x8x8, center at y=28
       const head = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), mats(STEVE_MAPPINGS.head));
       head.position.set(0, 28, 0);
+      head.rotation.y = 0.1;
       group.add(head);
 
       const headOL = new THREE.Mesh(new THREE.BoxGeometry(8.5, 8.5, 8.5), mats(STEVE_MAPPINGS.headOverlay));
@@ -219,13 +230,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       }
 
       // RIGHT ARM: pivot at shoulder (6, 24, 0), extends downward
-      // Geometry translated so origin = top of arm (shoulder)
       const rArmGeo = new THREE.BoxGeometry(armWidth, 12, 4);
       rArmGeo.translate(0, -6, 0);
       const rightArm = new THREE.Mesh(rArmGeo, mats(armMaps.rightArm));
       rightArm.position.set(6 - (isSlim ? 0.5 : 0), 24, 0);
-      // Rifle-hold pose: arm bent forward and inward
-      rightArm.rotation.set(-0.85, -0.2, 0.1);
+      // Official Kirka rifle-hold pose across chest
+      rightArm.rotation.set(-1.0, -0.25, 0.15);
       group.add(rightArm);
 
       if (!isLegacy) {
@@ -239,8 +249,8 @@ export const FitViewer: React.FC<FitViewerProps> = ({
       lArmGeo.translate(0, -6, 0);
       const leftArm = new THREE.Mesh(lArmGeo, mats(isLegacy ? armMaps.rightArm : armMaps.leftArm));
       leftArm.position.set(-6 + (isSlim ? 0.5 : 0), 24, 0);
-      // Support arm pose: forward and inward
-      leftArm.rotation.set(-0.75, 0.2, -0.1);
+      // Support arm holding front handguard/barrel
+      leftArm.rotation.set(-0.8, 0.35, -0.2);
       group.add(leftArm);
 
       if (!isLegacy) {
@@ -249,11 +259,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftArm.add(new THREE.Mesh(lArmOLGeo, mats(armMaps.leftArmOL)));
       }
 
-      // RIGHT LEG: pivot at hip (2, 12, 0), extends downward
+      // RIGHT LEG: pivot at hip (2, 12, 0)
       const rLegGeo = new THREE.BoxGeometry(4, 12, 4);
       rLegGeo.translate(0, -6, 0);
       const rightLeg = new THREE.Mesh(rLegGeo, mats(STEVE_MAPPINGS.rightLeg));
       rightLeg.position.set(2, 12, 0);
+      rightLeg.rotation.set(-0.04, 0.04, 0.06);
       group.add(rightLeg);
 
       if (!isLegacy) {
@@ -262,11 +273,12 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         rightLeg.add(new THREE.Mesh(rLegOLGeo, mats(STEVE_MAPPINGS.rightLegOL)));
       }
 
-      // LEFT LEG: pivot at hip (-2, 12, 0)
+      // LEFT LEG: pivot at hip (-2, 12, 0) - leaning stance
       const lLegGeo = new THREE.BoxGeometry(4, 12, 4);
       lLegGeo.translate(0, -6, 0);
       const leftLeg = new THREE.Mesh(lLegGeo, mats(isLegacy ? STEVE_MAPPINGS.rightLeg : STEVE_MAPPINGS.leftLeg));
       leftLeg.position.set(-2, 12, 0);
+      leftLeg.rotation.set(0.1, 0.08, -0.12);
       group.add(leftLeg);
 
       if (!isLegacy) {
@@ -275,29 +287,58 @@ export const FitViewer: React.FC<FitViewerProps> = ({
         leftLeg.add(new THREE.Mesh(lLegOLGeo, mats(STEVE_MAPPINGS.leftLegOL)));
       }
 
-      // ── WEAPON: 2D sprite attached to right arm wrist ──────────────
+      // ── 3D WEAPON GLB MODEL ATTACHMENT ──────────────────────────────
       const activeWeapon = selectedPrimary || selectedSecondary || selectedMelee;
       if (activeWeapon) {
+        const glbPath = getWeaponGlbPath(activeWeapon);
         const renderUrl = getItemRenderUrl(activeWeapon);
-        if (renderUrl) {
-          const loader = new THREE.TextureLoader();
-          loader.load(renderUrl, (weaponTex) => {
-            weaponTex.magFilter = THREE.NearestFilter;
-            weaponTex.minFilter = THREE.NearestFilter;
-            weaponTex.generateMipmaps = false;
 
-            const weaponMesh = new THREE.Mesh(
-              new THREE.PlaneGeometry(14, 7),
-              new THREE.MeshBasicMaterial({ map: weaponTex, transparent: true, side: THREE.DoubleSide })
-            );
+        if (glbPath) {
+          const gltfLoader = new GLTFLoader();
+          gltfLoader.load(
+            glbPath,
+            (gltf) => {
+              const model = gltf.scene;
 
-            // Attach to right arm, position at wrist (arm extends -12 from shoulder)
-            rightArm.add(weaponMesh);
-            // Wrist position relative to arm pivot (arm pivot=top, so wrist at y=-12)
-            weaponMesh.position.set(-2, -10, 2);
-            // Rotate to be roughly horizontal, pointing left across body
-            weaponMesh.rotation.set(0.1, 0.3, -0.18);
-          }, undefined, (err) => console.warn('weapon load failed', err));
+              // Apply skin texture to 3D GLB weapon if skin texture exists
+              if (renderUrl) {
+                const texLoader = new THREE.TextureLoader();
+                texLoader.load(renderUrl, (skinTex) => {
+                  skinTex.magFilter = THREE.NearestFilter;
+                  skinTex.minFilter = THREE.NearestFilter;
+                  skinTex.generateMipmaps = false;
+
+                  model.traverse((child) => {
+                    if ((child as THREE.Mesh).isMesh) {
+                      const mesh = child as THREE.Mesh;
+                      mesh.material = new THREE.MeshBasicMaterial({
+                        map: skinTex,
+                        side: THREE.DoubleSide
+                      });
+                    }
+                  });
+                });
+              } else {
+                model.traverse((child) => {
+                  if ((child as THREE.Mesh).isMesh) {
+                    const mesh = child as THREE.Mesh;
+                    if (mesh.material) {
+                      (mesh.material as any).side = THREE.DoubleSide;
+                    }
+                  }
+                });
+              }
+
+              // Position & scale GLB weapon model in player's hands across chest
+              model.scale.set(7, 7, 7);
+              model.position.set(-0.2, 17.5, 3.5);
+              model.rotation.set(0.1, -0.05, -0.20);
+
+              group.add(model);
+            },
+            undefined,
+            (err) => console.warn('GLB load failed:', err)
+          );
         }
       }
     };
