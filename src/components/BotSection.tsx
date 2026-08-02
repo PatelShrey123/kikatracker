@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Bot, Terminal, Shield, Zap, Sparkles, Database, RefreshCw, BarChart2, Globe, Heart, Download } from 'lucide-react';
 
 export const BotSection: React.FC = () => {
-  const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=1532695214634831872';
+  const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=1532695214634831872&permissions=8&integration_type=0&scope=bot+applications.commands';
 
   const features = [
     { text: 'DM Support', desc: 'Works directly in your Direct Messages', icon: MessageSquareIcon },
