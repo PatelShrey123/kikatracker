@@ -613,18 +613,18 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                         item.type === 'BODY_SKIN' ? 'character' : item.parent?.name || 'weapon_skin', 
                         invItem.amount
                       )}
-                      className={`card-interactive relative flex flex-col justify-between bg-obsidian-card border p-4.5 rounded-xl cursor-pointer hover:shadow-gold-glow group ${rarityStyles}`}
+                      className={`card-interactive relative flex flex-col justify-between bg-[#0e1017] border p-4.5 rounded-2xl cursor-pointer hover:shadow-gold-glow group transition-all duration-300 ${rarityStyles}`}
                     >
-                      <span className="absolute top-2.5 right-2.5 bg-obsidian-deep border border-obsidian-border text-[10px] font-bold px-1.5 py-0.5 rounded font-mono text-slate-300 font-black">
+                      <span className="absolute top-3 right-3 bg-[#11131e]/90 border border-white/5 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
                         x{invItem.amount}
                       </span>
 
-                      <div className="w-full h-24 flex items-center justify-center mb-3.5 relative">
+                      <div className="w-full h-24 flex items-center justify-center my-3 relative">
                         {renderUrl ? (
                           <img
                             src={renderUrl}
                             alt={item.name}
-                            className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+                            className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-slate-600">
@@ -638,19 +638,20 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                         )}
                       </div>
 
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase">
-                          {item.type === 'BODY_SKIN' ? 'Body Skin' : item.parent?.name || 'Weapon Skin'}
-                        </span>
-                        <h4 className="text-sm font-extrabold text-white line-clamp-1 group-hover:text-gold-bright transition-colors">
-                          {item.name.replace(/^_+/, '')}
-                        </h4>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/5 text-xs font-mono">
-                        <span className="text-[10px] text-slate-500 uppercase">Valuation:</span>
-                        <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                          <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
+                      <div className="flex items-end justify-between pt-3 mt-1 border-t border-white/5">
+                        <div className="space-y-0.5 text-left">
+                          <span className="text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase">
+                            {item.type === 'BODY_SKIN' ? 'Body Skin' : item.parent?.name || 'Weapon Skin'}
+                          </span>
+                          <h4 className="text-sm font-black text-white leading-tight line-clamp-1 group-hover:text-gold-bright transition-colors">
+                            {item.name.replace(/^_+/, '')}
+                          </h4>
+                          <span className="text-[8px] font-mono font-bold tracking-widest text-slate-600 uppercase block pt-1.5">
+                            Valuation:
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1 text-gold-bright font-black font-mono text-xs mb-0.5">
+                          <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain" />
                           <span>{matchedPrice > 0 ? formatValue(matchedPrice) : '—'}</span>
                         </div>
                       </div>
