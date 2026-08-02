@@ -90,34 +90,38 @@ function App() {
     
     if (cleanPath.startsWith('/player/')) {
       const id = cleanPath.split('/player/')[1];
-      return { tab: 'search', player: id, clan: null };
+      return { tab: 'search', player: id, clan: null, skin: null };
     }
     if (cleanPath.startsWith('/clan/')) {
       const name = cleanPath.split('/clan/')[1];
-      return { tab: 'clans', player: null, clan: name };
+      return { tab: 'clans', player: null, clan: name, skin: null };
+    }
+    if (cleanPath.startsWith('/skin/')) {
+      const skinName = cleanPath.split('/skin/')[1];
+      return { tab: 'prices', player: null, clan: null, skin: decodeURIComponent(skinName) };
     }
     if (cleanPath === '/trades') {
-      return { tab: 'trades', player: null, clan: null };
+      return { tab: 'trades', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/daily') {
-      return { tab: 'daily', player: null, clan: null };
+      return { tab: 'daily', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/ranked') {
-      return { tab: 'ranked', player: null, clan: null };
+      return { tab: 'ranked', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/chat') {
-      return { tab: 'chat', player: null, clan: null };
+      return { tab: 'chat', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/prices') {
-      return { tab: 'prices', player: null, clan: null };
+      return { tab: 'prices', player: null, clan: null, skin: null };
     }
     if (cleanPath.startsWith('/compare')) {
-      return { tab: 'compare', player: null, clan: null };
+      return { tab: 'compare', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/bot') {
-      return { tab: 'bot', player: null, clan: null };
+      return { tab: 'bot', player: null, clan: null, skin: null };
     }
-    return { tab: 'search', player: null, clan: null };
+    return { tab: 'search', player: null, clan: null, skin: null };
   };
 
   // Handle URL history state navigation
@@ -175,6 +179,12 @@ function App() {
       } else {
         setActiveClanName(null);
       }
+      if (state.skin) {
+        setInspectItem({ name: state.skin });
+        setActiveTab('prices');
+      } else {
+        setInspectItem(null);
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -204,12 +214,15 @@ function App() {
         setActiveClanName(state.clan);
         setActiveTab('clans');
       }
+      if (state.skin) {
+        setInspectItem({ name: state.skin });
+        setActiveTab('prices');
+      }
     };
 
     initRouting();
   }, []);
 
-  // Handle player search action across pages
   const handlePlayerSearch = async (id: string, isShortId: boolean) => {
     setSearchLoading(true);
     setSearchError(null);
