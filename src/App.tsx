@@ -214,8 +214,13 @@ function App() {
           const profile = await fetchUserProfile(state.player, state.player.length === 6);
           setActiveUserProfile(profile);
           setActiveTab('search');
-        } catch {
-          setSearchError('Player profile not found.');
+        } catch (err: any) {
+          const msg = err?.message || '';
+          if (msg.includes('status 500') || msg.includes('status 502') || msg.includes('status 503')) {
+            setSearchError('⚠️ Kirka.io API Outage: The profile database is currently offline (returned status 500). Please try again later!');
+          } else {
+            setSearchError('Player profile not found.');
+          }
         } finally {
           setSearchLoading(false);
         }
@@ -254,9 +259,14 @@ function App() {
       window.history.pushState(null, '', prefix + '/player/' + queryId);
       
       setActiveTab('search'); 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Search failed:', err);
-      setSearchError('Player profile not found. Make sure the ID is correct.');
+      const msg = err?.message || '';
+      if (msg.includes('status 500') || msg.includes('status 502') || msg.includes('status 503')) {
+        setSearchError('⚠️ Kirka.io API Outage: The profile database is currently offline (returned status 500). Please try again later!');
+      } else {
+        setSearchError('Player profile not found. Make sure the ID is correct.');
+      }
     } finally {
       setSearchLoading(false);
     }
@@ -275,9 +285,14 @@ function App() {
         throw new Error('Player not found.');
       }
       setActiveUserProfile(profile);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Search failed:', err);
-      setSearchError('Player profile not found. Make sure the ID is correct.');
+      const msg = err?.message || '';
+      if (msg.includes('status 500') || msg.includes('status 502') || msg.includes('status 503')) {
+        setSearchError('⚠️ Kirka.io API Outage: The profile database is currently offline (returned status 500). Please try again later!');
+      } else {
+        setSearchError('Player profile not found. Make sure the ID is correct.');
+      }
     } finally {
       setSearchLoading(false);
     }
