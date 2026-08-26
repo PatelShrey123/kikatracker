@@ -86,14 +86,17 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
       trimmed = trimmed.substring(1);
     }
 
-    // Strictly validate 6-character alphanumeric ID only
-    const shortIdRegex = /^[a-zA-Z0-9]{6}$/;
-    if (!shortIdRegex.test(trimmed)) {
-      setError('Invalid ID. Please search using a valid 6-character short ID (e.g. #FUYR7K).');
+    const isShortId = trimmed.length === 6 && /^[a-zA-Z0-9]{6}$/.test(trimmed);
+    const isUuid = trimmed.length === 36 && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(trimmed);
+
+    if (isShortId) {
+      onSearch(trimmed, true);
+    } else if (isUuid) {
+      onSearch(trimmed, false);
+    } else {
+      setError('Invalid ID. Please search using a valid 6-character short ID (e.g. #FUYR7K) or a 36-character UUID.');
       return;
     }
-
-    onSearch(trimmed, true);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

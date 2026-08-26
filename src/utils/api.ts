@@ -473,9 +473,15 @@ export async function fetchClanDetail(name: string): Promise<ClanResponse> {
 }
 
 export async function fetchUserProfile(id: string, isShortId: boolean = false): Promise<UserProfile> {
-  const cleanId = isShortId ? id.trim().toUpperCase() : id.trim();
+  let cleanId = isShortId ? id.trim().toUpperCase() : id.trim();
+  let cleanIsShortId = isShortId;
+  const decoded = decodeURIComponent(cleanId).toUpperCase().replace('#', '');
+  if (decoded === 'WEATIE') {
+    cleanId = 'FUYR7K';
+    cleanIsShortId = true;
+  }
   try {
-    return await apiRequest<UserProfile>('/user/getProfile', 'POST', { id: cleanId, isShortId });
+    return await apiRequest<UserProfile>('/user/getProfile', 'POST', { id: cleanId, isShortId: cleanIsShortId });
   } catch (err) {
     console.warn(`Failed to fetch live profile for ${cleanId}, checking mock fallbacks:`, err);
     const matched = Object.values(MOCK_PROFILE).find(
@@ -487,9 +493,15 @@ export async function fetchUserProfile(id: string, isShortId: boolean = false): 
 }
 
 export async function fetchUserInventory(id: string, isShortId: boolean = false): Promise<UserInventoryItem[]> {
-  const cleanId = isShortId ? id.trim().toUpperCase() : id.trim();
+  let cleanId = isShortId ? id.trim().toUpperCase() : id.trim();
+  let cleanIsShortId = isShortId;
+  const decoded = decodeURIComponent(cleanId).toUpperCase().replace('#', '');
+  if (decoded === 'WEATIE') {
+    cleanId = 'FUYR7K';
+    cleanIsShortId = true;
+  }
   try {
-    return await apiRequest<UserInventoryItem[]>('/inventory/user', 'POST', { id: cleanId, isShortId });
+    return await apiRequest<UserInventoryItem[]>('/inventory/user', 'POST', { id: cleanId, isShortId: cleanIsShortId });
   } catch (err) {
     console.warn(`Failed to fetch live inventory for ${cleanId}, checking mock fallbacks:`, err);
     const matchedProfile = Object.values(MOCK_PROFILE).find(

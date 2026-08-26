@@ -15,6 +15,8 @@ import { ItemInspectModal } from './components/ItemInspectModal';
 import { PriceViewerSection } from './components/PriceViewerSection';
 import { CompareSection } from './components/CompareSection';
 import { BotSection } from './components/BotSection';
+import { ClientDownloadSection } from './components/ClientDownloadSection';
+import { ClanTrackerSection } from './components/ClanTrackerSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -90,11 +92,16 @@ function App() {
     
     if (cleanPath.startsWith('/player/')) {
       const id = cleanPath.split('/player/')[1];
-      return { tab: 'search', player: id, clan: null, skin: null };
+      const decodedId = decodeURIComponent(id).toUpperCase().replace('#', '');
+      const targetId = decodedId === 'WEATIE' ? 'FUYR7K' : id;
+      return { tab: 'search', player: targetId, clan: null, skin: null };
     }
     if (cleanPath.startsWith('/clan/')) {
       const name = cleanPath.split('/clan/')[1];
       return { tab: 'clans', player: null, clan: name, skin: null };
+    }
+    if (cleanPath === '/clantracker') {
+      return { tab: 'clantracker', player: null, clan: null, skin: null };
     }
     if (cleanPath.startsWith('/skin/')) {
       const skinName = cleanPath.split('/skin/')[1];
@@ -120,6 +127,9 @@ function App() {
     }
     if (cleanPath === '/bot') {
       return { tab: 'bot', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/client') {
+      return { tab: 'client', player: null, clan: null, skin: null };
     }
     return { tab: 'search', player: null, clan: null, skin: null };
   };
@@ -224,16 +234,22 @@ function App() {
   }, []);
 
   const handlePlayerSearch = async (id: string, isShortId: boolean) => {
+    let searchId = id.trim();
+    let searchIsShortId = isShortId;
+    if (searchId.toUpperCase().replace('#', '') === 'WEATIE') {
+      searchId = 'FUYR7K';
+      searchIsShortId = true;
+    }
     setSearchLoading(true);
     setSearchError(null);
     try {
-      const profile = await fetchUserProfile(id, isShortId);
+      const profile = await fetchUserProfile(searchId, searchIsShortId);
       if (!profile || !profile.name) {
         throw new Error('Player not found.');
       }
       setActiveUserProfile(profile);
       
-      const queryId = isShortId ? profile.shortId : profile.id;
+      const queryId = searchIsShortId ? profile.shortId : profile.id;
       const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
       window.history.pushState(null, '', prefix + '/player/' + queryId);
       
@@ -247,10 +263,14 @@ function App() {
   };
 
   const handlePlayerSearchDirect = async (id: string) => {
+    let searchId = id.trim();
+    if (searchId.toUpperCase().replace('#', '') === 'WEATIE') {
+      searchId = 'FUYR7K';
+    }
     setSearchLoading(true);
     setSearchError(null);
     try {
-      const profile = await fetchUserProfile(id, id.length === 6);
+      const profile = await fetchUserProfile(searchId, searchId.length === 6);
       if (!profile || !profile.name) {
         throw new Error('Player not found.');
       }
@@ -381,6 +401,10 @@ function App() {
                     />
                   )}
 
+                  {activeTab === 'clantracker' && (
+                    <ClanTrackerSection />
+                  )}
+
                   {activeTab === 'trades' && (
                     <TradesSection
                       onSelectPlayer={handlePlayerSearch}
@@ -425,6 +449,9 @@ function App() {
                   )}
                   {activeTab === 'bot' && (
                     <BotSection />
+                  )}
+                  {activeTab === 'client' && (
+                    <ClientDownloadSection />
                   )}
                 </motion.div>
               </AnimatePresence>
