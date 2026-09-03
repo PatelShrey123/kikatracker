@@ -40,13 +40,25 @@ export function has3DViewerSupport(weaponTypeOrParent?: string): boolean {
   return !!getModelFileName(weaponTypeOrParent);
 }
 
+// Clean texture URL to handle Kirka API malformed data URIs (e.g. 'https://kirka.iodata:image/png;base64,...')
+export function cleanTextureUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  const dataIdx = trimmed.indexOf('data:image');
+  if (dataIdx !== -1) {
+    return trimmed.substring(dataIdx);
+  }
+  return trimmed;
+}
+
 export function getProxiedTextureUrl(url: string | null | undefined): string {
-  if (!url) return '';
-  if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('/')) {
-    return url;
+  const cleaned = cleanTextureUrl(url);
+  if (!cleaned) return '';
+  if (cleaned.startsWith('data:') || cleaned.startsWith('blob:') || cleaned.startsWith('/')) {
+    return cleaned;
   }
   // images.weserv.nl provides global Cloudflare CDN with Access-Control-Allow-Origin: *
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
+  return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}`;
 }
 
 // Fallback Helper: Set UV coordinates for BoxGeometry faces (64x64 texture format)
@@ -182,9 +194,11 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     // 1. Scene setup
     const scene = new THREE.Scene();
 
-    // 2. Camera setup - Pre-zoomed view so details fill the frame immediately!
+    // 2. Camera setup - Perfectly framed for character vs weapon!
+    // Character is tall, so camera backed up to 2.5 so head and feet are completely visible!
+    // Weapons are wide, so camera at 1.75 keeps them pre-zoomed!
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0.12, isChar ? 1.9 : 1.75);
+    camera.position.set(0, isChar ? 0 : 0.1, isChar ? 2.5 : 1.75);
 
     // 3. Renderer setup
     const renderer = new THREE.WebGLRenderer({
@@ -208,7 +222,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     controls.autoRotate = isAutoRotating;
     controls.autoRotateSpeed = 2.0;
     controls.minDistance = 0.6;
-    controls.maxDistance = 5.0;
+    controls.maxDistance = 6.0;
     controls.maxPolarAngle = Math.PI / 1.7;
     controls.minPolarAngle = Math.PI / 8;
     controlsRef.current = controls;
@@ -231,14 +245,15 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
 
     let isDisposed = false;
 
-    // Helper: Load texture with CORS proxy & fallback
+    // Helper: Load texture with CORS proxy & data URI support
     const loadTexturePromise = (url: string | null): Promise<THREE.Texture | null> => {
-      if (!url) return Promise.resolve(null);
+      const cleaned = cleanTextureUrl(url);
+      if (!cleaned) return Promise.resolve(null);
       return new Promise((resolve) => {
         const texLoader = new THREE.TextureLoader();
         texLoader.crossOrigin = 'anonymous';
 
-        const proxied = getProxiedTextureUrl(url);
+        const proxied = getProxiedTextureUrl(cleaned);
 
         texLoader.load(
           proxied,
@@ -254,7 +269,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
           (err1) => {
             console.warn('[3D Viewer] Proxied texture load failed, trying direct...', err1);
             texLoader.load(
-              url,
+              cleaned,
               (directTex) => {
                 directTex.flipY = false;
                 directTex.colorSpace = THREE.SRGBColorSpace;
@@ -309,12 +324,12 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
             }
           }
 
-          // Pre-zoomed scaling
+          // Frame character comfortably (scale: 1.4 keeps head, body, and legs in full view!)
           const box = new THREE.Box3().setFromObject(charModel);
           const center = box.getCenter(new THREE.Vector3());
           const size = box.getSize(new THREE.Vector3());
           const maxDim = Math.max(size.x, size.y, size.z);
-          const targetScale = 2.4 / (maxDim || 1); // Pre-zoomed!
+          const targetScale = 1.4 / (maxDim || 1);
           charModel.scale.setScalar(targetScale);
 
           charModel.position.x = -center.x * targetScale;
@@ -323,15 +338,14 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
 
           if (loadedTexture) {
             charModel.traverse((child: any) => {
-              if (child.isMesh) {
-                const mesh = child as THREE.Mesh;
-                mesh.material = new THREE.MeshStandardMaterial({
-                  map: loadedTexture,
-                  roughness: 0.4,
-                  metalness: 0.05,
-                  side: THREE.DoubleSide
-                });
-                (mesh.material as THREE.Material).needsUpdate = true;
+              if (child.isMesh || child.isSkinnedMesh) {
+                if (child.material) {
+                  // Update map on existing material to retain skeleton rigging!
+                  child.material.map = loadedTexture;
+                  child.material.roughness = 0.4;
+                  child.material.metalness = 0.05;
+                  child.material.needsUpdate = true;
+                }
               }
             });
           }
@@ -345,7 +359,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
           charGroup.position.x = -center.x;
           charGroup.position.y = -center.y;
           charGroup.position.z = -center.z;
-          charGroup.scale.setScalar(1.5);
+          charGroup.scale.setScalar(1.2);
           scene.add(charGroup);
         }
 
@@ -365,7 +379,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       ]).then(([model, loadedTexture]) => {
         if (isDisposed) return;
 
-        // Auto-center and PRE-ZOOM scaling (2.35 fills the frame nicely!)
+        // Auto-center and PRE-ZOOM scaling (2.35 fills the frame nicely for guns!)
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
