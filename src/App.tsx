@@ -96,6 +96,12 @@ function App() {
       const targetId = decodedId === 'WEATIE' ? 'FUYR7K' : id;
       return { tab: 'search', player: targetId, clan: null, skin: null };
     }
+    if (cleanPath.startsWith('/inventory/')) {
+      const id = cleanPath.split('/inventory/')[1];
+      const decodedId = decodeURIComponent(id).toUpperCase().replace('#', '');
+      const targetId = decodedId === 'WEATIE' ? 'FUYR7K' : id;
+      return { tab: 'search', player: targetId, clan: null, skin: null };
+    }
     if (cleanPath.startsWith('/clan/')) {
       const name = cleanPath.split('/clan/')[1];
       return { tab: 'clans', player: null, clan: name, skin: null };

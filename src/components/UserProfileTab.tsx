@@ -28,7 +28,8 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   allItemData,
   onCompare
 }) => {
-  const [profileTab, setProfileTab] = useState<'stats' | 'inventory'>('stats');
+  const isInventoryRoute = typeof window !== 'undefined' && window.location.pathname.includes('/inventory');
+  const [profileTab, setProfileTab] = useState<'stats' | 'inventory'>(isInventoryRoute ? 'inventory' : 'stats');
   const [inventory, setInventory] = useState<UserInventoryItem[]>([]);
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
