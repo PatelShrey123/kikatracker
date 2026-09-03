@@ -57,32 +57,37 @@ export function getProxiedTextureUrl(url: string | null | undefined): string {
   if (cleaned.startsWith('data:') || cleaned.startsWith('blob:') || cleaned.startsWith('/')) {
     return cleaned;
   }
-  // images.weserv.nl provides global Cloudflare CDN with Access-Control-Allow-Origin: *
   return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}`;
 }
 
-// Fallback Helper: Set UV coordinates for BoxGeometry faces (64x64 texture format)
-function setBoxFaceUVs(
-  geometry: THREE.BoxGeometry,
-  uMin: number, vMin: number, uMax: number, vMax: number,
-  textureWidth = 64, textureHeight = 64
+// Map 6 BoxGeometry faces to specific [x1, y1, x2, y2] coordinates on a 64x64 texture
+function mapBoxUVs(
+  geo: THREE.BoxGeometry,
+  right: [number, number, number, number],
+  left: [number, number, number, number],
+  top: [number, number, number, number],
+  bottom: [number, number, number, number],
+  front: [number, number, number, number],
+  back: [number, number, number, number]
 ) {
-  const uvAttr = geometry.attributes.uv;
-  const u1 = uMin / textureWidth;
-  const v1 = 1 - (vMax / textureHeight);
-  const u2 = uMax / textureWidth;
-  const v2 = 1 - (vMin / textureHeight);
-
-  for (let i = 0; i < uvAttr.count; i += 4) {
-    uvAttr.setXY(i, u1, v2);
-    uvAttr.setXY(i + 1, u2, v2);
-    uvAttr.setXY(i + 2, u1, v1);
-    uvAttr.setXY(i + 3, u2, v1);
-  }
-  uvAttr.needsUpdate = true;
+  const uv = geo.attributes.uv;
+  const faces = [right, left, top, bottom, front, back];
+  faces.forEach(([x1, y1, x2, y2], f) => {
+    const uMin = x1 / 64;
+    const uMax = (x2 + 1) / 64;
+    const vMin = 1 - ((y2 + 1) / 64);
+    const vMax = 1 - (y1 / 64);
+    const off = f * 4;
+    uv.setXY(off + 0, uMin, vMax);
+    uv.setXY(off + 1, uMax, vMax);
+    uv.setXY(off + 2, uMin, vMin);
+    uv.setXY(off + 3, uMax, vMin);
+  });
+  uv.needsUpdate = true;
 }
 
-function createKirka3pxCharacter(texture: THREE.Texture): THREE.Group {
+// Build authentic 3px Kirka Character Model adhering 100% to Gecko's 3px UV Template
+function createGecko3pxCharacter(texture: THREE.Texture): THREE.Group {
   const group = new THREE.Group();
 
   const skinMat = new THREE.MeshStandardMaterial({
@@ -101,54 +106,187 @@ function createKirka3pxCharacter(texture: THREE.Texture): THREE.Group {
     side: THREE.DoubleSide,
   });
 
-  const p = 0.06;
+  const p = 0.06; // unit scale per pixel
 
-  // Head
+  // 1. HEAD (8x8x8)
   const headGeo = new THREE.BoxGeometry(8 * p, 8 * p, 8 * p);
-  setBoxFaceUVs(headGeo, 8, 8, 16, 16);
+  mapBoxUVs(
+    headGeo,
+    [0, 8, 7, 15],   // Right
+    [16, 8, 23, 15], // Left
+    [8, 0, 15, 7],   // Top
+    [16, 0, 23, 7],  // Bottom
+    [8, 8, 15, 15],  // Front
+    [24, 8, 31, 15]  // Back
+  );
   const headMesh = new THREE.Mesh(headGeo, skinMat);
   headMesh.position.set(0, 10 * p, 0);
   group.add(headMesh);
 
-  // Hat Layer
-  const hatGeo = new THREE.BoxGeometry(8.8 * p, 8.8 * p, 8.8 * p);
-  setBoxFaceUVs(hatGeo, 40, 8, 48, 16);
+  // HAT (Outer Layer 8.6x8.6x8.6)
+  const hatGeo = new THREE.BoxGeometry(8.6 * p, 8.6 * p, 8.6 * p);
+  mapBoxUVs(
+    hatGeo,
+    [32, 8, 39, 15], // Right
+    [48, 8, 55, 15], // Left
+    [40, 0, 47, 7],  // Top
+    [48, 0, 55, 7],  // Bottom
+    [40, 8, 47, 15], // Front
+    [56, 8, 63, 15]  // Back
+  );
   const hatMesh = new THREE.Mesh(hatGeo, skinMatAlpha);
   hatMesh.position.set(0, 10 * p, 0);
   group.add(hatMesh);
 
-  // Torso
+  // 2. TORSO (8x12x4)
   const torsoGeo = new THREE.BoxGeometry(8 * p, 12 * p, 4 * p);
-  setBoxFaceUVs(torsoGeo, 20, 20, 28, 32);
+  mapBoxUVs(
+    torsoGeo,
+    [16, 20, 19, 31], // Right
+    [28, 20, 31, 31], // Left
+    [20, 16, 27, 19], // Top
+    [28, 16, 35, 19], // Bottom
+    [20, 20, 27, 31], // Front
+    [32, 20, 39, 31]  // Back
+  );
   const torsoMesh = new THREE.Mesh(torsoGeo, skinMat);
   torsoMesh.position.set(0, 0, 0);
   group.add(torsoMesh);
 
-  // Arms (3px slim)
+  // JACKET (Outer Layer 8.6x12.6x4.6)
+  const jacketGeo = new THREE.BoxGeometry(8.6 * p, 12.6 * p, 4.6 * p);
+  mapBoxUVs(
+    jacketGeo,
+    [16, 36, 19, 47], // Right
+    [28, 36, 31, 47], // Left
+    [20, 32, 27, 35], // Top
+    [28, 32, 35, 35], // Bottom
+    [20, 36, 27, 47], // Front
+    [32, 36, 39, 47]  // Back
+  );
+  const jacketMesh = new THREE.Mesh(jacketGeo, skinMatAlpha);
+  jacketMesh.position.set(0, 0, 0);
+  group.add(jacketMesh);
+
+  // 3. RIGHT ARM (3x12x4 - Authentic 3px Slim!)
   const rightArmGeo = new THREE.BoxGeometry(3 * p, 12 * p, 4 * p);
-  setBoxFaceUVs(rightArmGeo, 44, 20, 47, 32);
+  mapBoxUVs(
+    rightArmGeo,
+    [40, 20, 43, 31], // Right
+    [47, 20, 50, 31], // Left
+    [44, 16, 46, 19], // Top
+    [47, 16, 49, 19], // Bottom
+    [44, 20, 46, 31], // Front
+    [51, 20, 53, 31]  // Back
+  );
   const rightArmMesh = new THREE.Mesh(rightArmGeo, skinMat);
   rightArmMesh.position.set(-5.5 * p, 0, 0);
   group.add(rightArmMesh);
 
+  // RIGHT SLEEVE (Outer Layer 3.6x12.6x4.6)
+  const rightSleeveGeo = new THREE.BoxGeometry(3.6 * p, 12.6 * p, 4.6 * p);
+  mapBoxUVs(
+    rightSleeveGeo,
+    [40, 36, 43, 47], // Right
+    [47, 36, 50, 47], // Left
+    [44, 32, 46, 35], // Top
+    [47, 32, 49, 35], // Bottom
+    [44, 36, 46, 47], // Front
+    [51, 36, 53, 47]  // Back
+  );
+  const rightSleeveMesh = new THREE.Mesh(rightSleeveGeo, skinMatAlpha);
+  rightSleeveMesh.position.set(-5.5 * p, 0, 0);
+  group.add(rightSleeveMesh);
+
+  // 4. LEFT ARM (3x12x4 - Authentic 3px Slim!)
   const leftArmGeo = new THREE.BoxGeometry(3 * p, 12 * p, 4 * p);
-  setBoxFaceUVs(leftArmGeo, 36, 52, 39, 64);
+  mapBoxUVs(
+    leftArmGeo,
+    [32, 52, 35, 63], // Right
+    [39, 52, 42, 63], // Left
+    [36, 48, 38, 51], // Top
+    [39, 48, 41, 51], // Bottom
+    [36, 52, 38, 63], // Front
+    [43, 52, 45, 63]  // Back
+  );
   const leftArmMesh = new THREE.Mesh(leftArmGeo, skinMat);
   leftArmMesh.position.set(5.5 * p, 0, 0);
   group.add(leftArmMesh);
 
-  // Legs
+  // LEFT SLEEVE (Outer Layer 3.6x12.6x4.6)
+  const leftSleeveGeo = new THREE.BoxGeometry(3.6 * p, 12.6 * p, 4.6 * p);
+  mapBoxUVs(
+    leftSleeveGeo,
+    [48, 52, 51, 63], // Right
+    [55, 52, 58, 63], // Left
+    [52, 48, 54, 51], // Top
+    [55, 48, 57, 51], // Bottom
+    [52, 52, 54, 63], // Front
+    [59, 52, 61, 63]  // Back
+  );
+  const leftSleeveMesh = new THREE.Mesh(leftSleeveGeo, skinMatAlpha);
+  leftSleeveMesh.position.set(5.5 * p, 0, 0);
+  group.add(leftSleeveMesh);
+
+  // 5. RIGHT LEG (4x12x4)
   const rightLegGeo = new THREE.BoxGeometry(4 * p, 12 * p, 4 * p);
-  setBoxFaceUVs(rightLegGeo, 4, 20, 8, 32);
+  mapBoxUVs(
+    rightLegGeo,
+    [0, 20, 3, 31],   // Right
+    [8, 20, 11, 31],  // Left
+    [4, 16, 7, 19],   // Top
+    [8, 16, 11, 19],  // Bottom
+    [4, 20, 7, 31],   // Front
+    [12, 20, 15, 31]  // Back
+  );
   const rightLegMesh = new THREE.Mesh(rightLegGeo, skinMat);
   rightLegMesh.position.set(-2 * p, -12 * p, 0);
   group.add(rightLegMesh);
 
+  // RIGHT PANT (Outer Layer 4.6x12.6x4.6)
+  const rightPantGeo = new THREE.BoxGeometry(4.6 * p, 12.6 * p, 4.6 * p);
+  mapBoxUVs(
+    rightPantGeo,
+    [0, 36, 3, 47],   // Right
+    [8, 36, 11, 47],  // Left
+    [4, 32, 7, 35],   // Top
+    [8, 32, 11, 35],  // Bottom
+    [4, 36, 7, 47],   // Front
+    [12, 36, 15, 47]  // Back
+  );
+  const rightPantMesh = new THREE.Mesh(rightPantGeo, skinMatAlpha);
+  rightPantMesh.position.set(-2 * p, -12 * p, 0);
+  group.add(rightPantMesh);
+
+  // 6. LEFT LEG (4x12x4)
   const leftLegGeo = new THREE.BoxGeometry(4 * p, 12 * p, 4 * p);
-  setBoxFaceUVs(leftLegGeo, 20, 52, 24, 64);
+  mapBoxUVs(
+    leftLegGeo,
+    [16, 52, 19, 63], // Right
+    [24, 52, 27, 63], // Left
+    [20, 48, 23, 51], // Top
+    [24, 48, 27, 51], // Bottom
+    [20, 52, 23, 63], // Front
+    [28, 52, 31, 63]  // Back
+  );
   const leftLegMesh = new THREE.Mesh(leftLegGeo, skinMat);
   leftLegMesh.position.set(2 * p, -12 * p, 0);
   group.add(leftLegMesh);
+
+  // LEFT PANT (Outer Layer 4.6x12.6x4.6)
+  const leftPantGeo = new THREE.BoxGeometry(4.6 * p, 12.6 * p, 4.6 * p);
+  mapBoxUVs(
+    leftPantGeo,
+    [0, 52, 3, 63],   // Right
+    [8, 52, 11, 63],  // Left
+    [4, 48, 7, 51],   // Top
+    [8, 48, 11, 51],  // Bottom
+    [4, 52, 7, 63],   // Front
+    [12, 52, 15, 63]  // Back
+  );
+  const leftPantMesh = new THREE.Mesh(leftPantGeo, skinMatAlpha);
+  leftPantMesh.position.set(2 * p, -12 * p, 0);
+  group.add(leftPantMesh);
 
   return group;
 }
@@ -171,7 +309,6 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotateDefault);
   const controlsRef = useRef<OrbitControls | null>(null);
-  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
 
   const isChar = isCharacterSkin(weaponType);
   const modelFile = getModelFileName(weaponType);
@@ -195,10 +332,8 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     const scene = new THREE.Scene();
 
     // 2. Camera setup - Perfectly framed for character vs weapon!
-    // Character is tall, so camera backed up to 2.5 so head and feet are completely visible!
-    // Weapons are wide, so camera at 1.75 keeps them pre-zoomed!
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, isChar ? 0 : 0.1, isChar ? 2.5 : 1.75);
+    camera.position.set(0, isChar ? -0.1 : 0.1, isChar ? 2.3 : 1.75);
 
     // 3. Renderer setup
     const renderer = new THREE.WebGLRenderer({
@@ -289,80 +424,22 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       });
     };
 
-    // Load character (from Character.glb with Idle animation) OR weapon GLB
+    // Load authentic Gecko 3px Character OR weapon GLB
     if (isChar) {
-      const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
-      const charModelUrl = `${prefix}/models/Character.glb`;
-      const loader = new GLTFLoader();
-
-      Promise.all([
-        new Promise<any>((resolve) => {
-          loader.load(
-            charModelUrl,
-            (gltf) => resolve(gltf),
-            undefined,
-            (err) => {
-              console.warn('Character.glb not found or failed, using procedural fallback:', err);
-              resolve(null);
-            }
-          );
-        }),
-        loadTexturePromise(textureUrl)
-      ]).then(([gltf, loadedTexture]) => {
+      loadTexturePromise(textureUrl).then((loadedTexture) => {
         if (isDisposed) return;
 
-        if (gltf && gltf.scene) {
-          const charModel = gltf.scene;
+        const charGroup = createGecko3pxCharacter(loadedTexture || new THREE.Texture());
+        
+        // Auto center
+        const box = new THREE.Box3().setFromObject(charGroup);
+        const center = box.getCenter(new THREE.Vector3());
+        charGroup.position.x = -center.x;
+        charGroup.position.y = -center.y;
+        charGroup.position.z = -center.z;
+        charGroup.scale.setScalar(1.15); // Perfectly scaled so entire body fits cleanly!
 
-          // Play Idle animation if available
-          if (gltf.animations && gltf.animations.length > 0) {
-            mixerRef.current = new THREE.AnimationMixer(charModel);
-            const idleClip = gltf.animations.find((a: any) => a.name.toLowerCase() === 'idle') || gltf.animations[0];
-            if (idleClip) {
-              const action = mixerRef.current.clipAction(idleClip);
-              action.play();
-            }
-          }
-
-          // Frame character comfortably (scale: 1.4 keeps head, body, and legs in full view!)
-          const box = new THREE.Box3().setFromObject(charModel);
-          const center = box.getCenter(new THREE.Vector3());
-          const size = box.getSize(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const targetScale = 1.4 / (maxDim || 1);
-          charModel.scale.setScalar(targetScale);
-
-          charModel.position.x = -center.x * targetScale;
-          charModel.position.y = -center.y * targetScale;
-          charModel.position.z = -center.z * targetScale;
-
-          if (loadedTexture) {
-            charModel.traverse((child: any) => {
-              if (child.isMesh || child.isSkinnedMesh) {
-                if (child.material) {
-                  // Update map on existing material to retain skeleton rigging!
-                  child.material.map = loadedTexture;
-                  child.material.roughness = 0.4;
-                  child.material.metalness = 0.05;
-                  child.material.needsUpdate = true;
-                }
-              }
-            });
-          }
-
-          scene.add(charModel);
-        } else {
-          // Procedural fallback model
-          const charGroup = createKirka3pxCharacter(loadedTexture || new THREE.Texture());
-          const box = new THREE.Box3().setFromObject(charGroup);
-          const center = box.getCenter(new THREE.Vector3());
-          charGroup.position.x = -center.x;
-          charGroup.position.y = -center.y;
-          charGroup.position.z = -center.z;
-          charGroup.scale.setScalar(1.2);
-          scene.add(charGroup);
-        }
-
+        scene.add(charGroup);
         setLoading(false);
       });
     } else if (modelFile) {
@@ -430,15 +507,10 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       });
     }
 
-    // 7. Animation Loop with Clock for Skeletal Animations
-    const clock = new THREE.Clock();
+    // 7. Animation Loop
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      if (mixerRef.current) {
-        mixerRef.current.update(delta);
-      }
       controls.update();
       renderer.render(scene, camera);
     };

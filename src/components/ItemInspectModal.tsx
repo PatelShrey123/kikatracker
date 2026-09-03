@@ -56,10 +56,9 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
     return true;
   }) || {};
 
-  // Check 3D model availability (enabled for all weapons with authentic in-game GLB models)
-  const isWeapon = !isCharacterType;
-  const weaponModelType = metadata.parent?.name || boltPriceData?.type || itemType || '';
-  const has3DModel = isWeapon && has3DViewerSupport(weaponModelType);
+  // Check 3D model availability (enabled for all weapons and Gecko 3px characters)
+  const weaponModelType = isCharacterType ? 'CHARACTER' : (metadata.parent?.name || boltPriceData?.type || itemType || '');
+  const has3DModel = has3DViewerSupport(weaponModelType);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>(has3DModel ? '3d' : '2d');
 
   // Resolve texture URL for 3D model
