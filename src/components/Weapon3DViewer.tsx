@@ -3,9 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { SkinViewer, IdleAnimation } from 'skinview3d';
-import { RotateCw, ZoomIn, Loader2, Sparkles, Camera, Check } from 'lucide-react';
-import pkg from 'gifenc';
-const { GIFEncoder, quantize, applyPalette } = pkg;
+import { RotateCw, ZoomIn, Loader2, Sparkles } from 'lucide-react';
 
 export const WEAPON_MODEL_MAP: Record<string, string> = {
   'VITA': 'VITA.glb',
@@ -88,9 +86,6 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotateDefault);
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState('');
-  const [exportSuccess, setExportSuccess] = useState(false);
 
   const controlsRef = useRef<OrbitControls | null>(null);
   const skinViewerRef = useRef<SkinViewer | null>(null);
@@ -394,93 +389,6 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     }
   };
 
-  // --- RECORD & EXPORT 360° GIF DIRECTLY FROM REAL 3D CANVAS ---
-  const handleExportGif = async () => {
-    if (isExporting) return;
-    setIsExporting(true);
-    setExportProgress('Recording...');
-
-    try {
-      const frames = 20;
-      const gif = GIFEncoder();
-      const exportWidth = 360;
-      const exportHeight = 240;
-
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = exportWidth;
-      tempCanvas.height = exportHeight;
-      const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true })!;
-
-      if (isChar && skinViewerRef.current) {
-        const viewer = skinViewerRef.current;
-        const origAuto = viewer.autoRotate;
-        viewer.autoRotate = false;
-
-        for (let i = 0; i < frames; i++) {
-          setExportProgress(`${Math.round(((i + 1) / frames) * 100)}%`);
-          viewer.playerWrapper.rotation.y = (i / frames) * Math.PI * 2;
-          viewer.render();
-
-          tempCtx.fillStyle = '#07090e';
-          tempCtx.fillRect(0, 0, exportWidth, exportHeight);
-          tempCtx.drawImage(viewer.canvas, 0, 0, exportWidth, exportHeight);
-
-          const imgData = tempCtx.getImageData(0, 0, exportWidth, exportHeight);
-          const palette = quantize(imgData.data, 64);
-          const index = applyPalette(imgData.data, palette);
-          gif.writeFrame(index, exportWidth, exportHeight, { palette, delay: 1000 / 12 });
-          await new Promise((r) => setTimeout(r, 16));
-        }
-
-        viewer.autoRotate = origAuto;
-      } else if (rendererRef.current && sceneRef.current && cameraRef.current && pivotRef.current) {
-        const renderer = rendererRef.current;
-        const scene = sceneRef.current;
-        const camera = cameraRef.current;
-        const pivot = pivotRef.current;
-
-        const origRotY = pivot.rotation.y;
-
-        for (let i = 0; i < frames; i++) {
-          setExportProgress(`${Math.round(((i + 1) / frames) * 100)}%`);
-          pivot.rotation.y = (i / frames) * Math.PI * 2;
-          renderer.render(scene, camera);
-
-          tempCtx.fillStyle = '#07090e';
-          tempCtx.fillRect(0, 0, exportWidth, exportHeight);
-          tempCtx.drawImage(renderer.domElement, 0, 0, exportWidth, exportHeight);
-
-          const imgData = tempCtx.getImageData(0, 0, exportWidth, exportHeight);
-          const palette = quantize(imgData.data, 64);
-          const index = applyPalette(imgData.data, palette);
-          gif.writeFrame(index, exportWidth, exportHeight, { palette, delay: 1000 / 12 });
-          await new Promise((r) => setTimeout(r, 16));
-        }
-
-        pivot.rotation.y = origRotY;
-      }
-
-      setExportProgress('Downloading...');
-      gif.finish();
-
-      const blob = new Blob([gif.bytes() as any], { type: 'image/gif' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${(weaponType || 'skin').replace(/[^a-zA-Z0-9_-]/g, '_')}_360.gif`;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      setExportSuccess(true);
-      setTimeout(() => setExportSuccess(false), 2500);
-    } catch (err) {
-      console.error('Failed to export 360 GIF:', err);
-    } finally {
-      setIsExporting(false);
-      setExportProgress('');
-    }
-  };
-
   return (
     <div className={`relative ${className} select-none overflow-hidden rounded-2xl bg-gradient-to-b from-[#0e1017]/80 to-[#07090e]/90 flex items-center justify-center`}>
       {/* 3D Canvas Mounting point */}
@@ -511,37 +419,6 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
           </div>
 
           <div className="flex items-center space-x-1.5 pointer-events-auto">
-            {/* Record & Export 360 GIF Button */}
-            <button
-              onClick={handleExportGif}
-              disabled={isExporting}
-              title="Record & Download 360° GIF from 3D Model"
-              className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-lg border backdrop-blur-md transition-all cursor-pointer text-xs font-mono font-bold ${
-                isExporting
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 animate-pulse'
-                  : exportSuccess
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                  : 'bg-black/60 border-white/10 text-slate-300 hover:text-gold-bright hover:border-gold-primary/40 hover:bg-black/80'
-              }`}
-            >
-              {isExporting ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>{exportProgress}</span>
-                </>
-              ) : exportSuccess ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Saved!</span>
-                </>
-              ) : (
-                <>
-                  <Camera className="w-3.5 h-3.5 text-gold-bright" />
-                  <span>360° GIF</span>
-                </>
-              )}
-            </button>
-
             <button
               onClick={toggleAutoRotate}
               title={isAutoRotating ? 'Pause Rotation' : 'Auto Rotate'}
@@ -566,3 +443,4 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     </div>
   );
 };
+
