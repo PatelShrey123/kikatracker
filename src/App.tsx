@@ -15,7 +15,6 @@ import { ItemInspectModal } from './components/ItemInspectModal';
 import { PriceViewerSection } from './components/PriceViewerSection';
 import { CompareSection } from './components/CompareSection';
 import { BotSection } from './components/BotSection';
-import { ClientDownloadSection } from './components/ClientDownloadSection';
 import { ClanTrackerSection } from './components/ClanTrackerSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
@@ -157,9 +156,6 @@ function App() {
     }
     if (cleanPath === '/bot') {
       return { tab: 'bot', player: null, clan: null, skin: null };
-    }
-    if (cleanPath === '/client') {
-      return { tab: 'client', player: null, clan: null, skin: null };
     }
     return { tab: 'search', player: null, clan: null, skin: null };
   };
@@ -494,9 +490,6 @@ function App() {
                   )}
                   {activeTab === 'bot' && (
                     <BotSection />
-                  )}
-                  {activeTab === 'client' && (
-                    <ClientDownloadSection />
                   )}
                 </motion.div>
               </AnimatePresence>
