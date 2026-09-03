@@ -49,9 +49,24 @@ function App() {
       setMarketPrices(priceMap);
     });
 
-    // 2. Fetch public items list for global skin lookup
+    // 2. Fetch public items list from official Kirka API (1873 skins with live textureUrl & renderUrl)
     fetchAllPublicItems().then((items) => {
-      if (Array.isArray(items)) setPublicItems(items);
+      if (Array.isArray(items) && items.length > 0) {
+        setPublicItems(items);
+        setAllItemData((prev) => {
+          const map = new Map();
+          if (Array.isArray(prev)) {
+            prev.forEach((i) => i?.id && map.set(i.id, i));
+          }
+          items.forEach((i) => {
+            if (i?.id) {
+              map.set(i.id, { ...(map.get(i.id) || {}), ...i });
+            }
+          });
+          return Array.from(map.values());
+        });
+        console.log(`Loaded ${items.length} live skins directly from official Kirka API.`);
+      }
     });
 
     // 3. Fetch fallback skin renders from Github repo JSON
@@ -67,12 +82,20 @@ function App() {
       })
       .catch((err) => console.error('Failed to load fallback renders:', err));
 
-    // 4. Fetch complete skins metadata database from GitHub for Item Inspect view
+    // 4. Fetch complete skins metadata database from GitHub for extra metadata
     fetch('https://raw.githubusercontent.com/OBS-Akuma/KirkaSkins/refs/heads/main/AllItemData.json')
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setAllItemData(data);
+          setAllItemData((prev) => {
+            const map = new Map();
+            data.forEach((i) => i?.id && map.set(i.id, i));
+            if (Array.isArray(prev)) {
+              // Preserve official live API items over static GitHub file
+              prev.forEach((i) => i?.id && map.set(i.id, { ...(map.get(i.id) || {}), ...i }));
+            }
+            return Array.from(map.values());
+          });
           console.log('Successfully loaded complete skins metadata database.');
         }
       })
