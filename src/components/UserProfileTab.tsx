@@ -13,7 +13,7 @@ interface UserProfileTabProps {
   marketPrices: Map<string, MarketItem>;
   onSelectClan: (clanName: string) => void;
   fallbackRenders: Record<string, any>;
-  onInspectItem: (name: string, type?: string, amount?: number) => void;
+  onInspectItem: (name: string, type?: string, amount?: number, textureUrl?: string | null) => void;
   allItemData: any[];
   onCompare: (id: string, type: 'stats' | 'inventory') => void;
 }
@@ -612,7 +612,8 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       onClick={() => onInspectItem(
                         item.name, 
                         item.type === 'BODY_SKIN' ? 'character' : item.parent?.name || 'weapon_skin', 
-                        invItem.amount
+                        invItem.amount,
+                        item.textureUrl
                       )}
                       className={`card-interactive relative flex flex-col justify-between bg-[#0e1017] border p-4.5 rounded-2xl cursor-pointer hover:shadow-gold-glow group transition-all duration-300 ${rarityStyles}`}
                     >

@@ -39,6 +39,7 @@ function App() {
     name: string;
     type?: string;
     amount?: number;
+    textureUrl?: string | null;
   } | null>(null);
 
   // Sync pricing data and handle loader lifecycle on mount
@@ -375,8 +376,8 @@ function App() {
                           marketPrices={marketPrices}
                           fallbackRenders={fallbackRenders}
                           allItemData={allItemData}
-                          onInspectItem={(name, type, amount) => {
-                            setInspectItem({ name, type, amount });
+                          onInspectItem={(name, type, amount, textureUrl) => {
+                            setInspectItem({ name, type, amount, textureUrl });
                           }}
                           onSelectClan={(clanName) => {
                             navigate('clans', null, clanName);
@@ -492,6 +493,7 @@ function App() {
             onClose={() => setInspectItem(null)}
             itemName={inspectItem?.name || ''}
             itemType={inspectItem?.type || ''}
+            initialTextureUrl={inspectItem?.textureUrl || null}
             inventoryAmount={inspectItem?.amount || 1}
             marketPrices={marketPrices}
             allItemData={allItemData}

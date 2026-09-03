@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { Weapon3DViewer, getModelFileName } from './Weapon3DViewer';
+import { Weapon3DViewer, has3DViewerSupport } from './Weapon3DViewer';
 
 interface ItemInspectModalProps {
   isOpen: boolean;
   onClose: () => void;
   itemName: string;
   itemType?: string; // weapon parent name e.g., "SCAR", "character"
+  initialTextureUrl?: string | null;
   marketPrices: Map<string, MarketItem>;
   allItemData: any[]; // Parsed from AllItemData.json
   fallbackRenders: Record<string, any>;
@@ -20,6 +21,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   onClose,
   itemName,
   itemType = '',
+  initialTextureUrl = null,
   marketPrices,
   allItemData,
   fallbackRenders,
@@ -55,22 +57,37 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   }) || {};
 
   // Check 3D model availability
-  const weaponModelType = isCharacterType ? 'Weatie' : (metadata.parent?.name || boltPriceData?.type || itemType || '');
-  const has3DModel = !!getModelFileName(weaponModelType);
+  const weaponModelType = isCharacterType ? 'CHARACTER' : (metadata.parent?.name || boltPriceData?.type || itemType || '');
+  const has3DModel = has3DViewerSupport(weaponModelType);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>(has3DModel ? '3d' : '2d');
 
   // Resolve texture URL for 3D model
-  let textureUrl = metadata.textureUrl || null;
+  let textureUrl = initialTextureUrl || metadata.textureUrl || null;
   if (!textureUrl) {
     const fallback = fallbackRenders[normalizedName];
-    if (fallback && fallback.textureurl) {
-      textureUrl = fallback.textureurl;
-    } else {
-      const comboKey = normalizedType ? `${normalizedName} ${normalizedType}` : normalizedName;
-      const comboFallback = fallbackRenders[comboKey];
-      if (comboFallback && comboFallback.textureurl) {
-        textureUrl = comboFallback.textureurl;
-      }
+    if (fallback) {
+      textureUrl = fallback.textureurl || fallback.textureUrl || null;
+    }
+  }
+  if (!textureUrl) {
+    const directFallback = fallbackRenders[cleanName] || fallbackRenders[itemName];
+    if (directFallback) {
+      textureUrl = directFallback.textureurl || directFallback.textureUrl || null;
+    }
+  }
+  if (!textureUrl && normalizedType) {
+    const comboKey = `${normalizedName} ${normalizedType}`;
+    const comboFallback = fallbackRenders[comboKey];
+    if (comboFallback) {
+      textureUrl = comboFallback.textureurl || comboFallback.textureUrl || null;
+    }
+  }
+  if (!textureUrl && Array.isArray(allItemData)) {
+    const matched = allItemData.find((i) =>
+      i.name && i.name.toLowerCase().trim() === normalizedName
+    );
+    if (matched && matched.textureUrl) {
+      textureUrl = matched.textureUrl;
     }
   }
 
