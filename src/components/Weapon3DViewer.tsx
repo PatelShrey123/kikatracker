@@ -49,21 +49,18 @@ export function getProxiedTextureUrl(url: string | null | undefined): string {
   return `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
 }
 
-// Helper: Set UV coordinates for BoxGeometry faces (64x64 texture format)
+// Fallback Helper: Set UV coordinates for BoxGeometry faces (64x64 texture format)
 function setBoxFaceUVs(
   geometry: THREE.BoxGeometry,
   uMin: number, vMin: number, uMax: number, vMax: number,
   textureWidth = 64, textureHeight = 64
 ) {
-  // BoxGeometry face order: +x (right), -x (left), +y (top), -y (bottom), +z (front), -z (back)
-  // This helper maps each face to the given texture rectangle
   const uvAttr = geometry.attributes.uv;
   const u1 = uMin / textureWidth;
   const v1 = 1 - (vMax / textureHeight);
   const u2 = uMax / textureWidth;
   const v2 = 1 - (vMin / textureHeight);
 
-  // 4 vertices per face * 6 faces = 24 vertices
   for (let i = 0; i < uvAttr.count; i += 4) {
     uvAttr.setXY(i, u1, v2);
     uvAttr.setXY(i + 1, u2, v2);
@@ -73,7 +70,6 @@ function setBoxFaceUVs(
   uvAttr.needsUpdate = true;
 }
 
-// Construct a Minecraft/Kirka 3px slim arm character model
 function createKirka3pxCharacter(texture: THREE.Texture): THREE.Group {
   const group = new THREE.Group();
 
@@ -93,52 +89,49 @@ function createKirka3pxCharacter(texture: THREE.Texture): THREE.Group {
     side: THREE.DoubleSide,
   });
 
-  // Scale: 1 pixel = 0.06 units
   const p = 0.06;
 
-  // 1. Head (8x8x8 pixels)
+  // Head
   const headGeo = new THREE.BoxGeometry(8 * p, 8 * p, 8 * p);
   setBoxFaceUVs(headGeo, 8, 8, 16, 16);
   const headMesh = new THREE.Mesh(headGeo, skinMat);
   headMesh.position.set(0, 10 * p, 0);
   group.add(headMesh);
 
-  // Head Accessory / Hat Layer (8.6x8.6x8.6)
+  // Hat Layer
   const hatGeo = new THREE.BoxGeometry(8.8 * p, 8.8 * p, 8.8 * p);
   setBoxFaceUVs(hatGeo, 40, 8, 48, 16);
   const hatMesh = new THREE.Mesh(hatGeo, skinMatAlpha);
   hatMesh.position.set(0, 10 * p, 0);
   group.add(hatMesh);
 
-  // 2. Torso (8x12x4 pixels)
+  // Torso
   const torsoGeo = new THREE.BoxGeometry(8 * p, 12 * p, 4 * p);
   setBoxFaceUVs(torsoGeo, 20, 20, 28, 32);
   const torsoMesh = new THREE.Mesh(torsoGeo, skinMat);
   torsoMesh.position.set(0, 0, 0);
   group.add(torsoMesh);
 
-  // 3. Right Arm (3x12x4 pixels - Kirka 3px slim format!)
+  // Arms (3px slim)
   const rightArmGeo = new THREE.BoxGeometry(3 * p, 12 * p, 4 * p);
   setBoxFaceUVs(rightArmGeo, 44, 20, 47, 32);
   const rightArmMesh = new THREE.Mesh(rightArmGeo, skinMat);
   rightArmMesh.position.set(-5.5 * p, 0, 0);
   group.add(rightArmMesh);
 
-  // 4. Left Arm (3x12x4 pixels)
   const leftArmGeo = new THREE.BoxGeometry(3 * p, 12 * p, 4 * p);
   setBoxFaceUVs(leftArmGeo, 36, 52, 39, 64);
   const leftArmMesh = new THREE.Mesh(leftArmGeo, skinMat);
   leftArmMesh.position.set(5.5 * p, 0, 0);
   group.add(leftArmMesh);
 
-  // 5. Right Leg (4x12x4 pixels)
+  // Legs
   const rightLegGeo = new THREE.BoxGeometry(4 * p, 12 * p, 4 * p);
   setBoxFaceUVs(rightLegGeo, 4, 20, 8, 32);
   const rightLegMesh = new THREE.Mesh(rightLegGeo, skinMat);
   rightLegMesh.position.set(-2 * p, -12 * p, 0);
   group.add(rightLegMesh);
 
-  // 6. Left Leg (4x12x4 pixels)
   const leftLegGeo = new THREE.BoxGeometry(4 * p, 12 * p, 4 * p);
   setBoxFaceUVs(leftLegGeo, 20, 52, 24, 64);
   const leftLegMesh = new THREE.Mesh(leftLegGeo, skinMat);
@@ -166,6 +159,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotateDefault);
   const controlsRef = useRef<OrbitControls | null>(null);
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
 
   const isChar = isCharacterSkin(weaponType);
   const modelFile = getModelFileName(weaponType);
@@ -188,9 +182,9 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     // 1. Scene setup
     const scene = new THREE.Scene();
 
-    // 2. Camera setup
+    // 2. Camera setup - Pre-zoomed view so details fill the frame immediately!
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0.3, 2.6);
+    camera.position.set(0, 0.12, isChar ? 1.9 : 1.75);
 
     // 3. Renderer setup
     const renderer = new THREE.WebGLRenderer({
@@ -202,7 +196,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.25;
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
@@ -213,25 +207,25 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     controls.dampingFactor = 0.05;
     controls.autoRotate = isAutoRotating;
     controls.autoRotateSpeed = 2.0;
-    controls.minDistance = 0.8;
-    controls.maxDistance = 6.0;
+    controls.minDistance = 0.6;
+    controls.maxDistance = 5.0;
     controls.maxPolarAngle = Math.PI / 1.7;
     controls.minPolarAngle = Math.PI / 8;
     controlsRef.current = controls;
 
     // 5. Studio Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.6);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
     keyLight.position.set(3, 4, 3);
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.3);
+    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.4);
     fillLight.position.set(-3, -1, -2);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xfcd34d, 1.8);
+    const rimLight = new THREE.DirectionalLight(0xfcd34d, 1.9);
     rimLight.position.set(0, 3, -3);
     scene.add(rimLight);
 
@@ -280,20 +274,81 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       });
     };
 
-    // Load character OR weapon
+    // Load character (from Character.glb with Idle animation) OR weapon GLB
     if (isChar) {
-      loadTexturePromise(textureUrl).then((loadedTexture) => {
-        if (isDisposed) return;
-        const charGroup = createKirka3pxCharacter(loadedTexture || new THREE.Texture());
-        
-        // Auto center
-        const box = new THREE.Box3().setFromObject(charGroup);
-        const center = box.getCenter(new THREE.Vector3());
-        charGroup.position.x = -center.x;
-        charGroup.position.y = -center.y;
-        charGroup.position.z = -center.z;
+      const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+      const charModelUrl = `${prefix}/models/Character.glb`;
+      const loader = new GLTFLoader();
 
-        scene.add(charGroup);
+      Promise.all([
+        new Promise<any>((resolve) => {
+          loader.load(
+            charModelUrl,
+            (gltf) => resolve(gltf),
+            undefined,
+            (err) => {
+              console.warn('Character.glb not found or failed, using procedural fallback:', err);
+              resolve(null);
+            }
+          );
+        }),
+        loadTexturePromise(textureUrl)
+      ]).then(([gltf, loadedTexture]) => {
+        if (isDisposed) return;
+
+        if (gltf && gltf.scene) {
+          const charModel = gltf.scene;
+
+          // Play Idle animation if available
+          if (gltf.animations && gltf.animations.length > 0) {
+            mixerRef.current = new THREE.AnimationMixer(charModel);
+            const idleClip = gltf.animations.find((a: any) => a.name.toLowerCase() === 'idle') || gltf.animations[0];
+            if (idleClip) {
+              const action = mixerRef.current.clipAction(idleClip);
+              action.play();
+            }
+          }
+
+          // Pre-zoomed scaling
+          const box = new THREE.Box3().setFromObject(charModel);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetScale = 2.4 / (maxDim || 1); // Pre-zoomed!
+          charModel.scale.setScalar(targetScale);
+
+          charModel.position.x = -center.x * targetScale;
+          charModel.position.y = -center.y * targetScale;
+          charModel.position.z = -center.z * targetScale;
+
+          if (loadedTexture) {
+            charModel.traverse((child: any) => {
+              if (child.isMesh) {
+                const mesh = child as THREE.Mesh;
+                mesh.material = new THREE.MeshStandardMaterial({
+                  map: loadedTexture,
+                  roughness: 0.4,
+                  metalness: 0.05,
+                  side: THREE.DoubleSide
+                });
+                (mesh.material as THREE.Material).needsUpdate = true;
+              }
+            });
+          }
+
+          scene.add(charModel);
+        } else {
+          // Procedural fallback model
+          const charGroup = createKirka3pxCharacter(loadedTexture || new THREE.Texture());
+          const box = new THREE.Box3().setFromObject(charGroup);
+          const center = box.getCenter(new THREE.Vector3());
+          charGroup.position.x = -center.x;
+          charGroup.position.y = -center.y;
+          charGroup.position.z = -center.z;
+          charGroup.scale.setScalar(1.5);
+          scene.add(charGroup);
+        }
+
         setLoading(false);
       });
     } else if (modelFile) {
@@ -310,13 +365,13 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       ]).then(([model, loadedTexture]) => {
         if (isDisposed) return;
 
-        // Auto-center and normalize scale
+        // Auto-center and PRE-ZOOM scaling (2.35 fills the frame nicely!)
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
 
         const maxDim = Math.max(size.x, size.y, size.z);
-        const targetScale = 1.6 / (maxDim || 1);
+        const targetScale = 2.35 / (maxDim || 1); // Pre-zoomed for instant inspection!
         model.scale.setScalar(targetScale);
 
         model.position.x = -center.x * targetScale;
@@ -361,10 +416,15 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       });
     }
 
-    // 7. Animation Loop
+    // 7. Animation Loop with Clock for Skeletal Animations
+    const clock = new THREE.Clock();
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (mixerRef.current) {
+        mixerRef.current.update(delta);
+      }
       controls.update();
       renderer.render(scene, camera);
     };
