@@ -3,7 +3,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { SkinViewer, IdleAnimation } from 'skinview3d';
-import { RotateCw, ZoomIn, Loader2, Sparkles } from 'lucide-react';
+import { RotateCw, ZoomIn, Loader2, Sparkles, Camera, Check } from 'lucide-react';
+import pkg from 'gifenc';
+const { GIFEncoder, quantize, applyPalette } = pkg;
 
 export const WEAPON_MODEL_MAP: Record<string, string> = {
   'VITA': 'VITA.glb',
@@ -12,16 +14,24 @@ export const WEAPON_MODEL_MAP: Record<string, string> = {
   'AR-9': 'AR-9.glb',
   'AR9': 'AR-9.glb',
   'LAR': 'LAR.glb',
+  'SNIPER': 'LAR.glb',
   'M60': 'M60.glb',
   'MAC-10': 'MAC-10.glb',
   'MAC10': 'MAC-10.glb',
   'REVOLVER': 'Revolver.glb',
+  'PISTOL': 'Revolver.glb',
   'TOMAHAWK': 'Tomahawk.glb',
   'BAYONET': 'Bayonet.glb',
   'KNIFE': 'Bayonet.glb',
+  'MELEE': 'Bayonet.glb',
   'WEATIE': 'Weatie.glb', // Shotgun
   'SHOTGUN': 'Weatie.glb',
 };
+
+// Global in-memory cache for parsed GLB models to ensure instant 0ms switching
+const glbCache = new Map<string, THREE.Group>();
+// In-memory cache for loaded textures
+const textureCache = new Map<string, THREE.Texture>();
 
 export function isCharacterSkin(weaponTypeOrParent?: string): boolean {
   if (!weaponTypeOrParent) return false;
@@ -78,8 +88,16 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotateDefault);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState('');
+  const [exportSuccess, setExportSuccess] = useState(false);
+
   const controlsRef = useRef<OrbitControls | null>(null);
   const skinViewerRef = useRef<SkinViewer | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const pivotRef = useRef<THREE.Group | null>(null);
 
   const isChar = isCharacterSkin(weaponType);
   const modelFile = getModelFileName(weaponType);
@@ -106,18 +124,18 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       container.appendChild(canvas);
 
       const cleanedTexture = cleanTextureUrl(textureUrl);
+      const skinSource = cleanedTexture ? getProxiedTextureUrl(cleanedTexture) : undefined;
 
       const viewer = new SkinViewer({
         canvas,
         width,
         height,
         model: 'slim', // Exact 3px slim arm Kirka / Gecko model!
-        skin: cleanedTexture || undefined,
+        skin: skinSource,
       });
 
       viewer.autoRotate = isAutoRotating;
       viewer.autoRotateSpeed = 1.5;
-      // Stylish 3/4 perspective view
       viewer.camera.position.set(-18, 12, 40);
       viewer.camera.lookAt(0, 0, 0);
       viewer.animation = new IdleAnimation();
@@ -144,12 +162,16 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
 
     // --- WEAPONS 3D PIPELINE (Three.js GLTF) ---
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
+
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 0.1, 1.75); // Pre-zoomed weapon view
+    cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
+      preserveDrawingBuffer: true,
       powerPreference: 'high-performance'
     });
     renderer.setSize(width, height);
@@ -157,6 +179,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
+    rendererRef.current = renderer;
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
@@ -168,8 +191,8 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     controls.autoRotateSpeed = 2.0;
     controls.minDistance = 0.6;
     controls.maxDistance = 6.0;
-    controls.maxPolarAngle = Math.PI / 1.7;
     controls.minPolarAngle = Math.PI / 8;
+    controls.maxPolarAngle = Math.PI / 1.7;
     controlsRef.current = controls;
 
     // Studio Lighting
@@ -190,10 +213,14 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
 
     let isDisposed = false;
 
-    // Texture Loader
+    // High-speed cached texture loader with multiple fallbacks
     const loadTexturePromise = (url: string | null): Promise<THREE.Texture | null> => {
       const cleaned = cleanTextureUrl(url);
       if (!cleaned) return Promise.resolve(null);
+      if (textureCache.has(cleaned)) {
+        return Promise.resolve(textureCache.get(cleaned)!);
+      }
+
       return new Promise((resolve) => {
         const texLoader = new THREE.TextureLoader();
         texLoader.crossOrigin = 'anonymous';
@@ -208,11 +235,12 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
             tex.magFilter = THREE.NearestFilter;
             tex.minFilter = THREE.NearestFilter;
             tex.generateMipmaps = false;
+            textureCache.set(cleaned, tex);
             resolve(tex);
           },
           undefined,
-          (err1) => {
-            console.warn('[3D Viewer] Proxied texture load failed, trying direct...', err1);
+          () => {
+            // Direct fallback
             texLoader.load(
               cleaned,
               (directTex) => {
@@ -221,13 +249,11 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
                 directTex.magFilter = THREE.NearestFilter;
                 directTex.minFilter = THREE.NearestFilter;
                 directTex.generateMipmaps = false;
+                textureCache.set(cleaned, directTex);
                 resolve(directTex);
               },
               undefined,
-              (err2) => {
-                console.warn('[3D Viewer] Direct texture load failed:', err2);
-                resolve(null);
-              }
+              () => resolve(null)
             );
           }
         );
@@ -238,66 +264,77 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
       const modelUrl = `${prefix}/models/${modelFile}`;
 
-      const loader = new GLTFLoader();
-
-      Promise.all([
-        new Promise<THREE.Group>((resolve, reject) => {
-          loader.load(modelUrl, (gltf) => resolve(gltf.scene), undefined, reject);
-        }),
-        loadTexturePromise(textureUrl)
-      ]).then(([model, loadedTexture]) => {
-        if (isDisposed) return;
-
-        // Auto-center and PRE-ZOOM scaling (2.35 fills the frame nicely for guns!)
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const targetScale = 2.35 / (maxDim || 1);
-        model.scale.setScalar(targetScale);
-
-        model.position.x = -center.x * targetScale;
-        model.position.y = -center.y * targetScale;
-        model.position.z = -center.z * targetScale;
-
-        if (loadedTexture) {
-          model.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              const mesh = child as THREE.Mesh;
-              mesh.material = new THREE.MeshStandardMaterial({
-                map: loadedTexture,
-                roughness: 0.35,
-                metalness: 0.1,
-                side: THREE.DoubleSide
-              });
-              (mesh.material as THREE.Material).needsUpdate = true;
-            }
-          });
-        } else {
-          model.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              const mesh = child as THREE.Mesh;
-              mesh.material = new THREE.MeshStandardMaterial({
-                color: 0x94a3b8,
-                roughness: 0.4,
-                metalness: 0.3,
-              });
-            }
-          });
+      const loadModelPromise = (): Promise<THREE.Group> => {
+        if (glbCache.has(modelUrl)) {
+          return Promise.resolve(glbCache.get(modelUrl)!.clone(true));
         }
+        const loader = new GLTFLoader();
+        return new Promise((resolve, reject) => {
+          loader.load(
+            modelUrl,
+            (gltf) => {
+              glbCache.set(modelUrl, gltf.scene);
+              resolve(gltf.scene.clone(true));
+            },
+            undefined,
+            reject
+          );
+        });
+      };
 
-        scene.add(model);
-        setLoading(false);
-      }).catch((loadErr) => {
-        if (isDisposed) return;
-        console.error('Failed to load 3D assets:', loadErr);
-        setError('Could not load 3D model');
-        setLoading(false);
-      });
+      Promise.all([loadModelPromise(), loadTexturePromise(textureUrl)])
+        .then(([model, loadedTexture]) => {
+          if (isDisposed) return;
+
+          model.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              if (loadedTexture) {
+                mesh.material = new THREE.MeshStandardMaterial({
+                  map: loadedTexture,
+                  roughness: 0.35,
+                  metalness: 0.1,
+                  side: THREE.DoubleSide,
+                });
+              } else {
+                mesh.material = new THREE.MeshStandardMaterial({
+                  color: 0x475569,
+                  roughness: 0.4,
+                  metalness: 0.2,
+                });
+              }
+            }
+          });
+
+          // Center and scale weapon model nicely in view
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetScale = 2.1 / (maxDim || 1);
+
+          model.scale.setScalar(targetScale);
+          model.position.x = -center.x * targetScale;
+          model.position.y = -center.y * targetScale;
+          model.position.z = -center.z * targetScale;
+
+          const pivot = new THREE.Group();
+          pivot.add(model);
+          scene.add(pivot);
+          pivotRef.current = pivot;
+
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('[3D Viewer] Error loading model:', err);
+          if (!isDisposed) {
+            setError(`Could not load 3D model for ${weaponType}`);
+            setLoading(false);
+          }
+        });
     }
 
-    // Animation Loop
+    // Animation Render Loop
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
@@ -306,15 +343,14 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     };
     animate();
 
-    // Resize Observer
     const resizeObserver = new ResizeObserver(() => {
       if (!container) return;
-      const newWidth = container.clientWidth;
-      const newHeight = container.clientHeight;
-      if (newWidth > 0 && newHeight > 0) {
-        camera.aspect = newWidth / newHeight;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w > 0 && h > 0) {
+        camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        renderer.setSize(newWidth, newHeight);
+        renderer.setSize(w, h);
       }
     });
     resizeObserver.observe(container);
@@ -325,9 +361,10 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       resizeObserver.disconnect();
       controls.dispose();
       renderer.dispose();
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
+      rendererRef.current = null;
+      sceneRef.current = null;
+      cameraRef.current = null;
+      pivotRef.current = null;
     };
   }, [modelFile, isChar, textureUrl]);
 
@@ -354,6 +391,93 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     if (controlsRef.current) {
       controlsRef.current.reset();
       controlsRef.current.autoRotate = isAutoRotating;
+    }
+  };
+
+  // --- RECORD & EXPORT 360° GIF DIRECTLY FROM REAL 3D CANVAS ---
+  const handleExportGif = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    setExportProgress('Recording...');
+
+    try {
+      const frames = 20;
+      const gif = GIFEncoder();
+      const exportWidth = 360;
+      const exportHeight = 240;
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = exportWidth;
+      tempCanvas.height = exportHeight;
+      const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true })!;
+
+      if (isChar && skinViewerRef.current) {
+        const viewer = skinViewerRef.current;
+        const origAuto = viewer.autoRotate;
+        viewer.autoRotate = false;
+
+        for (let i = 0; i < frames; i++) {
+          setExportProgress(`${Math.round(((i + 1) / frames) * 100)}%`);
+          viewer.playerWrapper.rotation.y = (i / frames) * Math.PI * 2;
+          viewer.render();
+
+          tempCtx.fillStyle = '#07090e';
+          tempCtx.fillRect(0, 0, exportWidth, exportHeight);
+          tempCtx.drawImage(viewer.canvas, 0, 0, exportWidth, exportHeight);
+
+          const imgData = tempCtx.getImageData(0, 0, exportWidth, exportHeight);
+          const palette = quantize(imgData.data, 64);
+          const index = applyPalette(imgData.data, palette);
+          gif.writeFrame(index, exportWidth, exportHeight, { palette, delay: 1000 / 12 });
+          await new Promise((r) => setTimeout(r, 16));
+        }
+
+        viewer.autoRotate = origAuto;
+      } else if (rendererRef.current && sceneRef.current && cameraRef.current && pivotRef.current) {
+        const renderer = rendererRef.current;
+        const scene = sceneRef.current;
+        const camera = cameraRef.current;
+        const pivot = pivotRef.current;
+
+        const origRotY = pivot.rotation.y;
+
+        for (let i = 0; i < frames; i++) {
+          setExportProgress(`${Math.round(((i + 1) / frames) * 100)}%`);
+          pivot.rotation.y = (i / frames) * Math.PI * 2;
+          renderer.render(scene, camera);
+
+          tempCtx.fillStyle = '#07090e';
+          tempCtx.fillRect(0, 0, exportWidth, exportHeight);
+          tempCtx.drawImage(renderer.domElement, 0, 0, exportWidth, exportHeight);
+
+          const imgData = tempCtx.getImageData(0, 0, exportWidth, exportHeight);
+          const palette = quantize(imgData.data, 64);
+          const index = applyPalette(imgData.data, palette);
+          gif.writeFrame(index, exportWidth, exportHeight, { palette, delay: 1000 / 12 });
+          await new Promise((r) => setTimeout(r, 16));
+        }
+
+        pivot.rotation.y = origRotY;
+      }
+
+      setExportProgress('Downloading...');
+      gif.finish();
+
+      const blob = new Blob([gif.bytes() as any], { type: 'image/gif' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(weaponType || 'skin').replace(/[^a-zA-Z0-9_-]/g, '_')}_360.gif`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 2500);
+    } catch (err) {
+      console.error('Failed to export 360 GIF:', err);
+    } finally {
+      setIsExporting(false);
+      setExportProgress('');
     }
   };
 
@@ -387,6 +511,37 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
           </div>
 
           <div className="flex items-center space-x-1.5 pointer-events-auto">
+            {/* Record & Export 360 GIF Button */}
+            <button
+              onClick={handleExportGif}
+              disabled={isExporting}
+              title="Record & Download 360° GIF from 3D Model"
+              className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-lg border backdrop-blur-md transition-all cursor-pointer text-xs font-mono font-bold ${
+                isExporting
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 animate-pulse'
+                  : exportSuccess
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                  : 'bg-black/60 border-white/10 text-slate-300 hover:text-gold-bright hover:border-gold-primary/40 hover:bg-black/80'
+              }`}
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>{exportProgress}</span>
+                </>
+              ) : exportSuccess ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <>
+                  <Camera className="w-3.5 h-3.5 text-gold-bright" />
+                  <span>360° GIF</span>
+                </>
+              )}
+            </button>
+
             <button
               onClick={toggleAutoRotate}
               title={isAutoRotating ? 'Pause Rotation' : 'Auto Rotate'}
