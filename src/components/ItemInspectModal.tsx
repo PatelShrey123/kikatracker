@@ -1,7 +1,8 @@
-import React from 'react';
-import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
+import { Weapon3DViewer, getModelFileName } from './Weapon3DViewer';
 
 interface ItemInspectModalProps {
   isOpen: boolean;
@@ -52,6 +53,26 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
     }
     return true;
   }) || {};
+
+  // Check 3D model availability
+  const weaponModelType = isCharacterType ? 'Weatie' : (metadata.parent?.name || boltPriceData?.type || itemType || '');
+  const has3DModel = !!getModelFileName(weaponModelType);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>(has3DModel ? '3d' : '2d');
+
+  // Resolve texture URL for 3D model
+  let textureUrl = metadata.textureUrl || null;
+  if (!textureUrl) {
+    const fallback = fallbackRenders[normalizedName];
+    if (fallback && fallback.textureurl) {
+      textureUrl = fallback.textureurl;
+    } else {
+      const comboKey = normalizedType ? `${normalizedName} ${normalizedType}` : normalizedName;
+      const comboFallback = fallbackRenders[comboKey];
+      if (comboFallback && comboFallback.textureurl) {
+        textureUrl = comboFallback.textureurl;
+      }
+    }
+  }
 
   // Resolve render URL from metadata, then fallback renders JSON, then fallback placeholder
   let renderUrl = metadata.renderUrl || null;
@@ -125,11 +146,38 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
       />
 
       {/* Modal Box */}
-      <div className="relative max-w-xl w-full bg-[#12141D] border border-obsidian-border/80 rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] transition-transform select-text">
+      <div className="relative max-w-xl w-full bg-[#12141D] border border-obsidian-border/80 rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] transition-transform select-text">
         
         {/* Top Hero Section with dynamic rarity background gradient */}
-        <div className={`relative h-56 bg-gradient-to-b ${getHeaderGradient(itemRarity)} flex items-center justify-center p-6 flex-shrink-0`}>
+        <div className={`relative ${viewMode === '3d' && has3DModel ? 'h-72' : 'h-56'} bg-gradient-to-b ${getHeaderGradient(itemRarity)} flex items-center justify-center p-6 flex-shrink-0 transition-all duration-300`}>
           
+          {/* 2D / 3D Mode Switcher if 3D model is supported */}
+          {has3DModel && (
+            <div className="absolute top-4 left-4 flex items-center bg-black/60 backdrop-blur-md rounded-xl p-1 border border-white/10 z-20 shadow-lg">
+              <button
+                onClick={() => setViewMode('2d')}
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                  viewMode === '2d'
+                    ? 'bg-white/20 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                2D
+              </button>
+              <button
+                onClick={() => setViewMode('3d')}
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                  viewMode === '3d'
+                    ? 'bg-gold-primary text-black font-black shadow-[0_0_12px_rgba(212,175,55,0.4)]'
+                    : 'text-gold-bright hover:text-white'
+                }`}
+              >
+                <Box className="w-3.5 h-3.5" />
+                <span>3D VIEW</span>
+              </button>
+            </div>
+          )}
+
           {/* Close button */}
           <button
             onClick={onClose}
@@ -138,32 +186,47 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             <X className="w-4 h-4" />
           </button>
 
-          {/* Render image container */}
-          <div className="w-full h-full flex items-center justify-center relative pt-4">
-            {renderUrl ? (
-              <img
-                src={renderUrl}
-                alt={itemName}
-                className="max-h-40 max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform duration-300"
+          {/* Content: 3D Interactive Viewer OR 2D Render image */}
+          {viewMode === '3d' && has3DModel ? (
+            <div className="w-full h-full pt-6">
+              <Weapon3DViewer
+                weaponType={weaponModelType}
+                textureUrl={textureUrl}
+                className="w-full h-full"
               />
-            ) : (
-              <div className="flex flex-col items-center justify-center text-slate-700 opacity-30">
-                {isCharacterType ? (
-                  <Shield className="w-14 h-14" />
-                ) : (
-                  <Layers className="w-14 h-14" />
-                )}
-                <span className="text-[10px] font-mono uppercase tracking-widest mt-1">No Image Render</span>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center relative pt-4">
+              {renderUrl ? (
+                <img
+                  src={renderUrl}
+                  alt={itemName}
+                  className="max-h-40 max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-slate-700 opacity-30">
+                  {isCharacterType ? (
+                    <Shield className="w-14 h-14" />
+                  ) : (
+                    <Layers className="w-14 h-14" />
+                  )}
+                  <span className="text-[10px] font-mono uppercase tracking-widest mt-1">No Image Render</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Item Title */}
-        <div className="text-center py-4 border-b border-obsidian-border/50 bg-[#0e1017]">
+        <div className="text-center py-4 border-b border-obsidian-border/50 bg-[#0e1017] flex items-center justify-center space-x-2">
           <h2 className="text-2xl font-black text-white uppercase tracking-wider font-sans leading-none">
             {itemName}
           </h2>
+          {has3DModel && (
+            <span className="px-2 py-0.5 rounded-md bg-gold-primary/10 border border-gold-primary/30 text-gold-bright text-[10px] font-mono font-bold uppercase">
+              3D READY
+            </span>
+          )}
         </div>
 
         {/* Details Grid & Market Panel - Scrollable if content overflows */}
