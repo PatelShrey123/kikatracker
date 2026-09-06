@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import * as THREE from 'three';
 import {
   SkinViewer,
   IdleAnimation,
@@ -17,7 +18,6 @@ import {
   Upload,
   ZoomIn,
   ZoomOut,
-  Maximize2,
   Sparkles,
   Sun,
   Moon,
@@ -27,9 +27,9 @@ import {
   Image as ImageIcon,
   Grid,
   Sliders,
+  Move,
 } from 'lucide-react';
 
-// Standard 64x64 Minecraft / Kirka Skin Texture Dimensions
 const SKIN_WIDTH = 64;
 const SKIN_HEIGHT = 64;
 
@@ -66,16 +66,68 @@ const SKIN_PRESETS = [
     type: 'slim' as const,
     url: 'https://kirka.io/assets/img/texture.3c1c1d8a.webp',
   },
+  {
+    name: 'Kirka Fun',
+    type: 'slim' as const,
+    url: 'https://kirka.io/assets/img/texture.02854200.webp',
+  },
 ];
 
 type ToolType = 'brush' | 'eraser' | 'picker' | 'bucket';
 type ModelType = 'default' | 'slim'; // Steve = default, Alex/Kirka = slim
 type AnimationType = 'none' | 'idle' | 'walk' | 'run' | 'fly';
+type BodyPartName = 'head' | 'torso' | 'leftArm' | 'rightArm' | 'leftLeg' | 'rightLeg';
+
+/**
+ * Checks whether pixel (x, y) belongs to a specific body part & layer in 64x64 Minecraft UV space.
+ */
+function isPixelInPart(
+  x: number,
+  y: number,
+  part: BodyPartName,
+  layer: 'inner' | 'outer',
+  isSlim: boolean
+): boolean {
+  if (layer === 'inner') {
+    switch (part) {
+      case 'head':
+        return x >= 0 && x < 32 && y >= 0 && y < 16;
+      case 'torso':
+        return x >= 16 && x < 40 && y >= 16 && y < 32;
+      case 'rightArm':
+        return x >= 40 && x < (isSlim ? 54 : 56) && y >= 16 && y < 32;
+      case 'leftArm':
+        return x >= 32 && x < (isSlim ? 46 : 48) && y >= 48 && y < 64;
+      case 'rightLeg':
+        return x >= 0 && x < 16 && y >= 16 && y < 32;
+      case 'leftLeg':
+        return x >= 16 && x < 32 && y >= 48 && y < 64;
+    }
+  } else {
+    // Outer Overlay Layer
+    switch (part) {
+      case 'head': // Hat
+        return x >= 32 && x < 64 && y >= 0 && y < 16;
+      case 'torso': // Jacket
+        return x >= 16 && x < 40 && y >= 32 && y < 48;
+      case 'rightArm': // Right Sleeve
+        return x >= 40 && x < (isSlim ? 54 : 56) && y >= 32 && y < 48;
+      case 'leftArm': // Left Sleeve
+        return x >= 48 && x < (isSlim ? 62 : 64) && y >= 48 && y < 64;
+      case 'rightLeg': // Right Pant
+        return x >= 0 && x < 16 && y >= 32 && y < 48;
+      case 'leftLeg': // Left Pant
+        return x >= 0 && x < 16 && y >= 48 && y < 64;
+    }
+  }
+  return false;
+}
 
 export const SkinEditor: React.FC = () => {
   // 3D Canvas Refs
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const skinViewerRef = useRef<SkinViewer | null>(null);
+  const canvasTextureRef = useRef<THREE.CanvasTexture | null>(null);
 
   // 2D Canvas Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -93,10 +145,16 @@ export const SkinEditor: React.FC = () => {
   const [showGrid, setShowGrid] = useState<boolean>(true);
   const [hoverPixel, setHoverPixel] = useState<{ x: number; y: number } | null>(null);
 
-  // Layer & Body Part Visibility
+  // 3D Direct Painting Mode: 'paint' (draw on model) vs 'orbit' (rotate view)
+  const [interactionMode, setInteractionMode] = useState<'paint' | 'orbit'>('paint');
+
+  // Skindex-Style Layer Selection: 'Body' vs 'Outer layer'
+  const [activeLayerMode, setActiveLayerMode] = useState<'body' | 'outer' | 'both'>('body');
   const [innerLayerVisible, setInnerLayerVisible] = useState(true);
   const [outerLayerVisible, setOuterLayerVisible] = useState(true);
-  const [partsVisibility, setPartsVisibility] = useState({
+
+  // Skindex-Style Interactive Body Part Schematic Diagram
+  const [partsVisibility, setPartsVisibility] = useState<Record<BodyPartName, boolean>>({
     head: true,
     torso: true,
     leftArm: true,
@@ -106,14 +164,15 @@ export const SkinEditor: React.FC = () => {
   });
 
   // 3D Animation & Viewport State
-  const [activeAnimation, setActiveAnimation] = useState<AnimationType>('idle');
+  const [activeAnimation, setActiveAnimation] = useState<AnimationType>('none');
   const [bgType, setBgType] = useState<'esports' | 'grid' | 'black' | 'custom'>('esports');
   const [customBgImage, setCustomBgImage] = useState<string | null>(null);
 
-  // Undo / Redo History Stack (holds ImageData objects)
+  // Undo / Redo History Stack
   const historyStack = useRef<ImageData[]>([]);
   const historyIndex = useRef<number>(-1);
-  const isPainting = useRef<boolean>(false);
+  const isPainting2D = useRef<boolean>(false);
+  const isPainting3D = useRef<boolean>(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -124,14 +183,21 @@ export const SkinEditor: React.FC = () => {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
+  // Sync 2D Canvas changes to 3D Viewport in REAL TIME (60 FPS)
+  const syncTo3D = useCallback(() => {
+    if (canvasTextureRef.current) {
+      canvasTextureRef.current.needsUpdate = true;
+    }
+  }, []);
+
   // --------------------------------------------------------------------------
   // 1. INITIALIZE 3D SKIN VIEWER (skinview3d)
   // --------------------------------------------------------------------------
   useEffect(() => {
-    if (!viewerContainerRef.current) return;
+    if (!viewerContainerRef.current || !canvasRef.current) return;
 
-    const width = viewerContainerRef.current.clientWidth || 320;
-    const height = viewerContainerRef.current.clientHeight || 420;
+    const width = viewerContainerRef.current.clientWidth || 340;
+    const height = viewerContainerRef.current.clientHeight || 440;
 
     const viewer = new SkinViewer({
       canvas: document.createElement('canvas'),
@@ -141,19 +207,23 @@ export const SkinEditor: React.FC = () => {
 
     viewer.width = width;
     viewer.height = height;
-    viewer.camera.position.set(0, 0, 70);
+    viewer.camera.position.set(0, 0, 52);
     viewer.controls.enablePan = true;
     viewer.controls.enableZoom = true;
     viewer.controls.enableRotate = true;
 
+    // Create live CanvasTexture linking the 2D canvas directly to the 3D model
+    const canvasTexture = new THREE.CanvasTexture(canvasRef.current);
+    canvasTexture.magFilter = THREE.NearestFilter;
+    canvasTexture.minFilter = THREE.NearestFilter;
+    canvasTexture.generateMipmaps = false;
+    canvasTextureRef.current = canvasTexture;
+
+    viewer.playerObject.skin.map = canvasTexture as any;
+
     viewerContainerRef.current.appendChild(viewer.canvas);
     skinViewerRef.current = viewer;
 
-    // Default Animation
-    const anim = new IdleAnimation();
-    viewer.animation = anim;
-
-    // Handle Window Resize
     const handleResize = () => {
       if (!viewerContainerRef.current || !skinViewerRef.current) return;
       const w = viewerContainerRef.current.clientWidth;
@@ -173,7 +243,7 @@ export const SkinEditor: React.FC = () => {
     };
   }, []);
 
-  // Update Animation when changed
+  // Update Animation
   useEffect(() => {
     if (!skinViewerRef.current) return;
     const viewer = skinViewerRef.current;
@@ -193,6 +263,7 @@ export const SkinEditor: React.FC = () => {
         break;
       default:
         viewer.animation = null;
+        viewer.playerObject.skin.resetJoints();
         viewer.playerObject.rotation.set(0, 0, 0);
         break;
     }
@@ -201,9 +272,11 @@ export const SkinEditor: React.FC = () => {
   // Update Model Type (Steve 4px vs Alex 3px)
   useEffect(() => {
     if (!skinViewerRef.current) return;
-    skinViewerRef.current.loadSkin(canvasRef.current?.toDataURL() || '', {
-      model: modelType,
-    });
+    skinViewerRef.current.playerObject.skin.modelType = modelType;
+    if (canvasTextureRef.current) {
+      skinViewerRef.current.playerObject.skin.map = canvasTextureRef.current as any;
+      canvasTextureRef.current.needsUpdate = true;
+    }
   }, [modelType]);
 
   // Update Layer & Body Part Visibility in 3D Viewport
@@ -212,29 +285,25 @@ export const SkinEditor: React.FC = () => {
     const skin = skinViewerRef.current.playerObject.skin;
     if (!skin) return;
 
+    const innerVisible = (activeLayerMode === 'body' || activeLayerMode === 'both') && innerLayerVisible;
+    const outerVisible = (activeLayerMode === 'outer' || activeLayerMode === 'both') && outerLayerVisible;
+
     // Inner Layer (Body)
-    skin.head.innerLayer.visible = innerLayerVisible && partsVisibility.head;
-    skin.body.innerLayer.visible = innerLayerVisible && partsVisibility.torso;
-    skin.leftArm.innerLayer.visible = innerLayerVisible && partsVisibility.leftArm;
-    skin.rightArm.innerLayer.visible = innerLayerVisible && partsVisibility.rightArm;
-    skin.leftLeg.innerLayer.visible = innerLayerVisible && partsVisibility.leftLeg;
-    skin.rightLeg.innerLayer.visible = innerLayerVisible && partsVisibility.rightLeg;
+    skin.head.innerLayer.visible = innerVisible && partsVisibility.head;
+    skin.body.innerLayer.visible = innerVisible && partsVisibility.torso;
+    skin.leftArm.innerLayer.visible = innerVisible && partsVisibility.leftArm;
+    skin.rightArm.innerLayer.visible = innerVisible && partsVisibility.rightArm;
+    skin.leftLeg.innerLayer.visible = innerVisible && partsVisibility.leftLeg;
+    skin.rightLeg.innerLayer.visible = innerVisible && partsVisibility.rightLeg;
 
     // Outer Layer (Overlay / Armor / Hat / Jacket)
-    skin.head.outerLayer.visible = outerLayerVisible && partsVisibility.head;
-    skin.body.outerLayer.visible = outerLayerVisible && partsVisibility.torso;
-    skin.leftArm.outerLayer.visible = outerLayerVisible && partsVisibility.leftArm;
-    skin.rightArm.outerLayer.visible = outerLayerVisible && partsVisibility.rightArm;
-    skin.leftLeg.outerLayer.visible = outerLayerVisible && partsVisibility.leftLeg;
-    skin.rightLeg.outerLayer.visible = outerLayerVisible && partsVisibility.rightLeg;
-  }, [innerLayerVisible, outerLayerVisible, partsVisibility]);
-
-  // Sync 2D Canvas changes to 3D Viewport
-  const syncTo3D = useCallback(() => {
-    if (!canvasRef.current || !skinViewerRef.current) return;
-    const dataUrl = canvasRef.current.toDataURL();
-    skinViewerRef.current.loadSkin(dataUrl, { model: modelType });
-  }, [modelType]);
+    skin.head.outerLayer.visible = outerVisible && partsVisibility.head;
+    skin.body.outerLayer.visible = outerVisible && partsVisibility.torso;
+    skin.leftArm.outerLayer.visible = outerVisible && partsVisibility.leftArm;
+    skin.rightArm.outerLayer.visible = outerVisible && partsVisibility.rightArm;
+    skin.leftLeg.outerLayer.visible = outerVisible && partsVisibility.leftLeg;
+    skin.rightLeg.outerLayer.visible = outerVisible && partsVisibility.rightLeg;
+  }, [activeLayerMode, innerLayerVisible, outerLayerVisible, partsVisibility]);
 
   // --------------------------------------------------------------------------
   // 2. UNDO / REDO HISTORY ENGINE
@@ -245,12 +314,9 @@ export const SkinEditor: React.FC = () => {
     if (!ctx) return;
 
     const imgData = ctx.getImageData(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
-
-    // Truncate any redo branch
     historyStack.current = historyStack.current.slice(0, historyIndex.current + 1);
     historyStack.current.push(imgData);
 
-    // Limit history stack size to 30 steps
     if (historyStack.current.length > 30) {
       historyStack.current.shift();
     }
@@ -304,7 +370,7 @@ export const SkinEditor: React.FC = () => {
   }, [canUndo, canRedo]);
 
   // --------------------------------------------------------------------------
-  // 3. LOAD DEFAULT STARTER SKIN ON CANVAS
+  // 3. LOAD DEFAULT SKIN ON CANVAS
   // --------------------------------------------------------------------------
   const loadSkinFromUrl = useCallback(async (url: string, targetModel: ModelType = 'slim') => {
     const canvas = canvasRef.current;
@@ -316,7 +382,6 @@ export const SkinEditor: React.FC = () => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
 
-      // Use KirkaHub CORS proxy for remote domains
       let proxiedUrl = url;
       if (url.includes('textures.minecraft.net') || url.includes('kirka.io')) {
         proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
@@ -325,7 +390,6 @@ export const SkinEditor: React.FC = () => {
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
         img.onerror = () => {
-          // Fallback direct attempt if proxy fails
           const directImg = new Image();
           directImg.crossOrigin = 'anonymous';
           directImg.onload = () => {
@@ -345,7 +409,6 @@ export const SkinEditor: React.FC = () => {
       saveToHistory();
       showToast(`Loaded ${targetModel === 'slim' ? 'Alex 3px' : 'Steve 4px'} skin`);
     } catch {
-      // Procedural fallback dummy skin if offline
       createProceduralStarterSkin(targetModel);
     }
   }, [syncTo3D, saveToHistory]);
@@ -358,24 +421,39 @@ export const SkinEditor: React.FC = () => {
 
     ctx.clearRect(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
 
-    // Procedural simple dummy character
-    ctx.fillStyle = '#e0ac69'; // Skin
+    // Procedural starter skin (Alex / Steve base)
+    ctx.fillStyle = '#e0ac69'; // Skin face
     ctx.fillRect(8, 8, 8, 8); // Head Front
     ctx.fillRect(0, 8, 8, 8); // Head Right
     ctx.fillRect(16, 8, 8, 8); // Head Left
     ctx.fillRect(8, 0, 8, 8); // Head Top
+    ctx.fillRect(16, 0, 8, 8); // Head Bottom
 
-    ctx.fillStyle = '#2563eb'; // Blue Shirt
-    ctx.fillRect(20, 20, 8, 12); // Torso Front
-    ctx.fillRect(16, 20, 4, 12); // Torso Right
-    ctx.fillRect(28, 20, 4, 12); // Torso Left
+    // Eyes
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(9, 12, 2, 1);
+    ctx.fillRect(13, 12, 2, 1);
+    ctx.fillStyle = '#2563eb';
+    ctx.fillRect(10, 12, 1, 1);
+    ctx.fillRect(13, 12, 1, 1);
 
-    ctx.fillStyle = '#1e3a8a'; // Blue Pants
-    ctx.fillRect(4, 20, 4, 12); // Right Leg
-    ctx.fillRect(20, 52, 4, 12); // Left Leg
+    // Torso (Shirt)
+    ctx.fillStyle = '#d4af37'; // Gold
+    ctx.fillRect(20, 20, 8, 12);
+    ctx.fillRect(16, 20, 4, 12);
+    ctx.fillRect(28, 20, 4, 12);
+    ctx.fillRect(20, 16, 8, 4);
 
-    ctx.fillStyle = '#d4af37'; // Gold Highlights
-    ctx.fillRect(22, 22, 4, 2);
+    // Arms
+    ctx.fillStyle = '#e0ac69';
+    const armW = targetModel === 'slim' ? 3 : 4;
+    ctx.fillRect(44, 20, armW, 12);
+    ctx.fillRect(36, 52, armW, 12);
+
+    // Legs (Pants)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(4, 20, 4, 12);
+    ctx.fillRect(20, 52, 4, 12);
 
     setModelType(targetModel);
     syncTo3D();
@@ -387,7 +465,7 @@ export const SkinEditor: React.FC = () => {
   }, []);
 
   // --------------------------------------------------------------------------
-  // 4. PAINTING & DRAWING LOGIC (2D Canvas)
+  // 4. PAINTING ON 2D TEXTURE CANVAS
   // --------------------------------------------------------------------------
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -418,7 +496,7 @@ export const SkinEditor: React.FC = () => {
           .slice(1)}`;
         setActiveColor(hex);
         setActiveTool('brush');
-        showToast(`Selected color: ${hex.toUpperCase()}`);
+        showToast(`Picked color: ${hex.toUpperCase()}`);
       }
       return;
     }
@@ -429,7 +507,6 @@ export const SkinEditor: React.FC = () => {
       return;
     }
 
-    // Brush or Eraser
     const size = brushSize;
     if (activeTool === 'eraser') {
       ctx.clearRect(x, y, size, size);
@@ -437,7 +514,6 @@ export const SkinEditor: React.FC = () => {
       ctx.fillStyle = activeColor;
       ctx.fillRect(x, y, size, size);
 
-      // Record in recent colors
       if (!recentColors.includes(activeColor)) {
         setRecentColors((prev) => [activeColor, ...prev.slice(0, 7)]);
       }
@@ -462,7 +538,6 @@ export const SkinEditor: React.FC = () => {
     const targetB = data[startIndex + 2];
     const targetA = data[startIndex + 3];
 
-    // Convert Fill Hex to RGBA
     const fillR = parseInt(fillColorHex.slice(1, 3), 16);
     const fillG = parseInt(fillColorHex.slice(3, 5), 16);
     const fillB = parseInt(fillColorHex.slice(5, 7), 16);
@@ -507,32 +582,126 @@ export const SkinEditor: React.FC = () => {
     ctx.putImageData(imgData, 0, 0);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    isPainting.current = true;
+  const handle2DMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    isPainting2D.current = true;
     const coords = getCanvasCoordinates(e);
     if (coords) {
       applyToolAt(coords.x, coords.y);
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handle2DMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const coords = getCanvasCoordinates(e);
     setHoverPixel(coords);
 
-    if (isPainting.current && coords && activeTool !== 'bucket' && activeTool !== 'picker') {
+    if (isPainting2D.current && coords && activeTool !== 'bucket' && activeTool !== 'picker') {
       applyToolAt(coords.x, coords.y);
     }
   };
 
-  const handleMouseUp = () => {
-    if (isPainting.current) {
-      isPainting.current = false;
+  const handle2DMouseUp = () => {
+    if (isPainting2D.current) {
+      isPainting2D.current = false;
       saveToHistory();
     }
   };
 
   // --------------------------------------------------------------------------
-  // 5. BGMW'S SPECIAL FX & SHADING FILTERS (Discord Feature Requests)
+  // 5. DIRECT 3D MODEL PAINTING (RAYCASTING UV COORDINATES)
+  // --------------------------------------------------------------------------
+  const getVisibleSkinMeshes = () => {
+    if (!skinViewerRef.current) return [];
+    const skin = skinViewerRef.current.playerObject.skin;
+    if (!skin) return [];
+
+    const meshes: THREE.Object3D[] = [];
+    const parts = [
+      { name: 'head', obj: skin.head },
+      { name: 'torso', obj: skin.body },
+      { name: 'leftArm', obj: skin.leftArm },
+      { name: 'rightArm', obj: skin.rightArm },
+      { name: 'leftLeg', obj: skin.leftLeg },
+      { name: 'rightLeg', obj: skin.rightLeg },
+    ] as const;
+
+    parts.forEach(({ name, obj }) => {
+      if (partsVisibility[name]) {
+        if (activeLayerMode === 'outer' && obj.outerLayer.visible) {
+          meshes.push(obj.outerLayer as any);
+        } else if (activeLayerMode === 'body' && obj.innerLayer.visible) {
+          meshes.push(obj.innerLayer as any);
+        } else {
+          // both: prioritize outer layer if visible, then inner
+          if (obj.outerLayer.visible) meshes.push(obj.outerLayer as any);
+          if (obj.innerLayer.visible) meshes.push(obj.innerLayer as any);
+        }
+      }
+    });
+
+    return meshes;
+  };
+
+  const paintOn3DAtPointer = (clientX: number, clientY: number): boolean => {
+    const viewer = skinViewerRef.current;
+    if (!viewer) return false;
+
+    const rect = viewer.canvas.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(new THREE.Vector2(x, y), viewer.camera as any);
+
+    const targetMeshes = getVisibleSkinMeshes();
+    const intersects = raycaster.intersectObjects(targetMeshes, false);
+
+    if (intersects.length > 0 && intersects[0].uv) {
+      const uv = intersects[0].uv;
+      const px = Math.floor(uv.x * SKIN_WIDTH);
+      const py = Math.floor((1.0 - uv.y) * SKIN_HEIGHT);
+
+      if (px >= 0 && px < SKIN_WIDTH && py >= 0 && py < SKIN_HEIGHT) {
+        applyToolAt(px, py);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const handle3DPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Only left-click paints (button === 0). Right-click or middle-click always rotates/pans!
+    if (e.button !== 0) return;
+
+    if (interactionMode === 'paint') {
+      const hit = paintOn3DAtPointer(e.clientX, e.clientY);
+      if (hit) {
+        isPainting3D.current = true;
+        if (skinViewerRef.current) {
+          // Disable orbit controls while painting on mesh
+          skinViewerRef.current.controls.enabled = false;
+        }
+      }
+    }
+  };
+
+  const handle3DPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isPainting3D.current && interactionMode === 'paint') {
+      paintOn3DAtPointer(e.clientX, e.clientY);
+    }
+  };
+
+  const handle3DPointerUp = () => {
+    if (isPainting3D.current) {
+      isPainting3D.current = false;
+      saveToHistory();
+    }
+    if (skinViewerRef.current) {
+      skinViewerRef.current.controls.enabled = true;
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // 6. SCOPED FX & SHADING FILTERS (AFFECTS ONLY VISIBLE PARTS & LAYERS)
   // --------------------------------------------------------------------------
   const applyFilter = (filterType: 'warm' | 'cold' | 'bright' | 'shade' | 'contrast' | 'noise') => {
     const canvas = canvasRef.current;
@@ -542,69 +711,92 @@ export const SkinEditor: React.FC = () => {
 
     const imgData = ctx.getImageData(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
     const d = imgData.data;
+    const isSlim = modelType === 'slim';
 
-    for (let i = 0; i < d.length; i += 4) {
-      // Only process visible pixels (ignore transparent areas)
-      if (d[i + 3] === 0) continue;
+    const partNames: BodyPartName[] = ['head', 'torso', 'leftArm', 'rightArm', 'leftLeg', 'rightLeg'];
 
-      let r = d[i];
-      let g = d[i + 1];
-      let b = d[i + 2];
+    for (let py = 0; py < SKIN_HEIGHT; py++) {
+      for (let px = 0; px < SKIN_WIDTH; px++) {
+        const i = (py * SKIN_WIDTH + px) * 4;
 
-      switch (filterType) {
-        case 'warm':
-          // Warm Golden/Red boost, slight blue reduction
-          r = Math.min(255, r + 14);
-          g = Math.min(255, g + 6);
-          b = Math.max(0, b - 10);
-          break;
-        case 'cold':
-          // Cool Cyan/Blue boost, slight red reduction
-          r = Math.max(0, r - 10);
-          g = Math.min(255, g + 4);
-          b = Math.min(255, b + 16);
-          break;
-        case 'bright':
-          // Brighten (+12%)
-          r = Math.min(255, r + 20);
-          g = Math.min(255, g + 20);
-          b = Math.min(255, b + 20);
-          break;
-        case 'shade':
-          // Darken / Manual Shading (-12%)
-          r = Math.max(0, r - 20);
-          g = Math.max(0, g - 20);
-          b = Math.max(0, b - 20);
-          break;
-        case 'contrast':
-          // S-Curve Contrast adjustment
-          r = r < 128 ? Math.max(0, r - 12) : Math.min(255, r + 12);
-          g = g < 128 ? Math.max(0, g - 12) : Math.min(255, g + 12);
-          b = b < 128 ? Math.max(0, b - 12) : Math.min(255, b + 12);
-          break;
-        case 'noise': {
-          // Subtle authentic Minecraft pixel texturing noise (-12 to +12)
-          const delta = Math.floor((Math.random() - 0.5) * 24);
-          r = Math.max(0, Math.min(255, r + delta));
-          g = Math.max(0, Math.min(255, g + delta));
-          b = Math.max(0, Math.min(255, b + delta));
-          break;
+        // Skip fully transparent pixels
+        if (d[i + 3] === 0) continue;
+
+        // Check if this pixel belongs to an actively VISIBLE body part & active layer
+        let isAllowed = false;
+        for (const p of partNames) {
+          if (partsVisibility[p]) {
+            if ((activeLayerMode === 'body' || activeLayerMode === 'both') && innerLayerVisible) {
+              if (isPixelInPart(px, py, p, 'inner', isSlim)) {
+                isAllowed = true;
+                break;
+              }
+            }
+            if ((activeLayerMode === 'outer' || activeLayerMode === 'both') && outerLayerVisible) {
+              if (isPixelInPart(px, py, p, 'outer', isSlim)) {
+                isAllowed = true;
+                break;
+              }
+            }
+          }
         }
-      }
 
-      d[i] = r;
-      d[i + 1] = g;
-      d[i + 2] = b;
+        // If part or layer is hidden, do NOT modify this pixel!
+        if (!isAllowed) continue;
+
+        let r = d[i];
+        let g = d[i + 1];
+        let b = d[i + 2];
+
+        switch (filterType) {
+          case 'warm':
+            r = Math.min(255, r + 14);
+            g = Math.min(255, g + 6);
+            b = Math.max(0, b - 10);
+            break;
+          case 'cold':
+            r = Math.max(0, r - 10);
+            g = Math.min(255, g + 4);
+            b = Math.min(255, b + 16);
+            break;
+          case 'bright':
+            r = Math.min(255, r + 20);
+            g = Math.min(255, g + 20);
+            b = Math.min(255, b + 20);
+            break;
+          case 'shade':
+            r = Math.max(0, r - 20);
+            g = Math.max(0, g - 20);
+            b = Math.max(0, b - 20);
+            break;
+          case 'contrast':
+            r = r < 128 ? Math.max(0, r - 12) : Math.min(255, r + 12);
+            g = g < 128 ? Math.max(0, g - 12) : Math.min(255, g + 12);
+            b = b < 128 ? Math.max(0, b - 12) : Math.min(255, b + 12);
+            break;
+          case 'noise': {
+            const delta = Math.floor((Math.random() - 0.5) * 24);
+            r = Math.max(0, Math.min(255, r + delta));
+            g = Math.max(0, Math.min(255, g + delta));
+            b = Math.max(0, Math.min(255, b + delta));
+            break;
+          }
+        }
+
+        d[i] = r;
+        d[i + 1] = g;
+        d[i + 2] = b;
+      }
     }
 
     ctx.putImageData(imgData, 0, 0);
     syncTo3D();
     saveToHistory();
-    showToast(`Applied ${filterType.toUpperCase()} filter`);
+    showToast(`Applied ${filterType.toUpperCase()} to selected parts!`);
   };
 
   // --------------------------------------------------------------------------
-  // 6. CUSTOM PHOTO BACKGROUND UPLOAD (Discord Feature Request)
+  // 7. BACKGROUND UPLOAD & IMPORT/EXPORT
   // --------------------------------------------------------------------------
   const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -620,9 +812,6 @@ export const SkinEditor: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // --------------------------------------------------------------------------
-  // 7. IMPORT & EXPORT SKIN
-  // --------------------------------------------------------------------------
   const handleSkinUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -646,7 +835,7 @@ export const SkinEditor: React.FC = () => {
 
   const handleResetCamera = () => {
     if (!skinViewerRef.current) return;
-    skinViewerRef.current.camera.position.set(0, 0, 70);
+    skinViewerRef.current.camera.position.set(0, 0, 52);
     skinViewerRef.current.controls.reset();
   };
 
@@ -672,13 +861,12 @@ export const SkinEditor: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Create, paint, shade, and customize Minecraft & Kirka character skins with studio lighting.
+            Paint directly on the 3D model, customize individual limbs, apply precision shading filters, and download.
           </p>
         </div>
 
         {/* Action Buttons: Presets, Import, Download */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Preset Selector Dropdown */}
           <select
             onChange={(e) => {
               const preset = SKIN_PRESETS.find((p) => p.name === e.target.value);
@@ -697,7 +885,6 @@ export const SkinEditor: React.FC = () => {
             ))}
           </select>
 
-          {/* Upload Button */}
           <label className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-xs font-mono text-slate-200 cursor-pointer transition-all active:scale-95">
             <Upload className="w-3.5 h-3.5 text-indigo-400" />
             <span>Import Skin</span>
@@ -709,7 +896,6 @@ export const SkinEditor: React.FC = () => {
             />
           </label>
 
-          {/* Download Button */}
           <button
             onClick={handleDownloadSkin}
             className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-gold-primary to-amber-500 text-black font-bold text-xs font-mono shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
@@ -720,15 +906,20 @@ export const SkinEditor: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Studio Grid: Left = 3D Viewport, Right = 2D Pixel Editor */}
+      {/* Main Studio Grid: Left = 3D Viewport & Controls, Right = 2D Pixel Editor */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* =================================================================== */}
-        {/* LEFT COLUMN: 3D VIEWPORT & POSE CONTROLS (5 cols on lg) */}
+        {/* LEFT COLUMN: 3D VIEWPORT WITH DIRECT 3D PAINTING (5 cols) */}
         {/* =================================================================== */}
         <div className="lg:col-span-5 flex flex-col space-y-3">
-          {/* 3D Viewport Box */}
+          {/* 3D Viewport Box with Direct Painting Pointer Handlers */}
           <div
-            className={`relative w-full h-[420px] rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center transition-all ${
+            onPointerDown={handle3DPointerDown}
+            onPointerMove={handle3DPointerMove}
+            onPointerUp={handle3DPointerUp}
+            className={`relative w-full h-[440px] rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center transition-all ${
+              interactionMode === 'paint' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'
+            } ${
               bgType === 'esports'
                 ? 'bg-gradient-to-b from-[#0c0e17] via-[#07090e] to-[#040508]'
                 : bgType === 'black'
@@ -743,154 +934,231 @@ export const SkinEditor: React.FC = () => {
                 : undefined
             }
           >
-            {/* Mounting point for SkinViewer canvas */}
-            <div ref={viewerContainerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+            {/* SkinViewer Canvas */}
+            <div ref={viewerContainerRef} className="w-full h-full" />
 
-            {/* Model Type Badge (Steve vs Alex) */}
-            <div className="absolute top-3 left-3 z-10 flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[10px] font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-gold-primary animate-pulse" />
-              <span className="font-bold text-white uppercase">
-                {modelType === 'slim' ? 'Alex (3px Slim)' : 'Steve (4px Classic)'}
-              </span>
+            {/* Top Left: 3D Paint vs Orbit Mode Toggle */}
+            <div className="absolute top-3 left-3 z-10 flex items-center space-x-1.5 bg-black/70 backdrop-blur-md p-1 rounded-xl border border-white/10 text-[10px] font-mono">
+              <button
+                onClick={() => setInteractionMode('paint')}
+                className={`flex items-center space-x-1 px-2 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  interactionMode === 'paint'
+                    ? 'bg-gold-primary text-black shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Paintbrush className="w-3 h-3" />
+                <span>Paint on 3D</span>
+              </button>
+              <button
+                onClick={() => setInteractionMode('orbit')}
+                className={`flex items-center space-x-1 px-2 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  interactionMode === 'orbit'
+                    ? 'bg-indigo-500 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Move className="w-3 h-3" />
+                <span>Rotate View</span>
+              </button>
             </div>
 
-            {/* Camera Reset & Zoom Controls Overlay */}
+            {/* Top Right: Reset Camera Button */}
             <div className="absolute top-3 right-3 z-10 flex items-center space-x-1.5">
               <button
                 onClick={handleResetCamera}
                 title="Reset Camera View"
-                className="p-1.5 rounded-lg bg-black/60 hover:bg-black/90 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer backdrop-blur-md"
+                className="flex items-center space-x-1 px-2 py-1.5 rounded-lg bg-black/70 hover:bg-black/90 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer backdrop-blur-md text-[10px] font-mono"
               >
-                <Maximize2 className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset View</span>
               </button>
             </div>
 
             {/* Bottom Floating Hint */}
-            <div className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[9px] font-mono text-slate-400">
-              Drag to rotate • Scroll to zoom • Right-click to pan
+            <div className="absolute bottom-3 left-3 z-10 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[9px] font-mono text-slate-400">
+              {interactionMode === 'paint'
+                ? 'Left-click on character to paint • Right-click to rotate'
+                : 'Click and drag to rotate character in 360°'}
             </div>
           </div>
 
-          {/* Model Switch & Animation Toolbar */}
-          <div className="grid grid-cols-2 gap-2 bg-obsidian-card/60 p-3 rounded-2xl border border-white/5">
-            {/* Model Arms Selector: Steve (4px) vs Alex (3px) */}
-            <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
-                Model Template
-              </label>
-              <div className="grid grid-cols-2 gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+          {/* Skindex-Style Body Part Diagram & Layer Selector (Image 2 Match) */}
+          <div className="bg-obsidian-card/70 p-4 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Left: Body Part Schematic Diagram */}
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">
+                Click Limbs to Hide / Show
+              </span>
+
+              {/* Schematic Humanoid Figure */}
+              <div className="flex flex-col items-center space-y-1">
+                {/* Head */}
                 <button
-                  onClick={() => setModelType('slim')}
-                  className={`py-1.5 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
-                    modelType === 'slim'
-                      ? 'bg-gold-primary/20 border border-gold-primary/50 text-gold-bright'
-                      : 'text-slate-400 hover:text-white'
+                  onClick={() => setPartsVisibility((p) => ({ ...p, head: !p.head }))}
+                  title="Toggle Head"
+                  className={`w-9 h-9 rounded border-2 transition-all cursor-pointer ${
+                    partsVisibility.head
+                      ? 'bg-amber-500/30 border-amber-400 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                      : 'bg-transparent border-slate-600/50 text-slate-600'
                   }`}
-                >
-                  Alex (3px)
-                </button>
-                <button
-                  onClick={() => setModelType('default')}
-                  className={`py-1.5 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
-                    modelType === 'default'
-                      ? 'bg-gold-primary/20 border border-gold-primary/50 text-gold-bright'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Steve (4px)
-                </button>
+                />
+
+                {/* Arms and Torso row */}
+                <div className="flex items-center space-x-1">
+                  {/* Right Arm */}
+                  <button
+                    onClick={() => setPartsVisibility((p) => ({ ...p, rightArm: !p.rightArm }))}
+                    title="Toggle Right Arm"
+                    className={`w-4 h-12 rounded border-2 transition-all cursor-pointer ${
+                      partsVisibility.rightArm
+                        ? 'bg-amber-500/30 border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                        : 'bg-transparent border-slate-600/50'
+                    }`}
+                  />
+
+                  {/* Torso */}
+                  <button
+                    onClick={() => setPartsVisibility((p) => ({ ...p, torso: !p.torso }))}
+                    title="Toggle Torso (Body)"
+                    className={`w-9 h-12 rounded border-2 transition-all cursor-pointer ${
+                      partsVisibility.torso
+                        ? 'bg-amber-500/30 border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                        : 'bg-transparent border-slate-600/50'
+                    }`}
+                  />
+
+                  {/* Left Arm */}
+                  <button
+                    onClick={() => setPartsVisibility((p) => ({ ...p, leftArm: !p.leftArm }))}
+                    title="Toggle Left Arm"
+                    className={`w-4 h-12 rounded border-2 transition-all cursor-pointer ${
+                      partsVisibility.leftArm
+                        ? 'bg-amber-500/30 border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                        : 'bg-transparent border-slate-600/50'
+                    }`}
+                  />
+                </div>
+
+                {/* Legs row */}
+                <div className="flex items-center space-x-1">
+                  {/* Right Leg */}
+                  <button
+                    onClick={() => setPartsVisibility((p) => ({ ...p, rightLeg: !p.rightLeg }))}
+                    title="Toggle Right Leg"
+                    className={`w-4.5 h-12 rounded border-2 transition-all cursor-pointer ${
+                      partsVisibility.rightLeg
+                        ? 'bg-amber-500/30 border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                        : 'bg-transparent border-slate-600/50'
+                    }`}
+                  />
+
+                  {/* Left Leg */}
+                  <button
+                    onClick={() => setPartsVisibility((p) => ({ ...p, leftLeg: !p.leftLeg }))}
+                    title="Toggle Left Leg"
+                    className={`w-4.5 h-12 rounded border-2 transition-all cursor-pointer ${
+                      partsVisibility.leftLeg
+                        ? 'bg-amber-500/30 border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                        : 'bg-transparent border-slate-600/50'
+                    }`}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* 3D Posing & Animations */}
-            <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
-                Character Pose
-              </label>
-              <div className="grid grid-cols-4 gap-1 bg-black/40 p-1 rounded-xl border border-white/5 text-[11px] font-mono">
-                {(['none', 'idle', 'walk', 'run'] as AnimationType[]).map((anim) => (
+            {/* Right: Skindex-Style Layer Buttons & Model Selector */}
+            <div className="flex flex-col space-y-3 w-full md:w-auto">
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Painting Layer
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
                   <button
-                    key={anim}
-                    onClick={() => setActiveAnimation(anim)}
-                    className={`py-1.5 rounded-lg font-bold capitalize transition-all cursor-pointer ${
-                      activeAnimation === anim
-                        ? 'bg-indigo-500/20 border border-indigo-500/40 text-indigo-300'
-                        : 'text-slate-400 hover:text-white'
+                    onClick={() => {
+                      setInnerLayerVisible((v) => !v);
+                      setActiveLayerMode((m) => (m === 'body' ? 'outer' : 'body'));
+                    }}
+                    className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                      innerLayerVisible
+                        ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md'
+                        : 'bg-white/5 border border-white/10 text-slate-500 line-through hover:text-slate-300'
                     }`}
                   >
-                    {anim === 'none' ? 'Pose' : anim}
+                    Body
                   </button>
-                ))}
+                  <button
+                    onClick={() => {
+                      setOuterLayerVisible((v) => !v);
+                      setActiveLayerMode((m) => (m === 'outer' ? 'body' : 'outer'));
+                    }}
+                    className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                      outerLayerVisible
+                        ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md'
+                        : 'bg-white/5 border border-white/10 text-slate-500 line-through hover:text-slate-300'
+                    }`}
+                  >
+                    Outer layer
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Background Customizer (Bgmw's Request: Pin Photo in Redactor) */}
-          <div className="bg-obsidian-card/60 p-3 rounded-2xl border border-white/5 flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-                Viewport Background
-              </span>
-              <label className="flex items-center space-x-1 text-[10px] font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/20 px-2 py-0.5 rounded-lg cursor-pointer hover:bg-gold-primary/20 transition-all">
-                <ImageIcon className="w-3 h-3" />
-                <span>Pin Photo on BG</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleBgUpload}
-                />
-              </label>
-            </div>
+              {/* Model Arms Selector: Steve (4px) vs Alex (3px) */}
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Character Model
+                </span>
+                <select
+                  value={modelType}
+                  onChange={(e) => setModelType(e.target.value as ModelType)}
+                  className="w-full bg-black/50 border border-white/10 hover:border-gold-primary/40 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none cursor-pointer"
+                >
+                  <option value="slim">Alex / Kirka (Slim 3px)</option>
+                  <option value="default">Steve / Standard (Classic 4px)</option>
+                </select>
+              </div>
 
-            <div className="grid grid-cols-4 gap-1.5 text-xs font-mono">
-              <button
-                onClick={() => setBgType('esports')}
-                className={`py-1 rounded-lg border transition-all cursor-pointer ${
-                  bgType === 'esports'
-                    ? 'border-gold-primary/50 text-gold-bright bg-gold-primary/10'
-                    : 'border-white/5 text-slate-400 hover:text-white'
-                }`}
-              >
-                Esports
-              </button>
-              <button
-                onClick={() => setBgType('black')}
-                className={`py-1 rounded-lg border transition-all cursor-pointer ${
-                  bgType === 'black'
-                    ? 'border-gold-primary/50 text-gold-bright bg-gold-primary/10'
-                    : 'border-white/5 text-slate-400 hover:text-white'
-                }`}
-              >
-                Pure Black
-              </button>
-              <button
-                onClick={() => setBgType('grid')}
-                className={`py-1 rounded-lg border transition-all cursor-pointer ${
-                  bgType === 'grid'
-                    ? 'border-gold-primary/50 text-gold-bright bg-gold-primary/10'
-                    : 'border-white/5 text-slate-400 hover:text-white'
-                }`}
-              >
-                Grid
-              </button>
-              <button
-                onClick={() => setBgType('custom')}
-                disabled={!customBgImage}
-                className={`py-1 rounded-lg border transition-all cursor-pointer ${
-                  bgType === 'custom'
-                    ? 'border-gold-primary/50 text-gold-bright bg-gold-primary/10'
-                    : 'border-white/5 text-slate-400 hover:text-white disabled:opacity-30'
-                }`}
-              >
-                Photo
-              </button>
+              {/* Animation Poses */}
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Animation Pose
+                </span>
+                <div className="grid grid-cols-4 gap-1 bg-black/40 p-1 rounded-xl border border-white/5 text-[11px] font-mono">
+                  {(['none', 'idle', 'walk', 'run'] as AnimationType[]).map((anim) => (
+                    <button
+                      key={anim}
+                      onClick={() => setActiveAnimation(anim)}
+                      className={`py-1 rounded-lg font-bold capitalize transition-all cursor-pointer ${
+                        activeAnimation === anim
+                          ? 'bg-indigo-500/30 border border-indigo-500/50 text-indigo-300'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {anim === 'none' ? 'Pose' : anim}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pinned Background Photo option */}
+              <div>
+                <label className="flex items-center justify-center space-x-1.5 text-xs font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/20 px-3 py-2 rounded-xl cursor-pointer hover:bg-gold-primary/20 transition-all">
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>Pin Custom BG Photo</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleBgUpload}
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </div>
 
         {/* =================================================================== */}
-        {/* RIGHT COLUMN: 2D PIXEL REDACTOR & CREATIVE TOOLSET (7 cols on lg) */}
+        {/* RIGHT COLUMN: 2D PIXEL REDACTOR & SCOPED FILTERS (7 cols) */}
         {/* =================================================================== */}
         <div className="lg:col-span-7 flex flex-col space-y-3">
           {/* Top Control Bar: Tools, Undo/Redo, Zoom, Grid */}
@@ -945,7 +1213,6 @@ export const SkinEditor: React.FC = () => {
                 <PaintBucket className="w-4 h-4" />
               </button>
 
-              {/* Brush Size Toggle (1px vs 2px) */}
               <button
                 onClick={() => setBrushSize((s) => (s === 1 ? 2 : 1))}
                 title={`Brush Size: ${brushSize}px`}
@@ -1006,139 +1273,79 @@ export const SkinEditor: React.FC = () => {
             </div>
           </div>
 
-          {/* Bgmw's Color Effects & Shading Filters Toolbar */}
-          <div className="bg-obsidian-card/60 p-2.5 rounded-2xl border border-white/5 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center space-x-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-gold-bright" />
-              <span>Skin FX & Shading:</span>
+          {/* Scoped FX & Shading Filters Toolbar (Only Affects Selected Limbs & Layer!) */}
+          <div className="bg-obsidian-card/70 p-3 rounded-2xl border border-white/10 flex flex-col space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1.5 text-[11px] font-mono font-bold text-amber-300">
+                <Sparkles className="w-3.5 h-3.5 text-gold-bright" />
+                <span>Filters (Affects Only Selected Limbs & Layer):</span>
+              </div>
+              <span className="text-[9px] font-mono text-slate-400">
+                Active: {activeLayerMode.toUpperCase()} layer
+              </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
-              {/* Warm Filter */}
               <button
                 onClick={() => applyFilter('warm')}
-                title="Make colors warmer (gold/red shift)"
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold cursor-pointer transition-all"
+                title="Warm Golden/Red Hue shift on selected parts"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold cursor-pointer transition-all"
               >
-                <Flame className="w-3 h-3" />
+                <Flame className="w-3.5 h-3.5" />
                 <span>Warm</span>
               </button>
 
-              {/* Cold Filter */}
               <button
                 onClick={() => applyFilter('cold')}
-                title="Make colors cooler (cyan/blue shift)"
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold cursor-pointer transition-all"
+                title="Cool Cyan/Blue Hue shift on selected parts"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold cursor-pointer transition-all"
               >
-                <Snowflake className="w-3 h-3" />
+                <Snowflake className="w-3.5 h-3.5" />
                 <span>Cold</span>
               </button>
 
-              {/* Brighten */}
               <button
                 onClick={() => applyFilter('bright')}
-                title="Brighten all pixels"
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 text-xs font-mono font-bold cursor-pointer transition-all"
+                title="Brighten selected parts"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-yellow-500/15 hover:bg-yellow-500/25 border border-yellow-500/40 text-yellow-300 text-xs font-mono font-bold cursor-pointer transition-all"
               >
-                <Sun className="w-3 h-3" />
-                <span>Bright</span>
+                <Sun className="w-3.5 h-3.5" />
+                <span>Brighten</span>
               </button>
 
-              {/* Shade / Darken */}
               <button
                 onClick={() => applyFilter('shade')}
-                title="Darken / Shade pixels"
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-500/20 hover:bg-slate-500/30 border border-slate-500/40 text-slate-200 text-xs font-mono font-bold cursor-pointer transition-all"
+                title="Darken / Shade selected parts"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-slate-600/30 hover:bg-slate-600/50 border border-slate-500/50 text-slate-200 text-xs font-mono font-bold cursor-pointer transition-all"
               >
-                <Moon className="w-3 h-3" />
+                <Moon className="w-3.5 h-3.5" />
                 <span>Shade</span>
               </button>
 
-              {/* Contrast */}
               <button
                 onClick={() => applyFilter('contrast')}
-                title="Enhance contrast"
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-mono font-bold cursor-pointer transition-all"
+                title="Enhance contrast on selected parts"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold cursor-pointer transition-all"
               >
-                <Contrast className="w-3 h-3" />
+                <Contrast className="w-3.5 h-3.5" />
                 <span>Contrast</span>
               </button>
 
-              {/* Noise Texture */}
               <button
                 onClick={() => applyFilter('noise')}
                 title="Authentic Minecraft pixel noise texturing"
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold cursor-pointer transition-all"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold cursor-pointer transition-all"
               >
-                <Sliders className="w-3 h-3" />
+                <Sliders className="w-3.5 h-3.5" />
                 <span>Dither Noise</span>
               </button>
             </div>
           </div>
 
-          {/* Layer & Limb Visibility Toggles (Inner/Outer + Limbs) */}
-          <div className="bg-obsidian-card/60 p-2.5 rounded-2xl border border-white/5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-            {/* Layers */}
-            <div className="flex items-center space-x-2">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider">
-                Layers:
-              </span>
-              <button
-                onClick={() => setInnerLayerVisible((v) => !v)}
-                className={`px-2 py-1 rounded-lg border transition-all cursor-pointer ${
-                  innerLayerVisible
-                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                    : 'bg-white/5 border-white/5 text-slate-500 line-through'
-                }`}
-              >
-                Inner Body
-              </button>
-              <button
-                onClick={() => setOuterLayerVisible((v) => !v)}
-                className={`px-2 py-1 rounded-lg border transition-all cursor-pointer ${
-                  outerLayerVisible
-                    ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-                    : 'bg-white/5 border-white/5 text-slate-500 line-through'
-                }`}
-              >
-                Outer Overlay
-              </button>
-            </div>
-
-            {/* Individual Limbs */}
-            <div className="flex items-center space-x-1">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider">
-                Limbs:
-              </span>
-              {(['head', 'torso', 'leftArm', 'rightArm', 'leftLeg', 'rightLeg'] as const).map(
-                (part) => {
-                  const isVis = partsVisibility[part];
-                  return (
-                    <button
-                      key={part}
-                      onClick={() =>
-                        setPartsVisibility((prev) => ({ ...prev, [part]: !prev[part] }))
-                      }
-                      title={`Toggle ${part}`}
-                      className={`px-1.5 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer uppercase ${
-                        isVis
-                          ? 'bg-white/10 border-white/20 text-slate-200'
-                          : 'bg-red-500/10 border-red-500/30 text-red-400 line-through'
-                      }`}
-                    >
-                      {part.replace('left', 'L.').replace('right', 'R.').slice(0, 5)}
-                    </button>
-                  );
-                }
-              )}
-            </div>
-          </div>
-
-          {/* Color Palette & Current Color Bar */}
+          {/* Color Palette & Color Bar */}
           <div className="bg-obsidian-card/60 p-3 rounded-2xl border border-white/5 flex flex-col space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {/* Active Color Swatch + Color Picker Input */}
                 <label
                   className="w-8 h-8 rounded-xl border border-white/20 cursor-pointer shadow-md flex items-center justify-center relative overflow-hidden"
                   style={{ backgroundColor: activeColor }}
@@ -1160,7 +1367,6 @@ export const SkinEditor: React.FC = () => {
                 </div>
               </div>
 
-              {/* Recent Swatches */}
               <div className="flex items-center space-x-1">
                 {recentColors.map((color, i) => (
                   <button
@@ -1177,7 +1383,6 @@ export const SkinEditor: React.FC = () => {
               </div>
             </div>
 
-            {/* Presets Grid */}
             <div className="flex flex-wrap gap-1.5 pt-1">
               {PRESET_COLORS.map((c) => (
                 <button
@@ -1195,10 +1400,10 @@ export const SkinEditor: React.FC = () => {
             </div>
           </div>
 
-          {/* 2D 64x64 Texture Canvas Viewport with Scrollable Container */}
+          {/* 2D 64x64 Texture Canvas Viewport with Pan & Zoom */}
           <div
             ref={canvasContainerRef}
-            className="relative w-full h-[400px] overflow-auto rounded-2xl bg-[#090b11] border border-white/10 flex items-center justify-center p-6 shadow-inner no-scrollbar"
+            className="relative w-full h-[380px] overflow-auto rounded-2xl bg-[#090b11] border border-white/10 flex items-center justify-center p-6 shadow-inner no-scrollbar"
             style={{
               backgroundImage:
                 'linear-gradient(45deg, #0e111a 25%, transparent 25%), linear-gradient(-45deg, #0e111a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #0e111a 75%), linear-gradient(-45deg, transparent 75%, #0e111a 75%)',
@@ -1206,7 +1411,6 @@ export const SkinEditor: React.FC = () => {
               backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
             }}
           >
-            {/* Real 64x64 Canvas with Smooth Zoom Scaling */}
             <div
               className="relative shadow-2xl transition-all"
               style={{
@@ -1218,14 +1422,13 @@ export const SkinEditor: React.FC = () => {
                 ref={canvasRef}
                 width={SKIN_WIDTH}
                 height={SKIN_HEIGHT}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                onMouseDown={handle2DMouseDown}
+                onMouseMove={handle2DMouseMove}
+                onMouseUp={handle2DMouseUp}
+                onMouseLeave={handle2DMouseUp}
                 className="w-full h-full [image-rendering:pixelated] cursor-crosshair border border-white/20 rounded shadow-2xl"
               />
 
-              {/* Grid Lines Overlay */}
               {showGrid && (
                 <div
                   className="absolute inset-0 pointer-events-none rounded opacity-30"
@@ -1236,7 +1439,6 @@ export const SkinEditor: React.FC = () => {
                 />
               )}
 
-              {/* Hover Pixel Indicator */}
               {hoverPixel && (
                 <div
                   className="absolute pointer-events-none border border-gold-bright bg-gold-primary/30"
@@ -1250,9 +1452,8 @@ export const SkinEditor: React.FC = () => {
               )}
             </div>
 
-            {/* UV Map Guidelines Overlay Legend */}
             <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/10 text-[10px] font-mono text-slate-400">
-              {hoverPixel ? `X: ${hoverPixel.x}, Y: ${hoverPixel.y}` : 'Hover over canvas to paint'}
+              {hoverPixel ? `X: ${hoverPixel.x}, Y: ${hoverPixel.y}` : 'Draw on 2D texture or 3D model'}
             </div>
           </div>
         </div>
