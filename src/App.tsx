@@ -16,6 +16,7 @@ import { PriceViewerSection } from './components/PriceViewerSection';
 import { CompareSection } from './components/CompareSection';
 import { BotSection } from './components/BotSection';
 import { ClanTrackerSection } from './components/ClanTrackerSection';
+import { SkinEditor } from './components/SkinEditor';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -135,6 +136,9 @@ function App() {
     if (cleanPath.startsWith('/skin/')) {
       const skinName = cleanPath.split('/skin/')[1];
       return { tab: 'prices', player: null, clan: null, skin: decodeURIComponent(skinName) };
+    }
+    if (cleanPath === '/skineditor') {
+      return { tab: 'skineditor', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/trades') {
       return { tab: 'trades', player: null, clan: null, skin: null };
@@ -490,6 +494,9 @@ function App() {
                   )}
                   {activeTab === 'bot' && (
                     <BotSection />
+                  )}
+                  {activeTab === 'skineditor' && (
+                    <SkinEditor />
                   )}
                 </motion.div>
               </AnimatePresence>
