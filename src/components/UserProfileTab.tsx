@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera, GitCompare } from 'lucide-react';
+import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera, GitCompare, Swords } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 
 import { fetchUserInventory, fetchAllPublicItems } from '../utils/api';
@@ -7,6 +7,7 @@ import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
+import { MatchHistorySection } from './MatchHistorySection';
 interface UserProfileTabProps {
   profile: UserProfile;
   onBack: () => void;
@@ -29,7 +30,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   onCompare
 }) => {
   const isInventoryRoute = typeof window !== 'undefined' && window.location.pathname.includes('/inventory');
-  const [profileTab, setProfileTab] = useState<'stats' | 'inventory'>(isInventoryRoute ? 'inventory' : 'stats');
+  const [profileTab, setProfileTab] = useState<'stats' | 'inventory' | 'matches'>(isInventoryRoute ? 'inventory' : 'stats');
   const [inventory, setInventory] = useState<UserInventoryItem[]>([]);
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
@@ -262,7 +263,17 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
             <Database className="w-4 h-4" />
             <span>Inventory Valuation</span>
           </button>
-
+          <button
+            onClick={() => setProfileTab('matches')}
+            className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+              profileTab === 'matches'
+                ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
+            }`}
+          >
+            <Swords className="w-4 h-4" />
+            <span>Match History</span>
+          </button>
         </div>
 
         {/* Compare Profile Buttons aligned right */}
@@ -663,6 +674,13 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               </div>
             )}
           </div>
+        )}
+
+        {profileTab === 'matches' && (
+          <MatchHistorySection
+            identifier={profile.shortId || profile.id}
+            playerName={profile.name}
+          />
         )}
       </div>
 

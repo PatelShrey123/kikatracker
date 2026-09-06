@@ -546,3 +546,84 @@ export async function fetchAllPublicItems(): Promise<any[]> {
   }
   return [];
 }
+
+export interface MatchHistoryItem {
+  id: string;
+  isWin: boolean;
+  score1: number;
+  score2: number;
+  xpEarned: number;
+  mapName: string;
+  ratingDelta?: number;
+  date: string;
+}
+
+export async function fetchMatchHistory(identifier: string, page: number = 0): Promise<MatchHistoryItem[]> {
+  let cleanId = identifier.trim().toUpperCase().replace('#', '');
+  if (cleanId === 'WEATIE') {
+    cleanId = 'FUYR7K';
+  }
+
+  const payload = {
+    WwwnmW: cleanId,
+    wmnwWM: true,
+    wMWwnNmW: page
+  };
+
+  // Try proxy first
+  try {
+    const res = await fetch('/api2/wwMmWW/wWwMnWN', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data.map((m: any) => ({
+          id: m.WwwnmW,
+          isWin: m.wnMNwmW === 1,
+          score1: m.wNmMWwn || 0,
+          score2: m.wnMNwWW || 0,
+          xpEarned: m.wnMNwW || 0,
+          mapName: m.WwMwmnWN || 'Shipment',
+          ratingDelta: m.WwMwmnNW,
+          date: m.wmnNwWM
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('Proxy match history error, trying direct API:', err);
+  }
+
+  // Direct API fallback
+  try {
+    const res = await fetch('https://api2.kirka.io/api/wwMmWW/wWwMnWN', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ApiKey': '01d50491829d6991b64f116b1f34b70924889a2f99a7ea81820fe8a3323da060'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data.map((m: any) => ({
+          id: m.WwwnmW,
+          isWin: m.wnMNwmW === 1,
+          score1: m.wNmMWwn || 0,
+          score2: m.wnMNwWW || 0,
+          xpEarned: m.wnMNwW || 0,
+          mapName: m.WwMwmnWN || 'Shipment',
+          ratingDelta: m.WwMwmnNW,
+          date: m.wmnNwWM
+        }));
+      }
+    }
+  } catch (err) {
+    console.error('Direct match history API error:', err);
+  }
+
+  return [];
+}

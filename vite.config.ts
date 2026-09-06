@@ -12,6 +12,15 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       proxy: {
+        '/api2': {
+          target: 'https://api2.kirka.io',
+          changeOrigin: true,
+          secure: false,
+          headers: {
+            'ApiKey': apiKey
+          },
+          rewrite: (path) => path.replace(/^\/api2/, '/api')
+        },
         '/api': {
           target: 'https://api.kirka.io',
           changeOrigin: true,

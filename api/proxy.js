@@ -14,9 +14,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Parse target path
-  const path = req.url.replace(/^\/api/, '');
-  const targetUrl = `https://api.kirka.io/api${path}`;
+  // Parse target path & host (supports /api -> api.kirka.io, /api2 -> api2.kirka.io)
+  const isApi2 = req.url.startsWith('/api2');
+  const path = isApi2 ? req.url.replace(/^\/api2/, '') : req.url.replace(/^\/api/, '');
+  const targetHost = isApi2 ? 'https://api2.kirka.io' : 'https://api.kirka.io';
+  const targetUrl = `${targetHost}/api${path}`;
 
   const apiKey = process.env.KIRKA_API_KEY || '01d50491829d6991b64f116b1f34b70924889a2f99a7ea81820fe8a3323da060';
   const headers = {
