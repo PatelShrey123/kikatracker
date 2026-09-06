@@ -124,133 +124,90 @@ function isPixelInPart(
 }
 
 /**
- * Generates an exact Minecraft voxel quad pixel grid (LineSegments) for a 3D box.
+ * Procedurally draws the starter Kirka Gold Esports skin onto a 64x64 canvas.
  */
-function createBoxGridLines(
-  w: number,
-  h: number,
-  d: number,
-  nx: number,
-  ny: number,
-  nz: number,
-  color: number = 0x475569,
-  opacity: number = 0.4
-): THREE.LineSegments {
-  const hw = w / 2;
-  const hh = h / 2;
-  const hd = d / 2;
-  const vertices: number[] = [];
+function paintStarterSkin(canvas: HTMLCanvasElement, targetModel: ModelType = 'slim') {
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return;
 
-  // Front & Back faces
-  for (let i = 0; i <= nx; i++) {
-    const x = -hw + (i * w) / nx;
-    vertices.push(x, -hh, hd, x, hh, hd);
-    vertices.push(x, -hh, -hd, x, hh, -hd);
-  }
-  for (let j = 0; j <= ny; j++) {
-    const y = -hh + (j * h) / ny;
-    vertices.push(-hw, y, hd, hw, y, hd);
-    vertices.push(-hw, y, -hd, hw, y, -hd);
-  }
+  ctx.clearRect(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
 
-  // Left & Right faces
-  for (let m = 0; m <= nz; m++) {
-    const z = -hd + (m * d) / nz;
-    vertices.push(-hw, -hh, z, -hw, hh, z);
-    vertices.push(hw, -hh, z, hw, hh, z);
-  }
-  for (let j = 0; j <= ny; j++) {
-    const y = -hh + (j * h) / ny;
-    vertices.push(-hw, y, -hd, -hw, y, hd);
-    vertices.push(hw, y, -hd, hw, y, hd);
-  }
+  // 1. HEAD
+  ctx.fillStyle = '#e0ac69'; // Skin tone
+  ctx.fillRect(8, 8, 8, 8); // Head Front
+  ctx.fillRect(0, 8, 8, 8); // Head Right
+  ctx.fillRect(16, 8, 8, 8); // Head Left
+  ctx.fillRect(24, 8, 8, 8); // Head Back
+  ctx.fillStyle = '#78350f'; // Brown Hair
+  ctx.fillRect(8, 0, 8, 8); // Head Top
+  ctx.fillRect(8, 8, 8, 3); // Hair Bangs
+  ctx.fillRect(0, 8, 8, 4); // Hair Right
+  ctx.fillRect(16, 8, 8, 4); // Hair Left
+  ctx.fillRect(24, 8, 8, 8); // Hair Back
+  ctx.fillStyle = '#e0ac69'; // Head Bottom
+  ctx.fillRect(16, 0, 8, 8);
 
-  // Top & Bottom faces
-  for (let i = 0; i <= nx; i++) {
-    const x = -hw + (i * w) / nx;
-    vertices.push(x, hh, -hd, x, hh, hd);
-    vertices.push(x, -hh, -hd, x, -hh, hd);
-  }
-  for (let m = 0; m <= nz; m++) {
-    const z = -hd + (m * d) / nz;
-    vertices.push(-hw, hh, z, hw, hh, z);
-    vertices.push(-hw, -hh, z, hw, -hh, z);
-  }
+  // Eyes
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(9, 12, 2, 1);
+  ctx.fillRect(13, 12, 2, 1);
+  ctx.fillStyle = '#2563eb'; // Blue iris
+  ctx.fillRect(10, 12, 1, 1);
+  ctx.fillRect(13, 12, 1, 1);
 
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  const material = new THREE.LineBasicMaterial({
-    color,
-    transparent: true,
-    opacity,
-    depthWrite: false,
-  });
+  // 2. TORSO (Gold Esports Jersey)
+  ctx.fillStyle = '#d4af37'; // Gold
+  ctx.fillRect(20, 20, 8, 12); // Torso Front
+  ctx.fillRect(32, 20, 8, 12); // Torso Back
+  ctx.fillRect(16, 20, 4, 12); // Torso Right
+  ctx.fillRect(28, 20, 4, 12); // Torso Left
+  ctx.fillRect(20, 16, 8, 4); // Torso Top
+  ctx.fillRect(28, 16, 8, 4); // Torso Bottom
+  // Torso Details
+  ctx.fillStyle = '#0f172a'; // Obsidian collar & belt
+  ctx.fillRect(22, 20, 4, 2);
+  ctx.fillRect(20, 30, 8, 2);
 
-  const lines = new THREE.LineSegments(geometry, material);
-  lines.name = 'skinGridLines';
-  return lines;
-}
+  // 3. RIGHT ARM
+  const armW = targetModel === 'slim' ? 3 : 4;
+  ctx.fillStyle = '#d4af37'; // Sleeve top
+  ctx.fillRect(40, 16, armW * 2 + 8, 4);
+  ctx.fillRect(40, 20, armW * 2 + 8, 6);
+  ctx.fillStyle = '#e0ac69'; // Skin hand
+  ctx.fillRect(40, 26, armW * 2 + 8, 6);
 
-/**
- * Attaches exact 1x1 quad pixel grids to all 6 character limbs.
- */
-function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
-  const skin = viewer.playerObject.skin;
-  if (!skin) return;
+  // 4. LEFT ARM
+  ctx.fillStyle = '#d4af37'; // Sleeve top
+  ctx.fillRect(32, 48, armW * 2 + 8, 4);
+  ctx.fillRect(32, 52, armW * 2 + 8, 6);
+  ctx.fillStyle = '#e0ac69'; // Skin hand
+  ctx.fillRect(32, 58, armW * 2 + 8, 6);
 
-  const armW = isSlim ? 3 : 4;
+  // 5. RIGHT LEG (Obsidian Pants)
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 16, 16, 12);
+  ctx.fillStyle = '#1e293b'; // Shoes
+  ctx.fillRect(0, 28, 16, 4);
 
-  const cleanChildren = (obj: any) => {
-    if (!obj || !obj.children) return;
-    for (let i = obj.children.length - 1; i >= 0; i--) {
-      const child = obj.children[i];
-      if (child.name === 'skinGridLines' || child.name === 'skinGhostBox') {
-        obj.remove(child);
-      }
-    }
-  };
+  // 6. LEFT LEG (Obsidian Pants)
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(16, 48, 16, 12);
+  ctx.fillStyle = '#1e293b'; // Shoes
+  ctx.fillRect(16, 60, 16, 4);
 
-  // 1. Head (8x8x8 inner, 9x9x9 outer)
-  cleanChildren(skin.head.innerLayer);
-  (skin.head.innerLayer as any).add(createBoxGridLines(8.02, 8.02, 8.02, 8, 8, 8, 0x475569, 0.4));
-
-  cleanChildren(skin.head.outerLayer);
-  (skin.head.outerLayer as any).add(createBoxGridLines(9.02, 9.02, 9.02, 8, 8, 8, 0x38bdf8, 0.6));
-
-  // 2. Torso (8x12x4 inner, 8.5x12.5x4.5 outer)
-  cleanChildren(skin.body.innerLayer);
-  (skin.body.innerLayer as any).add(createBoxGridLines(8.02, 12.02, 4.02, 8, 12, 4, 0x475569, 0.4));
-
-  cleanChildren(skin.body.outerLayer);
-  (skin.body.outerLayer as any).add(createBoxGridLines(8.52, 12.52, 4.52, 8, 12, 4, 0x38bdf8, 0.6));
-
-  // 3. Right Arm (inner scaled armW,12,4, outer scaled armW+0.5,12.5,4.5)
-  cleanChildren(skin.rightArm.innerLayer);
-  (skin.rightArm.innerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x475569, 0.4));
-
-  cleanChildren(skin.rightArm.outerLayer);
-  (skin.rightArm.outerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x38bdf8, 0.6));
-
-  // 4. Left Arm
-  cleanChildren(skin.leftArm.innerLayer);
-  (skin.leftArm.innerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x475569, 0.4));
-
-  cleanChildren(skin.leftArm.outerLayer);
-  (skin.leftArm.outerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x38bdf8, 0.6));
-
-  // 5. Right Leg (4x12x4 inner, 4.5x12.5x4.5 outer)
-  cleanChildren(skin.rightLeg.innerLayer);
-  (skin.rightLeg.innerLayer as any).add(createBoxGridLines(4.02, 12.02, 4.02, 4, 12, 4, 0x475569, 0.4));
-
-  cleanChildren(skin.rightLeg.outerLayer);
-  (skin.rightLeg.outerLayer as any).add(createBoxGridLines(4.52, 12.52, 4.52, 4, 12, 4, 0x38bdf8, 0.6));
-
-  // 6. Left Leg
-  cleanChildren(skin.leftLeg.innerLayer);
-  (skin.leftLeg.innerLayer as any).add(createBoxGridLines(4.02, 12.02, 4.02, 4, 12, 4, 0x475569, 0.4));
-
-  cleanChildren(skin.leftLeg.outerLayer);
-  (skin.leftLeg.outerLayer as any).add(createBoxGridLines(4.52, 12.52, 4.52, 4, 12, 4, 0x38bdf8, 0.6));
+  // 7. OUTER LAYER (Hat & Jacket Overlay)
+  // Hat: 3D hair bangs & sideburns overlay
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(40, 8, 8, 3); // Hat Front bangs
+  ctx.fillRect(32, 8, 8, 5); // Hat Right side hair
+  ctx.fillRect(48, 8, 8, 5); // Hat Left side hair
+  ctx.fillRect(56, 8, 8, 8); // Hat Back hair
+  ctx.fillRect(40, 0, 8, 8); // Hat Top hair
+  // Jacket: Collar & pocket details
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(20, 36, 8, 2); // Jacket collar
+  ctx.fillRect(20, 44, 3, 2); // Left pocket
+  ctx.fillRect(25, 44, 3, 2); // Right pocket
 }
 
 export const SkinEditor: React.FC = () => {
@@ -353,55 +310,64 @@ export const SkinEditor: React.FC = () => {
   // --------------------------------------------------------------------------
   useEffect(() => {
     if (!viewerContainerRef.current || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const container = viewerContainerRef.current;
 
-    const width = viewerContainerRef.current.clientWidth || 340;
-    const height = viewerContainerRef.current.clientHeight || 440;
+    // 1. Pre-paint starter skin on 2D canvas so texture is immediately ready
+    paintStarterSkin(canvas, modelType);
+    saveToHistory();
+
+    const width = container.clientWidth || 360;
+    const height = container.clientHeight || 440;
+
+    // Clear any previous canvas inside container
+    container.innerHTML = '';
 
     const viewer = new SkinViewer({
       canvas: document.createElement('canvas'),
       width,
       height,
+      skin: canvas,
+      model: modelType,
     });
 
-    viewer.width = width;
-    viewer.height = height;
     viewer.controls.enablePan = true;
     viewer.controls.enableZoom = true;
     viewer.controls.enableRotate = true;
+    viewer.camera.position.set(-16, 12, 48);
+    viewer.controls.target.set(0, 0, 0);
+    viewer.controls.update();
 
-    // Append canvas to container with full dimensions
     viewer.canvas.style.width = '100%';
     viewer.canvas.style.height = '100%';
     viewer.canvas.style.display = 'block';
 
-    viewerContainerRef.current.appendChild(viewer.canvas);
+    container.appendChild(viewer.canvas);
     skinViewerRef.current = viewer;
 
     viewer.playerObject.visible = true;
     viewer.playerObject.skin.visible = true;
-    if (canvasRef.current) {
-      viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
-    }
-    viewer.resetCameraPose();
-    attachGridsToSkin(viewer, modelType === 'slim');
     applyLayerVisibility();
 
-    const handleResize = () => {
-      if (!viewerContainerRef.current || !skinViewerRef.current) return;
-      const w = viewerContainerRef.current.clientWidth;
-      const h = viewerContainerRef.current.clientHeight;
-      skinViewerRef.current.width = w;
-      skinViewerRef.current.height = h;
-    };
-
-    window.addEventListener('resize', handleResize);
+    // Dynamically track container size with ResizeObserver
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width: w, height: h } = entry.contentRect;
+        if (w > 0 && h > 0 && skinViewerRef.current) {
+          skinViewerRef.current.width = Math.round(w);
+          skinViewerRef.current.height = Math.round(h);
+        }
+      }
+    });
+    resizeObserver.observe(container);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       viewer.dispose();
       if (viewer.canvas && viewer.canvas.parentNode) {
         viewer.canvas.parentNode.removeChild(viewer.canvas);
       }
+      skinViewerRef.current = null;
     };
   }, []);
 
@@ -440,7 +406,6 @@ export const SkinEditor: React.FC = () => {
     }
     skinViewerRef.current.playerObject.visible = true;
     skinViewerRef.current.playerObject.skin.visible = true;
-    attachGridsToSkin(skinViewerRef.current, modelType === 'slim');
     applyLayerVisibility();
   }, [modelType, applyLayerVisibility]);
 
@@ -448,19 +413,6 @@ export const SkinEditor: React.FC = () => {
   useEffect(() => {
     applyLayerVisibility();
   }, [applyLayerVisibility]);
-
-  // Toggle 3D Voxel Grid Lines visibility
-  useEffect(() => {
-    if (!skinViewerRef.current) return;
-    const skin = skinViewerRef.current.playerObject.skin;
-    if (!skin) return;
-
-    skin.traverse((child) => {
-      if (child.name === 'skinGridLines') {
-        child.visible = showGrid;
-      }
-    });
-  }, [showGrid]);
 
   // --------------------------------------------------------------------------
   // 2. UNDO / REDO HISTORY ENGINE
@@ -562,103 +514,19 @@ export const SkinEditor: React.FC = () => {
       saveToHistory();
       showToast(`Loaded ${targetModel === 'slim' ? 'Alex 3px' : 'Steve 4px'} skin`);
     } catch {
-      showToast('Could not load skin preset from network. Current skin preserved.');
+      createProceduralStarterSkin(targetModel);
+      showToast('Could not load skin preset from network. Default skin loaded.');
     }
   }, [syncTo3D, saveToHistory]);
 
-  const createProceduralStarterSkin = (targetModel: ModelType) => {
+  const createProceduralStarterSkin = useCallback((targetModel: ModelType = 'slim') => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
-
-    // 1. HEAD
-    ctx.fillStyle = '#e0ac69'; // Skin tone
-    ctx.fillRect(8, 8, 8, 8); // Head Front
-    ctx.fillRect(0, 8, 8, 8); // Head Right
-    ctx.fillRect(16, 8, 8, 8); // Head Left
-    ctx.fillRect(24, 8, 8, 8); // Head Back
-    ctx.fillStyle = '#78350f'; // Brown Hair
-    ctx.fillRect(8, 0, 8, 8); // Head Top
-    ctx.fillRect(8, 8, 8, 3); // Hair Bangs
-    ctx.fillRect(0, 8, 8, 4); // Hair Right
-    ctx.fillRect(16, 8, 8, 4); // Hair Left
-    ctx.fillRect(24, 8, 8, 8); // Hair Back
-    ctx.fillStyle = '#e0ac69'; // Head Bottom
-    ctx.fillRect(16, 0, 8, 8);
-
-    // Eyes
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(9, 12, 2, 1);
-    ctx.fillRect(13, 12, 2, 1);
-    ctx.fillStyle = '#2563eb'; // Blue iris
-    ctx.fillRect(10, 12, 1, 1);
-    ctx.fillRect(13, 12, 1, 1);
-
-    // 2. TORSO (Gold Esports Jersey)
-    ctx.fillStyle = '#d4af37'; // Gold
-    ctx.fillRect(20, 20, 8, 12); // Torso Front
-    ctx.fillRect(32, 20, 8, 12); // Torso Back
-    ctx.fillRect(16, 20, 4, 12); // Torso Right
-    ctx.fillRect(28, 20, 4, 12); // Torso Left
-    ctx.fillRect(20, 16, 8, 4); // Torso Top
-    ctx.fillRect(28, 16, 8, 4); // Torso Bottom
-    // Torso Details
-    ctx.fillStyle = '#0f172a'; // Obsidian collar & belt
-    ctx.fillRect(22, 20, 4, 2);
-    ctx.fillRect(20, 30, 8, 2);
-
-    // 3. RIGHT ARM
-    const armW = targetModel === 'slim' ? 3 : 4;
-    ctx.fillStyle = '#d4af37'; // Sleeve top
-    ctx.fillRect(40, 16, armW * 2 + 8, 4);
-    ctx.fillRect(40, 20, armW * 2 + 8, 6);
-    ctx.fillStyle = '#e0ac69'; // Skin hand
-    ctx.fillRect(40, 26, armW * 2 + 8, 6);
-
-    // 4. LEFT ARM
-    ctx.fillStyle = '#d4af37'; // Sleeve top
-    ctx.fillRect(32, 48, armW * 2 + 8, 4);
-    ctx.fillRect(32, 52, armW * 2 + 8, 6);
-    ctx.fillStyle = '#e0ac69'; // Skin hand
-    ctx.fillRect(32, 58, armW * 2 + 8, 6);
-
-    // 5. RIGHT LEG (Obsidian Pants)
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 16, 16, 12);
-    ctx.fillStyle = '#1e293b'; // Shoes
-    ctx.fillRect(0, 28, 16, 4);
-
-    // 6. LEFT LEG (Obsidian Pants)
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(16, 48, 16, 12);
-    ctx.fillStyle = '#1e293b'; // Shoes
-    ctx.fillRect(16, 60, 16, 4);
-
-    // 7. OUTER LAYER (Hat & Jacket Overlay)
-    // Hat: 3D hair bangs & sideburns overlay
-    ctx.fillStyle = '#92400e';
-    ctx.fillRect(40, 8, 8, 3); // Hat Front bangs
-    ctx.fillRect(32, 8, 8, 5); // Hat Right side hair
-    ctx.fillRect(48, 8, 8, 5); // Hat Left side hair
-    ctx.fillRect(56, 8, 8, 8); // Hat Back hair
-    ctx.fillRect(40, 0, 8, 8); // Hat Top hair
-    // Jacket: Collar & pocket details
-    ctx.fillStyle = '#b45309';
-    ctx.fillRect(20, 36, 8, 2); // Jacket collar
-    ctx.fillRect(20, 44, 3, 2); // Left pocket
-    ctx.fillRect(25, 44, 3, 2); // Right pocket
-
+    paintStarterSkin(canvas, targetModel);
     setModelType(targetModel);
     syncTo3D();
     saveToHistory();
-  };
-
-  useEffect(() => {
-    createProceduralStarterSkin('slim');
-  }, []);
+  }, [syncTo3D, saveToHistory]);
 
   // --------------------------------------------------------------------------
   // 4. PAINTING ON 2D TEXTURE CANVAS
@@ -1024,7 +892,7 @@ export const SkinEditor: React.FC = () => {
 
   const handleResetCamera = () => {
     if (!skinViewerRef.current) return;
-    skinViewerRef.current.resetCameraPose();
+    skinViewerRef.current.camera.position.set(-16, 12, 48);
     skinViewerRef.current.controls.target.set(0, 0, 0);
     skinViewerRef.current.controls.update();
   };
@@ -1059,6 +927,10 @@ export const SkinEditor: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <select
             onChange={(e) => {
+              if (e.target.value === '__starter_gold') {
+                createProceduralStarterSkin(modelType);
+                return;
+              }
               const preset = SKIN_PRESETS.find((p) => p.name === e.target.value);
               if (preset) loadSkinFromUrl(preset.url, preset.type);
             }}
@@ -1067,6 +939,9 @@ export const SkinEditor: React.FC = () => {
           >
             <option value="" disabled>
               🎨 Load Preset Skin...
+            </option>
+            <option value="__starter_gold">
+              ✨ Default Kirka Gold Skin
             </option>
             {SKIN_PRESETS.map((p) => (
               <option key={p.name} value={p.name}>
@@ -1107,7 +982,7 @@ export const SkinEditor: React.FC = () => {
             onPointerDown={handle3DPointerDown}
             onPointerMove={handle3DPointerMove}
             onPointerUp={handle3DPointerUp}
-            className={`relative w-full h-[440px] rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center transition-all ${
+            className={`relative w-full h-[440px] rounded-2xl overflow-hidden border border-white/10 transition-all ${
               interactionMode === 'paint' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'
             } ${
               bgType === 'studio'
