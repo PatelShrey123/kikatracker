@@ -18,6 +18,7 @@ import { BotSection } from './components/BotSection';
 import { ClanTrackerSection } from './components/ClanTrackerSection';
 import { SkinEditor } from './components/SkinEditor';
 import { RendersSection } from './components/RendersSection';
+import { FitViewerSection } from './components/FitViewerSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -103,6 +104,9 @@ function App() {
     }
     if (cleanPath === '/renders' || cleanPath === '/3drenders') {
       return { tab: 'renders', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/fitviewer' || cleanPath === '/fit-viewer') {
+      return { tab: 'fitviewer', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/skineditor') {
       return { tab: 'skineditor', player: null, clan: null, skin: null };
@@ -465,6 +469,12 @@ function App() {
                   )}
                   {activeTab === 'skineditor' && (
                     <SkinEditor />
+                  )}
+                  {activeTab === 'fitviewer' && (
+                    <FitViewerSection
+                      publicItems={publicItems}
+                      marketPrices={marketPrices}
+                    />
                   )}
                   {activeTab === 'renders' && (
                     <RendersSection
