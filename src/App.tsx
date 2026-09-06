@@ -447,6 +447,7 @@ function App() {
                       marketPrices={marketPrices}
                       publicItems={publicItems}
                       fallbackRenders={fallbackRenders}
+                      allItemData={allItemData}
                       onInspectItem={(name, type) => {
                         setInspectItem({ name, type, amount: 1 });
                       }}

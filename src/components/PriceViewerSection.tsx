@@ -6,6 +6,7 @@ interface PriceViewerSectionProps {
   marketPrices: Map<string, MarketItem>;
   publicItems: any[];
   fallbackRenders: Record<string, any>;
+  allItemData?: any[];
   onInspectItem?: (name: string, type: string) => void;
 }
 
@@ -13,6 +14,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
   marketPrices,
   publicItems,
   fallbackRenders,
+  allItemData,
   onInspectItem,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -105,34 +107,58 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
     return parts.join('.');
   };
 
-  const getProxiedImageUrl = (url: string | null) => {
-    if (!url) return '';
-    if (url.startsWith('data:') || url.startsWith('/') || url.startsWith('http://localhost') || url.includes(window.location.host)) {
-      return url;
+  // Precompute indexed map from publicItems and allItemData for instant O(1) matching
+  const renderMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const itemList = [...(publicItems || []), ...(allItemData || [])];
+
+    for (const p of itemList) {
+      if (!p || !p.renderUrl) continue;
+      const cleanName = (p.name || '').replace(/^_+|_+$/g, '').trim().toLowerCase();
+      const parentName = (p.parent?.name || '').trim().toLowerCase();
+      const isBodySkin = p.type === 'BODY_SKIN';
+
+      // 1. Precise composite keys: "rub1x_ar-9" and "rub1x ar-9"
+      if (parentName) {
+        map.set(`${cleanName}_${parentName}`, p.renderUrl);
+        map.set(`${cleanName} ${parentName}`, p.renderUrl);
+      }
+      // 2. Character body skin keys
+      if (isBodySkin) {
+        map.set(`${cleanName}_character`, p.renderUrl);
+        map.set(`${cleanName} character`, p.renderUrl);
+        map.set(`${cleanName}_body_skin`, p.renderUrl);
+      }
+
+      // 3. Clean skin name alone (fallback)
+      if (!map.has(cleanName)) {
+        map.set(cleanName, p.renderUrl);
+      }
     }
-    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
-  };
+    return map;
+  }, [publicItems, allItemData]);
 
   // Helper to resolve skin image render URL
   const getItemRenderUrl = (item: MarketItem) => {
-    // Try fallback renders map first
-    const nameKey = item.skinName.toLowerCase();
-    const fallback = fallbackRenders[nameKey];
-    if (fallback && fallback.renderurl) return fallback.renderurl;
+    if (!item || !item.skinName) return null;
+    const cleanSkin = item.skinName.replace(/^_+|_+$/g, '').trim().toLowerCase();
+    const cleanType = (item.type || '').trim().toLowerCase();
 
-    if (item.type) {
-      const comboKey = `${item.skinName.toLowerCase()} ${item.type.toLowerCase()}`;
-      const comboFallback = fallbackRenders[comboKey];
-      if (comboFallback && comboFallback.renderurl) return comboFallback.renderurl;
+    // 1. Try fallback renders map first
+    if (cleanType) {
+      const comboKey = `${cleanSkin} ${cleanType}`;
+      if (fallbackRenders[comboKey]?.renderurl) return fallbackRenders[comboKey].renderurl;
+      const comboKeyUnderscore = `${cleanSkin}_${cleanType}`;
+      if (fallbackRenders[comboKeyUnderscore]?.renderurl) return fallbackRenders[comboKeyUnderscore].renderurl;
     }
-    
-    // Find in publicItems list
-    const matched = publicItems.find(
-      (p) =>
-        p.name.toLowerCase() === item.skinName.toLowerCase() &&
-        p.type.toLowerCase() === item.type.toLowerCase()
-    );
-    return matched ? matched.renderUrl : null;
+    if (fallbackRenders[cleanSkin]?.renderurl) return fallbackRenders[cleanSkin].renderurl;
+
+    // 2. Fast O(1) lookup in renderMap
+    if (cleanType) {
+      const comboUrl = renderMap.get(`${cleanSkin}_${cleanType}`) || renderMap.get(`${cleanSkin} ${cleanType}`);
+      if (comboUrl) return comboUrl;
+    }
+    return renderMap.get(cleanSkin) || null;
   };
 
   return (
@@ -236,10 +262,17 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                   <div className="h-28 flex items-center justify-center relative my-2">
                     {renderUrl ? (
                       <img
-                        src={getProxiedImageUrl(renderUrl)}
+                        src={renderUrl}
                         alt={item.skinName}
                         loading="lazy"
                         className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)] hover:rotate-6 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.triedFallback) {
+                            target.dataset.triedFallback = 'true';
+                            target.src = `https://images.weserv.nl/?url=${encodeURIComponent(renderUrl)}`;
+                          }
+                        }}
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-lg bg-obsidian-deep/50 border border-white/5 flex items-center justify-center">

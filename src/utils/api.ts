@@ -525,8 +525,24 @@ export async function fetchQuests(): Promise<Quest[]> {
 
 export async function fetchAllPublicItems(): Promise<any[]> {
   try {
-    return await apiRequest<any[]>('/inventory/items');
-  } catch {
-    return [];
+    const items = await apiRequest<any[]>('/inventory/items');
+    if (Array.isArray(items) && items.length > 0) return items;
+  } catch (err) {
+    console.warn('Failed to fetch public items via proxy, trying direct Kirka API:', err);
   }
+
+  try {
+    const res = await fetch('https://api.kirka.io/api/inventory/items', {
+      headers: {
+        'ApiKey': '01d50491829d6991b64f116b1f34b70924889a2f99a7ea81820fe8a3323da060',
+        'Accept': 'application/json'
+      }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.error('Direct fallback also failed:', e);
+  }
+  return [];
 }
