@@ -59,13 +59,13 @@ export function cropMinecraftHead(textureUrl: string): Promise<string> {
       try {
         resolve(canvas.toDataURL('image/png'));
       } catch (e) {
-        // Fallback to original texture if canvas is tainted by CORS
-        resolve(textureUrl);
+        // Fallback to empty string if canvas is tainted by CORS
+        resolve('');
       }
     };
 
     img.onerror = () => {
-      resolve(textureUrl);
+      resolve('');
     };
 
     img.src = textureUrl;

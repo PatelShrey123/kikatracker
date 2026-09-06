@@ -35,10 +35,12 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [croppedHeadUrl, setCroppedHeadUrl] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
   // Sync inventory & public items
   useEffect(() => {
+    setAvatarError(false);
     setLoadingInventory(true);
     fetchUserInventory(profile.id)
       .then((data) => setInventory(data))
@@ -55,6 +57,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   // Crop equipped character skin texture to display head face
   useEffect(() => {
     setCroppedHeadUrl(null);
+    setAvatarError(false);
     if (profile.activeBodySkin) {
       let texture = profile.activeBodySkin.textureUrl;
       if (!texture && allItemData && Array.isArray(allItemData)) {
@@ -172,20 +175,27 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           {/* Square Avatar Column (displays cropped head/face!) */}
           <div className="flex flex-col items-center space-y-2">
             <div className="relative w-20 h-20 bg-obsidian-dark border border-gold-primary/20 rounded-xl flex items-center justify-center p-1.5 shadow-gold-glow overflow-hidden">
-              {croppedHeadUrl ? (
+              {croppedHeadUrl && !avatarError ? (
                 <img
                   src={croppedHeadUrl}
-                  alt={profile.activeBodySkin?.name}
+                  alt={profile.activeBodySkin?.name || profile.name}
+                  onError={() => setAvatarError(true)}
+                  className="w-14 h-14 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                />
+              ) : profile.activeBodySkin?.renderUrl && !avatarError ? (
+                <img
+                  src={profile.activeBodySkin.renderUrl}
+                  alt={profile.activeBodySkin.name}
+                  onError={() => setAvatarError(true)}
                   className="w-14 h-14 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                 />
               ) : (
-                /* Blocky Pixel head fallback */
-                <svg viewBox="0 0 8 8" className="w-14 h-14 text-slate-500 fill-current">
-                  <rect width="8" height="8" rx="0" fill="#4b5563" />
-                  <rect x="1" y="1" width="6" height="5" fill="#9ca3af" />
-                  <rect x="2" y="4" width="1" height="1" fill="#000" />
-                  <rect x="5" y="4" width="1" height="1" fill="#000" />
-                </svg>
+                /* Sleek Initial / Pixel Avatar fallback */
+                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-500/20 via-yellow-600/10 to-transparent border border-gold-primary/30 flex items-center justify-center shadow-inner">
+                  <span className="font-mono font-black text-2xl text-gold-bright select-none">
+                    {(profile.name || 'U').charAt(0).toUpperCase()}
+                  </span>
+                </div>
               )}
             </div>
             <span className="text-[11px] font-black font-mono text-slate-300">
@@ -300,7 +310,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
       {/* Tab Contents */}
       <div>
-        {profileTab === 'stats' ? (
+        {profileTab === 'stats' && (
           <div className="space-y-10">
             {/* 1. Equipped Loadout Cards */}
             <div className="space-y-4">
@@ -545,7 +555,9 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               </div>
             </div>
           </div>
-        ) : (
+        )}
+
+        {profileTab === 'inventory' && (
           /* Inventory Valuation Tab */
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
