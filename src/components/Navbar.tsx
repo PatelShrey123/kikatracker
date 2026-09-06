@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Tag, GitCompare, Bot, TrendingUp, Palette, Menu, X } from 'lucide-react';
+import { MessageSquare, Tag, GitCompare, Bot, TrendingUp, Palette, Menu, X, Box } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface NavbarProps {
@@ -12,6 +12,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
   const navItems = [
     { id: 'search', label: 'Search Portal', imgUrl: 'search_portal.png' },
+    { id: 'renders', label: '3D Renders', icon: Box, badge: '3D' },
     { id: 'skineditor', label: 'Skin Studio', icon: Palette, badge: '3D/2D' },
     { id: 'daily', label: 'Daily Leaderboard', imgUrl: 'daily_leaderboard.png' },
     { id: 'ranked', label: 'Ranked Arena', imgUrl: 'ranked_arena.png' },

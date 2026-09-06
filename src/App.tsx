@@ -17,6 +17,7 @@ import { CompareSection } from './components/CompareSection';
 import { BotSection } from './components/BotSection';
 import { ClanTrackerSection } from './components/ClanTrackerSection';
 import { SkinEditor } from './components/SkinEditor';
+import { RendersSection } from './components/RendersSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -104,6 +105,9 @@ function App() {
     if (cleanPath.startsWith('/skin/')) {
       const skinName = cleanPath.split('/skin/')[1];
       return { tab: 'prices', player: null, clan: null, skin: decodeURIComponent(skinName) };
+    }
+    if (cleanPath === '/renders' || cleanPath === '/3drenders') {
+      return { tab: 'renders', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/skineditor') {
       return { tab: 'skineditor', player: null, clan: null, skin: null };
@@ -466,6 +470,14 @@ function App() {
                   )}
                   {activeTab === 'skineditor' && (
                     <SkinEditor />
+                  )}
+                  {activeTab === 'renders' && (
+                    <RendersSection
+                      publicItems={publicItems}
+                      marketPrices={marketPrices}
+                      fallbackRenders={fallbackRenders}
+                      allItemData={allItemData}
+                    />
                   )}
                 </motion.div>
               </AnimatePresence>
