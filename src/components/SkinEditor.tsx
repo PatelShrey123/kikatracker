@@ -192,30 +192,7 @@ function createBoxGridLines(
 }
 
 /**
- * Creates a translucent ghost volume box for outer layers so empty/transparent areas are visible.
- */
-function createGhostBox(
-  w: number,
-  h: number,
-  d: number,
-  color: number = 0x38bdf8,
-  opacity: number = 0.08
-): THREE.Mesh {
-  const geom = new THREE.BoxGeometry(w, h, d);
-  const mat = new THREE.MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  });
-  const mesh = new THREE.Mesh(geom, mat);
-  mesh.name = 'skinGhostBox';
-  return mesh;
-}
-
-/**
- * Attaches exact 1x1 quad pixel grids and outer ghost boxes to all 6 character limbs.
+ * Attaches exact 1x1 quad pixel grids to all 6 character limbs.
  */
 function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
   const skin = viewer.playerObject.skin;
@@ -239,7 +216,6 @@ function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
 
   cleanChildren(skin.head.outerLayer);
   (skin.head.outerLayer as any).add(createBoxGridLines(9.02, 9.02, 9.02, 8, 8, 8, 0x38bdf8, 0.6));
-  (skin.head.outerLayer as any).add(createGhostBox(9, 9, 9, 0x38bdf8, 0.07));
 
   // 2. Torso (8x12x4 inner, 8.5x12.5x4.5 outer)
   cleanChildren(skin.body.innerLayer);
@@ -247,15 +223,13 @@ function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
 
   cleanChildren(skin.body.outerLayer);
   (skin.body.outerLayer as any).add(createBoxGridLines(8.52, 12.52, 4.52, 8, 12, 4, 0x38bdf8, 0.6));
-  (skin.body.outerLayer as any).add(createGhostBox(8.5, 12.5, 4.5, 0x38bdf8, 0.07));
 
-  // 3. Right Arm (inner scale armW,12,4, outer scale armW+0.5,12.5,4.5)
+  // 3. Right Arm (inner scaled armW,12,4, outer scaled armW+0.5,12.5,4.5)
   cleanChildren(skin.rightArm.innerLayer);
   (skin.rightArm.innerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x475569, 0.4));
 
   cleanChildren(skin.rightArm.outerLayer);
   (skin.rightArm.outerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x38bdf8, 0.6));
-  (skin.rightArm.outerLayer as any).add(createGhostBox(1, 1, 1, 0x38bdf8, 0.07));
 
   // 4. Left Arm
   cleanChildren(skin.leftArm.innerLayer);
@@ -263,7 +237,6 @@ function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
 
   cleanChildren(skin.leftArm.outerLayer);
   (skin.leftArm.outerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x38bdf8, 0.6));
-  (skin.leftArm.outerLayer as any).add(createGhostBox(1, 1, 1, 0x38bdf8, 0.07));
 
   // 5. Right Leg (4x12x4 inner, 4.5x12.5x4.5 outer)
   cleanChildren(skin.rightLeg.innerLayer);
@@ -271,7 +244,6 @@ function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
 
   cleanChildren(skin.rightLeg.outerLayer);
   (skin.rightLeg.outerLayer as any).add(createBoxGridLines(4.52, 12.52, 4.52, 4, 12, 4, 0x38bdf8, 0.6));
-  (skin.rightLeg.outerLayer as any).add(createGhostBox(4.5, 12.5, 4.5, 0x38bdf8, 0.07));
 
   // 6. Left Leg
   cleanChildren(skin.leftLeg.innerLayer);
@@ -279,7 +251,6 @@ function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
 
   cleanChildren(skin.leftLeg.outerLayer);
   (skin.leftLeg.outerLayer as any).add(createBoxGridLines(4.52, 12.52, 4.52, 4, 12, 4, 0x38bdf8, 0.6));
-  (skin.leftLeg.outerLayer as any).add(createGhostBox(4.5, 12.5, 4.5, 0x38bdf8, 0.07));
 }
 
 export const SkinEditor: React.FC = () => {
@@ -343,8 +314,12 @@ export const SkinEditor: React.FC = () => {
   // Apply Layer & Body Part Visibility in 3D Viewport
   const applyLayerVisibility = useCallback(() => {
     if (!skinViewerRef.current) return;
-    const skin = skinViewerRef.current.playerObject.skin;
+    const player = skinViewerRef.current.playerObject;
+    if (!player) return;
+    player.visible = true;
+    const skin = player.skin;
     if (!skin) return;
+    skin.visible = true;
 
     // Inner Layer (Body)
     skin.head.innerLayer.visible = innerLayerVisible && partsVisibility.head;
@@ -367,8 +342,9 @@ export const SkinEditor: React.FC = () => {
   const syncTo3D = useCallback(() => {
     if (!skinViewerRef.current || !canvasRef.current) return;
     const viewer = skinViewerRef.current;
-    viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
+    viewer.playerObject.visible = true;
     viewer.playerObject.skin.visible = true;
+    viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
     applyLayerVisibility();
   }, [modelType, applyLayerVisibility]);
 
@@ -389,7 +365,6 @@ export const SkinEditor: React.FC = () => {
 
     viewer.width = width;
     viewer.height = height;
-    viewer.camera.position.set(0, 0, 52);
     viewer.controls.enablePan = true;
     viewer.controls.enableZoom = true;
     viewer.controls.enableRotate = true;
@@ -402,8 +377,12 @@ export const SkinEditor: React.FC = () => {
     viewerContainerRef.current.appendChild(viewer.canvas);
     skinViewerRef.current = viewer;
 
+    viewer.playerObject.visible = true;
     viewer.playerObject.skin.visible = true;
-    viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
+    if (canvasRef.current) {
+      viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
+    }
+    viewer.resetCameraPose();
     attachGridsToSkin(viewer, modelType === 'slim');
     applyLayerVisibility();
 
@@ -456,6 +435,11 @@ export const SkinEditor: React.FC = () => {
   useEffect(() => {
     if (!skinViewerRef.current) return;
     skinViewerRef.current.playerObject.skin.modelType = modelType;
+    if (canvasRef.current) {
+      skinViewerRef.current.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
+    }
+    skinViewerRef.current.playerObject.visible = true;
+    skinViewerRef.current.playerObject.skin.visible = true;
     attachGridsToSkin(skinViewerRef.current, modelType === 'slim');
     applyLayerVisibility();
   }, [modelType, applyLayerVisibility]);
@@ -552,23 +536,19 @@ export const SkinEditor: React.FC = () => {
     if (!ctx) return;
 
     try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-
       let proxiedUrl = url;
       if (url.includes('textures.minecraft.net') || url.includes('kirka.io')) {
         proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
       }
 
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
+      const loadedImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
         img.onerror = () => {
           const directImg = new Image();
           directImg.crossOrigin = 'anonymous';
-          directImg.onload = () => {
-            img.src = directImg.src;
-            resolve();
-          };
+          directImg.onload = () => resolve(directImg);
           directImg.onerror = reject;
           directImg.src = url;
         };
@@ -576,13 +556,13 @@ export const SkinEditor: React.FC = () => {
       });
 
       ctx.clearRect(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
-      ctx.drawImage(img, 0, 0, SKIN_WIDTH, SKIN_HEIGHT);
+      ctx.drawImage(loadedImg, 0, 0, SKIN_WIDTH, SKIN_HEIGHT);
       setModelType(targetModel);
       syncTo3D();
       saveToHistory();
       showToast(`Loaded ${targetModel === 'slim' ? 'Alex 3px' : 'Steve 4px'} skin`);
     } catch {
-      createProceduralStarterSkin(targetModel);
+      showToast('Could not load skin preset from network. Current skin preserved.');
     }
   }, [syncTo3D, saveToHistory]);
 
@@ -678,10 +658,6 @@ export const SkinEditor: React.FC = () => {
 
   useEffect(() => {
     createProceduralStarterSkin('slim');
-    // Try to load online preset with fallback
-    loadSkinFromUrl(SKIN_PRESETS[0].url, 'slim').catch(() => {
-      createProceduralStarterSkin('slim');
-    });
   }, []);
 
   // --------------------------------------------------------------------------
@@ -1048,8 +1024,9 @@ export const SkinEditor: React.FC = () => {
 
   const handleResetCamera = () => {
     if (!skinViewerRef.current) return;
-    skinViewerRef.current.camera.position.set(0, 0, 52);
-    skinViewerRef.current.controls.reset();
+    skinViewerRef.current.resetCameraPose();
+    skinViewerRef.current.controls.target.set(0, 0, 0);
+    skinViewerRef.current.controls.update();
   };
 
   return (
