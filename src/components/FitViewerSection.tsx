@@ -17,6 +17,17 @@ interface FitViewerSectionProps {
 // Preset fits for quick 1-click preview
 const PRESET_FITS = [
   {
+    name: 'Capy Chill',
+    level: 99,
+    charSkinName: 'Capy',
+    primaryWeapon: 'SCAR',
+    primarySkinName: 'Neo2',
+    secondarySkinName: 'Sterling',
+    secondaryWeapon: 'Revolver',
+    meleeSkinName: 'CYB3R',
+    meleeWeapon: 'Bayonet'
+  },
+  {
     name: 'CrackedYOU',
     level: 96,
     charSkinName: 'James',
@@ -80,12 +91,26 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
   const [openDropdown, setOpenDropdown] = useState<'char' | 'primaryGun' | 'primarySkin' | 'secondary' | 'melee' | null>(null);
 
   // --- FILTERED CATALOG DATA ---
-  // 1. All Character Skins
+  // 1. All Character Skins (including in-game specials like Capy)
   const characterSkins = useMemo(() => {
-    return publicItems.filter(item => {
+    const list = publicItems.filter(item => {
       const type = (item.type || '').toUpperCase();
       return type === 'BODY_SKIN' || type === 'CHARACTER';
-    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    });
+
+    // Ensure Capy is present even if official items API is not updated yet
+    if (!list.some(s => s.name?.toLowerCase() === 'capy')) {
+      list.push({
+        id: 'capy-skin-special',
+        name: 'Capy',
+        type: 'BODY_SKIN',
+        rarity: 'LEGENDARY',
+        textureUrl: 'https://api2.kirka.io/api/skin-texture/Capy/v1785750819945.webp',
+        renderUrl: 'https://api2.kirka.io/api/skin-texture/Capy/v1785750819945.webp',
+      });
+    }
+
+    return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [publicItems]);
 
   // 2. All Primary Weapons available
@@ -118,7 +143,18 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
 
   // --- RESOLVE CURRENT EQUIPPED OBJECTS ---
   const activeCharItem = useMemo(() => {
-    return characterSkins.find(s => s.name?.toLowerCase() === selectedCharName.toLowerCase()) || characterSkins[0];
+    const found = characterSkins.find(s => s.name?.toLowerCase() === selectedCharName.toLowerCase());
+    if (found) return found;
+
+    // Direct CDN probe for unlisted or user-entered skin names
+    return {
+      id: `probed-${selectedCharName}`,
+      name: selectedCharName,
+      type: 'BODY_SKIN',
+      rarity: 'SPECIAL',
+      textureUrl: `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(selectedCharName)}`,
+      renderUrl: `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(selectedCharName)}`,
+    };
   }, [characterSkins, selectedCharName]);
 
   const activePrimaryItem = useMemo(() => {
@@ -389,6 +425,24 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
                         </button>
                       );
                     })}
+
+                  {/* Option to load unlisted / custom skin via api2.kirka.io CDN */}
+                  {charSearch.trim() && !characterSkins.some(c => c.name?.toLowerCase() === charSearch.trim().toLowerCase()) && (
+                    <button
+                      onClick={() => {
+                        setSelectedCharName(charSearch.trim());
+                        setCharSearch('');
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs bg-indigo-600/30 text-indigo-300 border border-indigo-500/50 hover:bg-indigo-600/40 transition-all cursor-pointer font-bold mt-1 shadow-sm"
+                    >
+                      <div className="flex items-center space-x-2 truncate">
+                        <span>⚡ Probe & Load "{charSearch.trim()}"</span>
+                      </div>
+                      <span className="text-[10px] bg-indigo-500/60 px-2 py-0.5 rounded text-white font-mono">
+                        api2.kirka.io
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

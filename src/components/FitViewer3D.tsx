@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { SkinViewer } from 'skinview3d';
-import { RotateCcw, Download, Sparkles, Loader2 } from 'lucide-react';
+import { RotateCcw, Download, Loader2 } from 'lucide-react';
 import { WEAPON_MODEL_MAP, cleanTextureUrl, getProxiedTextureUrl } from './Weapon3DViewer';
 
 interface FitViewer3DProps {
@@ -16,6 +16,9 @@ interface FitViewer3DProps {
 
 // In-memory cache for loaded GLTF weapon models
 const gltfModelCache = new Map<string, THREE.Group>();
+
+// Authentic James skin fallback data URI ensuring 0ms immediate character appearance
+const STARTER_JAMES_SKIN = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAADL0lEQVR4nO1bUZKDIAz1FH5wAHs7DgZ0tJ0eq3dwJ07TYbMgQUBxZWfeVEhAeIYQidtJKbs1KKVmgDFmHsdxAVxjfUge6r8U5nlmoeMQAJOapuk7QbzGSa7JT0+AMWaZ0P1+X54sAK6hDstr8tMTMFpmrbVeYJt7SN4IkCe3AK2118ThNyQ/PQHq6k5QfSYJTxMnCNd0G/TJqydAWfs4PDn03q59voS8CgKmaZofj8cvQB0OsqRcCMHGMAxR+hx08DRwQGC66MCgDp1aSXksAblJ6HAw1IvbT6qknGuqpdCtDRDXbEl5KR/A/jMrJooRXt/3f+RQFzJxbL8mP5wAFeHEYNKAnE6QOyHaPisB6rOPY+e+fR5N2icPtXfJD7cASRrSgVP0fd8BfDcOtQ8hNDFuu2IEyI0DbASoZgFzlUtAKfU9yMDOUss2XPVr+r4+6P3s9wlXf1EEmM9+jo1TyzhAG/YAU/UxnvDJowjQWn9fY5HJlDIOiL4e4wBT9elbpau/KAKM1SHeOKUMg7BjBgRGhTH6dMJIkh1MUXk0ASPpMLWMA3JFfnhYmqIPv8/ncwGG067ok03ANE2/Okwt27E+1UNZij7g9XotcN3/dAQYywIOIWC8+hK4k5ec1DJ6ZZ8TjNGnDpI6Qdwxkpyg+hxr29tIanltW0vVxzwEWoirvxYIqUgL0IVC4VL1nPuzCZDkJYKemm45jHC1w7rQKe3hByKCHD+XIOB2uznRCBAXsQBR0xIQiRmYWAJy6GcnYCATjik3AmSzgM5lvjHru4Q/SPIBIuATOD4Cdbj+xKdfJQGCSZBvUjH6VRAgNljI+/3+1uP15Qh4f1C1BcjEgCNkAZcnYKh9CcgMFhDy6Fwn+m8IEBu2QR92J0AkDiCU59vaflcChgQTbASoZgHzqZaA2BD62ihxqMrJ/1dzHqAKfF/Ayf9XQ4DO/H2BL3NEEx/VEGAyf19g5wnX8v9FCRARLz+5k6vc5OehBAgLudPr3PR3I0AW3AZFBE6/BOTGlw1E7u8LqBP05f93+68xyYjccn5fYOf/ccJbtsFdCTAVBkK7EqALhMKh/H8uAn4A8VgjPoKxteQAAAAASUVORK5CYII=';
 
 export const FitViewer3D: React.FC<FitViewer3DProps> = ({
   characterTextureUrl,
@@ -32,11 +35,11 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
 
   // Helper to pose character in authentic Kirka idle holding stance
   const applyKirkaPose = (viewer: SkinViewer) => {
-    const skin = viewer.playerObject.skin;
+    const skin = viewer.playerObject?.skin;
     if (!skin) return;
 
-    // Angled body
-    viewer.playerObject.rotation.y = 0.22;
+    // Angled body facing viewer
+    viewer.playerObject.rotation.y = 0.28;
 
     // Right arm holding gun grip/trigger
     skin.rightArm.rotation.x = -1.15;
@@ -65,45 +68,55 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
     const width = container.clientWidth || 400;
     const height = container.clientHeight || 460;
 
+    let isDisposed = false;
+    let animId: number | null = null;
+
     const canvas = document.createElement('canvas');
     container.innerHTML = '';
     container.appendChild(canvas);
 
-    // 1. Initialize SkinViewer
+    // 1. Initialize SkinViewer with resolved skin source or James starter fallback
     const cleanedCharTex = cleanTextureUrl(characterTextureUrl);
-    const skinSource = cleanedCharTex ? getProxiedTextureUrl(cleanedCharTex) : undefined;
+    const initialSkin = cleanedCharTex ? getProxiedTextureUrl(cleanedCharTex) : STARTER_JAMES_SKIN;
 
     const viewer = new SkinViewer({
       canvas,
       width,
       height,
       model: 'slim', // Kirka 3px slim voxel mesh
-      skin: skinSource,
+      skin: initialSkin,
     });
 
     skinViewerRef.current = viewer;
 
     // Kirka signature royal blue backdrop
     viewer.background = 0x183c88;
-    viewer.camera.position.set(0, 1.5, 52);
-    viewer.camera.lookAt(0, -1, 0);
+    viewer.controls.enablePan = true;
+    viewer.controls.enableZoom = true;
+    viewer.controls.enableRotate = true;
+    viewer.controls.target.set(0, 0, 0);
+    viewer.camera.position.set(0, 0, 52);
+    viewer.controls.update();
 
-    // Initial pose
+    viewer.playerObject.visible = true;
+    viewer.playerObject.skin.visible = true;
+
+    // Initial Kirka pose
     applyKirkaPose(viewer);
 
     // Studio Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
     viewer.scene.add(ambientLight as any);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.2);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.4);
     dirLight1.position.set(15, 25, 30);
     viewer.scene.add(dirLight1 as any);
 
-    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.2);
+    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.3);
     fillLight.position.set(-20, -5, 10);
     viewer.scene.add(fillLight as any);
 
-    const rimLight = new THREE.DirectionalLight(0xfef08a, 1.0);
+    const rimLight = new THREE.DirectionalLight(0xfef08a, 1.1);
     rimLight.position.set(0, 20, -25);
     viewer.scene.add(rimLight as any);
 
@@ -138,6 +151,7 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
     const modelFile = WEAPON_MODEL_MAP[normalizedWeapon] || 'SCAR.glb';
 
     const attachWeapon = (gltfGroup: THREE.Group) => {
+      if (isDisposed) return;
       if (weaponMeshRef.current) {
         (viewer.playerObject as any).remove(weaponMeshRef.current);
         weaponMeshRef.current = null;
@@ -145,18 +159,28 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
 
       const gunClone = gltfGroup.clone(true);
 
-      // Position gun directly in front of the hands across chest
-      gunClone.position.set(1.6, -1.8, 6.8);
-      gunClone.rotation.set(-0.22, 0.42, 0.32);
-      gunClone.scale.set(7.5, 7.5, 7.5);
+      // Proportionally scale gun to fit voxel character hands
+      const box = new THREE.Box3().setFromObject(gunClone);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const targetScale = 16.5 / maxDim;
+      gunClone.scale.setScalar(targetScale);
+
+      // Position gun directly across chest in player's hands
+      gunClone.position.set(1.5, -2.5, 7.2);
+      gunClone.rotation.set(-0.24, 0.42, 0.32);
 
       // Apply weapon skin texture if provided
       const cleanedGunTex = cleanTextureUrl(primaryTextureUrl);
       if (cleanedGunTex) {
         const proxiedTexUrl = getProxiedTextureUrl(cleanedGunTex);
         const texLoader = new THREE.TextureLoader();
+        texLoader.crossOrigin = 'anonymous';
         texLoader.load(proxiedTexUrl, (tex) => {
+          if (isDisposed) return;
           tex.colorSpace = THREE.SRGBColorSpace;
+          tex.magFilter = THREE.NearestFilter;
+          tex.minFilter = THREE.NearestFilter;
           gunClone.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
               const m = child as THREE.Mesh;
@@ -175,27 +199,63 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
       setLoading(false);
     };
 
+    // Load weapon model with path fallback
     if (gltfModelCache.has(modelFile)) {
       attachWeapon(gltfModelCache.get(modelFile)!);
     } else {
       const loader = new GLTFLoader();
-      const modelPath = `${import.meta.env.BASE_URL}models/${modelFile}`;
+      const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+      const primaryPath = `${prefix}/models/${modelFile}`;
+      const fallbackPath = `/models/${modelFile}`;
+
       loader.load(
-        modelPath,
+        primaryPath,
         (gltf) => {
+          if (isDisposed) return;
           gltfModelCache.set(modelFile, gltf.scene);
           attachWeapon(gltf.scene);
         },
         undefined,
-        (err) => {
-          console.warn(`[FitViewer3D] Failed to load model ${modelPath}:`, err);
-          setLoading(false);
+        () => {
+          // Try fallback
+          loader.load(
+            fallbackPath,
+            (fallbackGltf) => {
+              if (isDisposed) return;
+              gltfModelCache.set(modelFile, fallbackGltf.scene);
+              attachWeapon(fallbackGltf.scene);
+            },
+            undefined,
+            (err) => {
+              console.warn(`[FitViewer3D] Could not load model for ${modelFile}:`, err);
+              if (!isDisposed) setLoading(false);
+            }
+          );
         }
       );
     }
 
+    // 3. Continuous 60 FPS Render Loop
+    const animate = () => {
+      if (isDisposed) return;
+      animId = requestAnimationFrame(animate);
+
+      // Keep authentic holding stance
+      applyKirkaPose(viewer);
+
+      // Subtle breathing motion for realistic showcase
+      const t = Date.now() * 0.002;
+      if (viewer.playerObject?.skin?.head) {
+        viewer.playerObject.skin.head.rotation.y = -0.18 + Math.sin(t) * 0.03;
+        viewer.playerObject.skin.head.rotation.x = 0.08 + Math.cos(t * 0.8) * 0.015;
+      }
+
+      viewer.render();
+    };
+    animate();
+
     const resizeObserver = new ResizeObserver(() => {
-      if (!container) return;
+      if (!container || isDisposed) return;
       const w = container.clientWidth;
       const h = container.clientHeight;
       if (w > 0 && h > 0) {
@@ -205,6 +265,8 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
     resizeObserver.observe(container);
 
     return () => {
+      isDisposed = true;
+      if (animId !== null) cancelAnimationFrame(animId);
       resizeObserver.disconnect();
       skinViewerRef.current = null;
       viewer.dispose();
@@ -227,8 +289,9 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
   const handleResetView = () => {
     if (!skinViewerRef.current) return;
     const v = skinViewerRef.current;
-    v.camera.position.set(0, 1.5, 52);
-    v.camera.lookAt(0, -1, 0);
+    v.controls.target.set(0, 0, 0);
+    v.camera.position.set(0, 0, 52);
+    v.controls.update();
     applyKirkaPose(v);
   };
 
@@ -236,13 +299,7 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
     <div className={`relative rounded-2xl overflow-hidden border border-indigo-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.5)] bg-[#183c88] ${className}`}>
       <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-      <div className="absolute top-4 left-4 z-10 flex items-center space-x-2 bg-[#091124]/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 shadow-lg pointer-events-none">
-        <Sparkles className="w-4 h-4 text-cyan-400" />
-        <span className="text-xs font-black tracking-wider text-white uppercase font-mono">
-          3D Canvas • {primaryWeaponType} Fit
-        </span>
-      </div>
-
+      {/* Camera and Snapshot controls (Top Right) */}
       <div className="absolute top-4 right-4 z-10 flex items-center space-x-2">
         <button
           onClick={handleResetView}
@@ -265,7 +322,7 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
         <div className="absolute inset-0 bg-[#183c88]/90 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 z-20">
           <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
           <span className="text-sm font-bold text-slate-200 tracking-wider font-mono">
-            Assembling 3D Fit...
+            Equipping Loadout in 3D...
           </span>
         </div>
       )}
