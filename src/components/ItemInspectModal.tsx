@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box } from 'lucide-react';
+import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box, Palette } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { Weapon3DViewer, has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl } from './Weapon3DViewer';
+import { resolveItemCreator } from '../utils/catalogCache';
 
 interface ItemInspectModalProps {
   isOpen: boolean;
@@ -113,6 +114,9 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
         year: 'numeric'
       })
     : 'May 16, 2025'; // Default fallback date if empty
+
+  // Resolve Creator credits (or dash '-' if not provided)
+  const creatorName = resolveItemCreator(metadata);
 
   // Helper for rarity colors matching dashboard theme
   const getRarityTextStyles = (rarity: string) => {
@@ -301,8 +305,19 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
               </div>
             </div>
 
+            {/* CREATOR Card */}
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
+              <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                <Palette className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block leading-none mb-1">CREATOR</span>
+                <span className="text-xs font-black text-white block leading-none truncate" title={creatorName}>{creatorName}</span>
+              </div>
+            </div>
+
             {/* CREATED Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5 col-span-2 md:col-span-1">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
               <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
                 <Calendar className="w-4 h-4" />
               </div>

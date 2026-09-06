@@ -12,6 +12,7 @@ export interface CachedItem {
   rarity: string;
   renderUrl: string | null;
   textureUrl: string | null;
+  creators?: Array<{ id?: string; name: string; shortId?: string }> | null;
   parent?: {
     id?: string;
     name: string;
@@ -60,7 +61,7 @@ export function setCachedCatalog(items: CachedItem[]): void {
   try {
     if (!Array.isArray(items) || items.length === 0) return;
 
-    // Slim items to keep storage compact (only essential render & texture info)
+    // Slim items to keep storage compact (only essential render, texture & creator info)
     const slim = items.map((i) => ({
       id: i.id,
       name: i.name,
@@ -68,6 +69,7 @@ export function setCachedCatalog(items: CachedItem[]): void {
       rarity: i.rarity,
       renderUrl: i.renderUrl || null,
       textureUrl: i.textureUrl || null,
+      creators: i.creators || null,
       parent: i.parent ? { name: i.parent.name, type: i.parent.type } : null,
       salePrice: i.salePrice || 0,
     }));
@@ -125,14 +127,16 @@ export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; n
           rarity: live.rarity,
           renderUrl: live.renderUrl || null,
           textureUrl: live.textureUrl || null,
+          creators: live.creators || null,
           parent: live.parent ? { name: live.parent.name, type: live.parent.type } : null,
           salePrice: live.salePrice || 0,
         });
       } else {
-        // Update URLs if missing in cache but present in live
+        // Update URLs and creators if missing in cache but present in live
         const cached = existingMap.get(key)!;
         if (!cached.renderUrl && live.renderUrl) cached.renderUrl = live.renderUrl;
         if (!cached.textureUrl && live.textureUrl) cached.textureUrl = live.textureUrl;
+        if ((!cached.creators || cached.creators.length === 0) && live.creators) cached.creators = live.creators;
       }
     }
   });
@@ -141,6 +145,27 @@ export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; n
   setCachedCatalog(merged);
 
   return { merged, newCount };
+}
+
+/**
+ * Helper to resolve the skin creator credit or dash (-) if not provided
+ */
+export function resolveItemCreator(item: any): string {
+  if (!item) return '-';
+  const creators = item.creators || item.creator;
+  if (Array.isArray(creators) && creators.length > 0) {
+    const names = creators
+      .map((c: any) => (typeof c === 'string' ? c : c?.name))
+      .filter(Boolean);
+    if (names.length > 0) return names.join(', ');
+  }
+  if (typeof creators === 'object' && creators?.name) {
+    return creators.name;
+  }
+  if (typeof creators === 'string' && creators.trim()) {
+    return creators.trim();
+  }
+  return '-';
 }
 
 /**

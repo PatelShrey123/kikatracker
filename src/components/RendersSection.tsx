@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Weapon3DViewer, isCharacterSkin, getSkinRenderUrl, cleanTextureUrl, isPlaceholderUrl } from './Weapon3DViewer';
 import type { MarketItem } from '../utils/csv';
-import { getCachedCatalog, setCachedCatalog, clearCachedCatalog } from '../utils/catalogCache';
+import { getCachedCatalog, setCachedCatalog, clearCachedCatalog, resolveItemCreator } from '../utils/catalogCache';
 
 interface RendersSectionProps {
   publicItems: any[];
@@ -349,6 +349,8 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
             const marketItem = marketPrices.get(item.name?.toLowerCase());
             const boltValue = marketItem?.baseValue || item.salePrice || 0;
 
+            const creatorName = resolveItemCreator(item);
+
             return (
               <div
                 key={`${item.name}-${weaponType}-${idx}`}
@@ -360,12 +362,12 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
               >
                 {/* Top Card Header */}
                 <div className="flex items-center justify-between w-full z-10">
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0 flex-1 pr-2">
                     <span className="text-sm font-mono font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
                       {item.name}
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400 mt-0.5">
-                      {weaponType}
+                    <span className="text-[10px] font-mono text-slate-400 mt-0.5 truncate" title={`Creator: ${creatorName}`}>
+                      {weaponType} • <span className="text-slate-300 font-semibold">{creatorName}</span>
                     </span>
                   </div>
 
@@ -471,6 +473,10 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
               <span className="text-xs font-mono text-slate-400 hidden sm:inline">
                 • {isCharacterSkin(maximizedItem.parent?.name || maximizedItem.type) ? 'Character' : maximizedItem.parent?.name || maximizedItem.type}
               </span>
+
+              <span className="text-xs font-mono text-cyan-300/90 hidden sm:inline px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
+                Creator: <span className="font-bold text-white">{resolveItemCreator(maximizedItem)}</span>
+              </span>
             </div>
 
             {/* Center: Prev / Next Navigation Arrows */}
@@ -528,6 +534,8 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                 <span>3D Cinematic Rotation Active</span>
               </span>
               <span className="text-slate-600 hidden sm:inline">|</span>
+              <span className="text-slate-600 sm:hidden">|</span>
+              <span className="text-slate-300 sm:hidden">Creator: <span className="text-white font-bold">{resolveItemCreator(maximizedItem)}</span></span>
               <span className="hidden sm:inline">Use Left/Right arrow keys to step through skins</span>
             </div>
 
