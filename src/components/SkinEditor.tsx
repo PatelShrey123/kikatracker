@@ -165,7 +165,7 @@ export const SkinEditor: React.FC = () => {
 
   // 3D Animation & Viewport State
   const [activeAnimation, setActiveAnimation] = useState<AnimationType>('none');
-  const [bgType, setBgType] = useState<'esports' | 'grid' | 'black' | 'custom'>('esports');
+  const [bgType, setBgType] = useState<'studio' | 'light' | 'checker' | 'dark' | 'custom'>('studio');
   const [customBgImage, setCustomBgImage] = useState<string | null>(null);
 
   // Undo / Redo History Stack
@@ -953,12 +953,14 @@ export const SkinEditor: React.FC = () => {
             className={`relative w-full h-[440px] rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center transition-all ${
               interactionMode === 'paint' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'
             } ${
-              bgType === 'esports'
-                ? 'bg-gradient-to-b from-[#0c0e17] via-[#07090e] to-[#040508]'
-                : bgType === 'black'
-                ? 'bg-black'
-                : bgType === 'grid'
-                ? 'bg-[#07090e] bg-[radial-gradient(#1f293d_1px,transparent_1px)] [background-size:16px_16px]'
+              bgType === 'studio'
+                ? 'bg-gradient-to-b from-[#2b3245] via-[#1d2230] to-[#141722]'
+                : bgType === 'light'
+                ? 'bg-gradient-to-b from-[#f8fafc] via-[#e2e8f0] to-[#cbd5e1]'
+                : bgType === 'checker'
+                ? 'bg-[#1e293b] bg-[linear-gradient(45deg,#334155_25%,transparent_25%),linear-gradient(-45deg,#334155_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#334155_75%),linear-gradient(-45deg,transparent_75%,#334155_75%)] [background-size:16px_16px] [background-position:0_0,0_8px,8px_-8px,-8px_0px]'
+                : bgType === 'dark'
+                ? 'bg-[#0f141f]'
                 : 'bg-cover bg-center'
             }`}
             style={
@@ -1173,11 +1175,35 @@ export const SkinEditor: React.FC = () => {
                 </div>
               </div>
 
-              {/* Pinned Background Photo option */}
+              {/* Viewport Backdrop Switcher */}
               <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Viewport Backdrop
+                </span>
+                <div className="grid grid-cols-4 gap-1 bg-black/40 p-1 rounded-xl border border-white/5 text-[11px] font-mono mb-2">
+                  {[
+                    { id: 'studio', label: 'Studio' },
+                    { id: 'light', label: 'Light' },
+                    { id: 'checker', label: 'Grid' },
+                    { id: 'dark', label: 'Dark' },
+                  ].map((bg) => (
+                    <button
+                      key={bg.id}
+                      onClick={() => setBgType(bg.id as any)}
+                      className={`py-1 rounded-lg font-bold capitalize transition-all cursor-pointer ${
+                        bgType === bg.id
+                          ? 'bg-gold-primary text-black shadow-[0_0_8px_rgba(212,175,55,0.3)]'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {bg.label}
+                    </button>
+                  ))}
+                </div>
+
                 <label className="flex items-center justify-center space-x-1.5 text-xs font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/20 px-3 py-2 rounded-xl cursor-pointer hover:bg-gold-primary/20 transition-all">
                   <ImageIcon className="w-3.5 h-3.5" />
-                  <span>Pin Custom BG Photo</span>
+                  <span>{customBgImage && bgType === 'custom' ? 'Change Custom BG' : 'Pin Custom BG Photo'}</span>
                   <input
                     type="file"
                     accept="image/*"
