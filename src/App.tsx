@@ -28,7 +28,7 @@ function App() {
   const [activeUserProfile, setActiveUserProfile] = useState<UserProfile | null>(null);
   const [marketPrices, setMarketPrices] = useState<Map<string, MarketItem>>(new Map());
   const [publicItems, setPublicItems] = useState<any[]>([]);
-  const [fallbackRenders, setFallbackRenders] = useState<Record<string, any>>({});
+  const [fallbackRenders] = useState<Record<string, any>>({});
   const [allItemData, setAllItemData] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -69,39 +69,7 @@ function App() {
       }
     });
 
-    // 3. Fetch fallback skin renders from Github repo JSON
-    fetch('https://raw.githubusercontent.com/OBS-Akuma/KirkaSkins/main/AllrendersAndTextures.json')
-      .then((r) => r.json())
-      .then((data) => {
-        const normalized: Record<string, any> = {};
-        Object.entries(data).forEach(([key, val]) => {
-          normalized[key.toLowerCase()] = val;
-        });
-        setFallbackRenders(normalized);
-        console.log('Successfully loaded fallback renders repository.');
-      })
-      .catch((err) => console.error('Failed to load fallback renders:', err));
-
-    // 4. Fetch complete skins metadata database from GitHub for extra metadata
-    fetch('https://raw.githubusercontent.com/OBS-Akuma/KirkaSkins/refs/heads/main/AllItemData.json')
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setAllItemData((prev) => {
-            const map = new Map();
-            data.forEach((i) => i?.id && map.set(i.id, i));
-            if (Array.isArray(prev)) {
-              // Preserve official live API items over static GitHub file
-              prev.forEach((i) => i?.id && map.set(i.id, { ...(map.get(i.id) || {}), ...i }));
-            }
-            return Array.from(map.values());
-          });
-          console.log('Successfully loaded complete skins metadata database.');
-        }
-      })
-      .catch((err) => console.error('Failed to load item metadata:', err));
-
-    // 5. Minimum loading duration to showcase esports brand loader animations
+    // 3. Minimum loading duration to showcase esports brand loader animations
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 4800);
