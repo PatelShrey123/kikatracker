@@ -162,10 +162,10 @@ export const BotSection: React.FC = () => {
     },
     {
       name: '/inventory',
-      prefix: '.inventory [user]',
-      desc: 'Browse complete player inventory with full Bolt market valuation, rarity tier distribution (Mythical, Legendary, Rare), search filters, and page controls.',
-      options: 'username | #ID',
-      example: '.inventory #WEATIE',
+      prefix: '.inv [user | @discord]',
+      desc: 'Browse complete player inventory with full Bolt market valuation, rarity tier distribution, and page controls. Mention any linked Discord user to inspect their items!',
+      options: 'username | #ID | @discord',
+      example: '.inv @tooexpert',
       category: 'stats',
       badge: 'BOLT VALUE',
       badgeColor: 'from-emerald-500 to-teal-500'
