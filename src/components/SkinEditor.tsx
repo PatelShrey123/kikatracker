@@ -28,6 +28,8 @@ import {
   Grid,
   Sliders,
   Move,
+  Trash2,
+  Box,
 } from 'lucide-react';
 
 const SKIN_WIDTH = 64;
@@ -253,6 +255,10 @@ export const SkinEditor: React.FC = () => {
   const [bgType, setBgType] = useState<'studio' | 'light' | 'checker' | 'dark' | 'custom'>('studio');
   const [customBgImage, setCustomBgImage] = useState<string | null>(null);
 
+  // Skindex-style Mannequin Wireframe Grid
+  const [showMannequinGrid, setShowMannequinGrid] = useState(true);
+  const mannequinGroupRef = useRef<any>(null); // THREE.Group holding all wireframe limbs
+
   // Undo / Redo History Stack
   const historyStack = useRef<ImageData[]>([]);
   const historyIndex = useRef<number>(-1);
@@ -267,6 +273,227 @@ export const SkinEditor: React.FC = () => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
   };
+
+  // ---------------------------------------------------------------------------
+  // SKINDEX-STYLE 3D MANNEQUIN WIREFRAME GRID
+  // ---------------------------------------------------------------------------
+  /**
+   * Builds a translucent wireframe box with 1×1 pixel-grid lines for one limb.
+   * Uses Three.js constructors extracted from the viewer's internal scene graph
+   * to avoid the version mismatch between root three@0.185 and skinview3d's three@0.156.
+   */
+  const buildMannequinGrid = useCallback((viewer: SkinViewer) => {
+    const skin = viewer.playerObject.skin;
+    if (!skin) return;
+
+    const mannequinRoot = new THREE.Group();
+    mannequinRoot.name = 'mannequin_grid';
+
+    // Limb definitions: [name, parentLimb, innerSize[w,h,d], outerSize[w,h,d], pivotOffset[x,y,z]]
+    // Coordinates from skinview3d's SkinObject internals
+    const isSlim = skin.modelType === 'slim';
+    const armW = isSlim ? 3 : 4;
+
+    type LimbDef = {
+      name: string;
+      partKey: BodyPartName;
+      innerSize: [number, number, number];
+      outerSize: [number, number, number];
+      position: [number, number, number]; // world position of the limb center
+    };
+
+    const limbDefs: LimbDef[] = [
+      {
+        name: 'head',
+        partKey: 'head',
+        innerSize: [8, 8, 8],
+        outerSize: [9, 9, 9],
+        position: [0, 4, 0],
+      },
+      {
+        name: 'body',
+        partKey: 'torso',
+        innerSize: [8, 12, 4],
+        outerSize: [8.5, 12.5, 4.5],
+        position: [0, -6, 0],
+      },
+      {
+        name: 'rightArm',
+        partKey: 'rightArm',
+        innerSize: [armW, 12, 4],
+        outerSize: [armW + 0.5, 12.5, 4.5],
+        position: [-5, -2, 0],
+      },
+      {
+        name: 'leftArm',
+        partKey: 'leftArm',
+        innerSize: [armW, 12, 4],
+        outerSize: [armW + 0.5, 12.5, 4.5],
+        position: [5, -2, 0],
+      },
+      {
+        name: 'rightLeg',
+        partKey: 'rightLeg',
+        innerSize: [4, 12, 4],
+        outerSize: [4.5, 12.5, 4.5],
+        position: [-1.9, -12, -0.1],
+      },
+      {
+        name: 'leftLeg',
+        partKey: 'leftLeg',
+        innerSize: [4, 12, 4],
+        outerSize: [4.5, 12.5, 4.5],
+        position: [1.9, -12, -0.1],
+      },
+    ];
+
+    /**
+     * Generates vertices for a wireframe grid box with 1-unit cell lines on each face.
+     * w, h, d = box dimensions. Returns Float32Array of line segment endpoints.
+     */
+    function generateGridVertices(w: number, h: number, d: number): Float32Array {
+      const lines: number[] = [];
+      const hw = w / 2, hh = h / 2, hd = d / 2;
+
+      // Front face (z = +hd): horizontal + vertical grid lines
+      for (let y = -hh; y <= hh; y += 1) {
+        lines.push(-hw, y, hd, hw, y, hd);
+      }
+      for (let x = -hw; x <= hw; x += 1) {
+        lines.push(x, -hh, hd, x, hh, hd);
+      }
+
+      // Back face (z = -hd)
+      for (let y = -hh; y <= hh; y += 1) {
+        lines.push(-hw, y, -hd, hw, y, -hd);
+      }
+      for (let x = -hw; x <= hw; x += 1) {
+        lines.push(x, -hh, -hd, x, hh, -hd);
+      }
+
+      // Left face (x = -hw)
+      for (let y = -hh; y <= hh; y += 1) {
+        lines.push(-hw, y, -hd, -hw, y, hd);
+      }
+      for (let z = -hd; z <= hd; z += 1) {
+        lines.push(-hw, -hh, z, -hw, hh, z);
+      }
+
+      // Right face (x = +hw)
+      for (let y = -hh; y <= hh; y += 1) {
+        lines.push(hw, y, -hd, hw, y, hd);
+      }
+      for (let z = -hd; z <= hd; z += 1) {
+        lines.push(hw, -hh, z, hw, hh, z);
+      }
+
+      // Top face (y = +hh)
+      for (let x = -hw; x <= hw; x += 1) {
+        lines.push(x, hh, -hd, x, hh, hd);
+      }
+      for (let z = -hd; z <= hd; z += 1) {
+        lines.push(-hw, hh, z, hw, hh, z);
+      }
+
+      // Bottom face (y = -hh)
+      for (let x = -hw; x <= hw; x += 1) {
+        lines.push(x, -hh, -hd, x, -hh, hd);
+      }
+      for (let z = -hd; z <= hd; z += 1) {
+        lines.push(-hw, -hh, z, hw, -hh, z);
+      }
+
+      return new Float32Array(lines);
+    }
+
+    for (const limb of limbDefs) {
+      const limbGroup = new THREE.Group();
+      limbGroup.name = `mannequin_${limb.name}`;
+      limbGroup.userData = { partKey: limb.partKey, layer: 'both' };
+
+      // --- Inner body wireframe (slate gray) ---
+      const innerVerts = generateGridVertices(...limb.innerSize);
+      const innerGeom = new THREE.BufferGeometry();
+      innerGeom.setAttribute('position', new THREE.Float32BufferAttribute(innerVerts, 3));
+
+      const innerLines = new THREE.LineSegments(
+        innerGeom,
+        new THREE.LineBasicMaterial({
+          color: 0x64748b, // slate-500
+          transparent: true,
+          opacity: 0.35,
+          depthWrite: false,
+        })
+      );
+      innerLines.name = `mannequin_${limb.name}_inner_wire`;
+      innerLines.userData = { layer: 'inner' };
+      innerLines.renderOrder = -2;
+
+      // Inner fill (very subtle translucent box)
+      const innerFillGeom = new THREE.BoxGeometry(...limb.innerSize);
+      const innerFill = new THREE.Mesh(
+        innerFillGeom,
+        new THREE.MeshBasicMaterial({
+          color: 0x94a3b8, // slate-400
+          transparent: true,
+          opacity: 0.06,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      );
+      innerFill.name = `mannequin_${limb.name}_inner_fill`;
+      innerFill.userData = { layer: 'inner' };
+      innerFill.renderOrder = -3;
+
+      // --- Outer layer wireframe (sky blue / cyan) ---
+      const outerVerts = generateGridVertices(...limb.outerSize);
+      const outerGeom = new THREE.BufferGeometry();
+      outerGeom.setAttribute('position', new THREE.Float32BufferAttribute(outerVerts, 3));
+
+      const outerLines = new THREE.LineSegments(
+        outerGeom,
+        new THREE.LineBasicMaterial({
+          color: 0x38bdf8, // sky-400
+          transparent: true,
+          opacity: 0.25,
+          depthWrite: false,
+        })
+      );
+      outerLines.name = `mannequin_${limb.name}_outer_wire`;
+      outerLines.userData = { layer: 'outer' };
+      outerLines.renderOrder = -1;
+
+      // Outer fill (very very subtle cyan volume)
+      const outerFillGeom = new THREE.BoxGeometry(...limb.outerSize);
+      const outerFill = new THREE.Mesh(
+        outerFillGeom,
+        new THREE.MeshBasicMaterial({
+          color: 0x38bdf8, // sky-400
+          transparent: true,
+          opacity: 0.03,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      );
+      outerFill.name = `mannequin_${limb.name}_outer_fill`;
+      outerFill.userData = { layer: 'outer' };
+      outerFill.renderOrder = -2;
+
+      limbGroup.add(innerLines, innerFill, outerLines, outerFill);
+
+      // Position the limb group at the correct offset
+      // skinview3d positions limbs relative to the playerWrapper pivot
+      limbGroup.position.set(...limb.position);
+
+      mannequinRoot.add(limbGroup);
+    }
+
+    // Add mannequin to the player's wrapper (so it rotates/animates with the character)
+    // The playerWrapper is the parent of skin
+    const playerWrapper = viewer.playerObject;
+    playerWrapper.add(mannequinRoot as any);
+    mannequinGroupRef.current = mannequinRoot;
+  }, []);
 
   // Apply Layer & Body Part Visibility in 3D Viewport
   const applyLayerVisibility = useCallback(() => {
@@ -293,7 +520,25 @@ export const SkinEditor: React.FC = () => {
     skin.rightArm.outerLayer.visible = outerLayerVisible && partsVisibility.rightArm;
     skin.leftLeg.outerLayer.visible = outerLayerVisible && partsVisibility.leftLeg;
     skin.rightLeg.outerLayer.visible = outerLayerVisible && partsVisibility.rightLeg;
-  }, [innerLayerVisible, outerLayerVisible, partsVisibility]);
+
+    // Mannequin Grid Visibility — sync with layer & parts toggles
+    if (mannequinGroupRef.current) {
+      mannequinGroupRef.current.visible = showMannequinGrid;
+      mannequinGroupRef.current.children.forEach((limbGroup: any) => {
+        const partKey = limbGroup.userData?.partKey as BodyPartName | undefined;
+        const partVisible = partKey ? partsVisibility[partKey] : true;
+
+        limbGroup.children.forEach((child: any) => {
+          const layer = child.userData?.layer;
+          if (layer === 'inner') {
+            child.visible = partVisible && showMannequinGrid;
+          } else if (layer === 'outer') {
+            child.visible = partVisible && showMannequinGrid;
+          }
+        });
+      });
+    }
+  }, [innerLayerVisible, outerLayerVisible, partsVisibility, showMannequinGrid]);
 
   // Sync 2D Canvas changes to 3D Viewport in REAL TIME (60 FPS)
   const syncTo3D = useCallback(() => {
@@ -347,6 +592,7 @@ export const SkinEditor: React.FC = () => {
 
     viewer.playerObject.visible = true;
     viewer.playerObject.skin.visible = true;
+    buildMannequinGrid(viewer);
     applyLayerVisibility();
 
     // Dynamically track container size with ResizeObserver
@@ -363,6 +609,7 @@ export const SkinEditor: React.FC = () => {
 
     return () => {
       resizeObserver.disconnect();
+      mannequinGroupRef.current = null;
       viewer.dispose();
       if (viewer.canvas && viewer.canvas.parentNode) {
         viewer.canvas.parentNode.removeChild(viewer.canvas);
@@ -897,6 +1144,20 @@ export const SkinEditor: React.FC = () => {
     skinViewerRef.current.controls.update();
   };
 
+  // Clear skin to blank transparent canvas — exposes the Skindex mannequin grid
+  const handleClearSkin = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
+    syncTo3D();
+    saveToHistory();
+    setShowMannequinGrid(true);
+    showToast('Skin cleared — paint on the blank mannequin grid!');
+  };
+
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col pt-1 pb-12 px-3 sm:px-6 max-w-[1600px] mx-auto select-none">
       {/* Toast Notification */}
@@ -960,6 +1221,31 @@ export const SkinEditor: React.FC = () => {
               onChange={handleSkinUpload}
             />
           </label>
+
+          <button
+            onClick={handleClearSkin}
+            title="Clear skin to blank transparent canvas — reveals the Skindex mannequin wireframe grid"
+            className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-red-500/15 border border-red-500/30 hover:bg-red-500/25 text-red-300 text-xs font-mono font-bold cursor-pointer transition-all active:scale-95"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Blank Grid</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setShowMannequinGrid((v) => !v);
+              showToast(showMannequinGrid ? 'Mannequin grid hidden' : 'Mannequin grid visible');
+            }}
+            title={showMannequinGrid ? 'Hide 3D mannequin wireframe grid' : 'Show 3D mannequin wireframe grid'}
+            className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold cursor-pointer transition-all active:scale-95 ${
+              showMannequinGrid
+                ? 'bg-sky-500/20 border border-sky-500/40 text-sky-300'
+                : 'bg-white/5 border border-white/10 text-slate-400'
+            }`}
+          >
+            <Box className="w-3.5 h-3.5" />
+            <span>3D Grid</span>
+          </button>
 
           <button
             onClick={handleDownloadSkin}
