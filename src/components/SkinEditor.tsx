@@ -123,11 +123,169 @@ function isPixelInPart(
   return false;
 }
 
+/**
+ * Generates an exact Minecraft voxel quad pixel grid (LineSegments) for a 3D box.
+ */
+function createBoxGridLines(
+  w: number,
+  h: number,
+  d: number,
+  nx: number,
+  ny: number,
+  nz: number,
+  color: number = 0x475569,
+  opacity: number = 0.4
+): THREE.LineSegments {
+  const hw = w / 2;
+  const hh = h / 2;
+  const hd = d / 2;
+  const vertices: number[] = [];
+
+  // Front & Back faces
+  for (let i = 0; i <= nx; i++) {
+    const x = -hw + (i * w) / nx;
+    vertices.push(x, -hh, hd, x, hh, hd);
+    vertices.push(x, -hh, -hd, x, hh, -hd);
+  }
+  for (let j = 0; j <= ny; j++) {
+    const y = -hh + (j * h) / ny;
+    vertices.push(-hw, y, hd, hw, y, hd);
+    vertices.push(-hw, y, -hd, hw, y, -hd);
+  }
+
+  // Left & Right faces
+  for (let m = 0; m <= nz; m++) {
+    const z = -hd + (m * d) / nz;
+    vertices.push(-hw, -hh, z, -hw, hh, z);
+    vertices.push(hw, -hh, z, hw, hh, z);
+  }
+  for (let j = 0; j <= ny; j++) {
+    const y = -hh + (j * h) / ny;
+    vertices.push(-hw, y, -hd, -hw, y, hd);
+    vertices.push(hw, y, -hd, hw, y, hd);
+  }
+
+  // Top & Bottom faces
+  for (let i = 0; i <= nx; i++) {
+    const x = -hw + (i * w) / nx;
+    vertices.push(x, hh, -hd, x, hh, hd);
+    vertices.push(x, -hh, -hd, x, -hh, hd);
+  }
+  for (let m = 0; m <= nz; m++) {
+    const z = -hd + (m * d) / nz;
+    vertices.push(-hw, hh, z, hw, hh, z);
+    vertices.push(-hw, -hh, z, hw, -hh, z);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  const material = new THREE.LineBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+  });
+
+  const lines = new THREE.LineSegments(geometry, material);
+  lines.name = 'skinGridLines';
+  return lines;
+}
+
+/**
+ * Creates a translucent ghost volume box for outer layers so empty/transparent areas are visible.
+ */
+function createGhostBox(
+  w: number,
+  h: number,
+  d: number,
+  color: number = 0x38bdf8,
+  opacity: number = 0.08
+): THREE.Mesh {
+  const geom = new THREE.BoxGeometry(w, h, d);
+  const mat = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.name = 'skinGhostBox';
+  return mesh;
+}
+
+/**
+ * Attaches exact 1x1 quad pixel grids and outer ghost boxes to all 6 character limbs.
+ */
+function attachGridsToSkin(viewer: SkinViewer, isSlim: boolean) {
+  const skin = viewer.playerObject.skin;
+  if (!skin) return;
+
+  const armW = isSlim ? 3 : 4;
+
+  const cleanChildren = (obj: any) => {
+    if (!obj || !obj.children) return;
+    for (let i = obj.children.length - 1; i >= 0; i--) {
+      const child = obj.children[i];
+      if (child.name === 'skinGridLines' || child.name === 'skinGhostBox') {
+        obj.remove(child);
+      }
+    }
+  };
+
+  // 1. Head (8x8x8 inner, 9x9x9 outer)
+  cleanChildren(skin.head.innerLayer);
+  (skin.head.innerLayer as any).add(createBoxGridLines(8.02, 8.02, 8.02, 8, 8, 8, 0x475569, 0.4));
+
+  cleanChildren(skin.head.outerLayer);
+  (skin.head.outerLayer as any).add(createBoxGridLines(9.02, 9.02, 9.02, 8, 8, 8, 0x38bdf8, 0.6));
+  (skin.head.outerLayer as any).add(createGhostBox(9, 9, 9, 0x38bdf8, 0.07));
+
+  // 2. Torso (8x12x4 inner, 8.5x12.5x4.5 outer)
+  cleanChildren(skin.body.innerLayer);
+  (skin.body.innerLayer as any).add(createBoxGridLines(8.02, 12.02, 4.02, 8, 12, 4, 0x475569, 0.4));
+
+  cleanChildren(skin.body.outerLayer);
+  (skin.body.outerLayer as any).add(createBoxGridLines(8.52, 12.52, 4.52, 8, 12, 4, 0x38bdf8, 0.6));
+  (skin.body.outerLayer as any).add(createGhostBox(8.5, 12.5, 4.5, 0x38bdf8, 0.07));
+
+  // 3. Right Arm (inner scale armW,12,4, outer scale armW+0.5,12.5,4.5)
+  cleanChildren(skin.rightArm.innerLayer);
+  (skin.rightArm.innerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x475569, 0.4));
+
+  cleanChildren(skin.rightArm.outerLayer);
+  (skin.rightArm.outerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x38bdf8, 0.6));
+  (skin.rightArm.outerLayer as any).add(createGhostBox(1, 1, 1, 0x38bdf8, 0.07));
+
+  // 4. Left Arm
+  cleanChildren(skin.leftArm.innerLayer);
+  (skin.leftArm.innerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x475569, 0.4));
+
+  cleanChildren(skin.leftArm.outerLayer);
+  (skin.leftArm.outerLayer as any).add(createBoxGridLines(1.01, 1.01, 1.01, armW, 12, 4, 0x38bdf8, 0.6));
+  (skin.leftArm.outerLayer as any).add(createGhostBox(1, 1, 1, 0x38bdf8, 0.07));
+
+  // 5. Right Leg (4x12x4 inner, 4.5x12.5x4.5 outer)
+  cleanChildren(skin.rightLeg.innerLayer);
+  (skin.rightLeg.innerLayer as any).add(createBoxGridLines(4.02, 12.02, 4.02, 4, 12, 4, 0x475569, 0.4));
+
+  cleanChildren(skin.rightLeg.outerLayer);
+  (skin.rightLeg.outerLayer as any).add(createBoxGridLines(4.52, 12.52, 4.52, 4, 12, 4, 0x38bdf8, 0.6));
+  (skin.rightLeg.outerLayer as any).add(createGhostBox(4.5, 12.5, 4.5, 0x38bdf8, 0.07));
+
+  // 6. Left Leg
+  cleanChildren(skin.leftLeg.innerLayer);
+  (skin.leftLeg.innerLayer as any).add(createBoxGridLines(4.02, 12.02, 4.02, 4, 12, 4, 0x475569, 0.4));
+
+  cleanChildren(skin.leftLeg.outerLayer);
+  (skin.leftLeg.outerLayer as any).add(createBoxGridLines(4.52, 12.52, 4.52, 4, 12, 4, 0x38bdf8, 0.6));
+  (skin.leftLeg.outerLayer as any).add(createGhostBox(4.5, 12.5, 4.5, 0x38bdf8, 0.07));
+}
+
 export const SkinEditor: React.FC = () => {
   // 3D Canvas Refs
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const skinViewerRef = useRef<SkinViewer | null>(null);
-  const canvasTextureRef = useRef<THREE.CanvasTexture | null>(null);
 
   // 2D Canvas Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -149,7 +307,6 @@ export const SkinEditor: React.FC = () => {
   const [interactionMode, setInteractionMode] = useState<'paint' | 'orbit'>('paint');
 
   // Skindex-Style Layer Selection: 'Body' vs 'Outer layer'
-  const [activeLayerMode, setActiveLayerMode] = useState<'body' | 'outer' | 'both'>('body');
   const [innerLayerVisible, setInnerLayerVisible] = useState(true);
   const [outerLayerVisible, setOuterLayerVisible] = useState(true);
 
@@ -183,13 +340,37 @@ export const SkinEditor: React.FC = () => {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
+  // Apply Layer & Body Part Visibility in 3D Viewport
+  const applyLayerVisibility = useCallback(() => {
+    if (!skinViewerRef.current) return;
+    const skin = skinViewerRef.current.playerObject.skin;
+    if (!skin) return;
+
+    // Inner Layer (Body)
+    skin.head.innerLayer.visible = innerLayerVisible && partsVisibility.head;
+    skin.body.innerLayer.visible = innerLayerVisible && partsVisibility.torso;
+    skin.leftArm.innerLayer.visible = innerLayerVisible && partsVisibility.leftArm;
+    skin.rightArm.innerLayer.visible = innerLayerVisible && partsVisibility.rightArm;
+    skin.leftLeg.innerLayer.visible = innerLayerVisible && partsVisibility.leftLeg;
+    skin.rightLeg.innerLayer.visible = innerLayerVisible && partsVisibility.rightLeg;
+
+    // Outer Layer (Overlay / Armor / Hat / Jacket)
+    skin.head.outerLayer.visible = outerLayerVisible && partsVisibility.head;
+    skin.body.outerLayer.visible = outerLayerVisible && partsVisibility.torso;
+    skin.leftArm.outerLayer.visible = outerLayerVisible && partsVisibility.leftArm;
+    skin.rightArm.outerLayer.visible = outerLayerVisible && partsVisibility.rightArm;
+    skin.leftLeg.outerLayer.visible = outerLayerVisible && partsVisibility.leftLeg;
+    skin.rightLeg.outerLayer.visible = outerLayerVisible && partsVisibility.rightLeg;
+  }, [innerLayerVisible, outerLayerVisible, partsVisibility]);
+
   // Sync 2D Canvas changes to 3D Viewport in REAL TIME (60 FPS)
   const syncTo3D = useCallback(() => {
     if (!skinViewerRef.current || !canvasRef.current) return;
     const viewer = skinViewerRef.current;
     viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
     viewer.playerObject.skin.visible = true;
-  }, [modelType]);
+    applyLayerVisibility();
+  }, [modelType, applyLayerVisibility]);
 
   // --------------------------------------------------------------------------
   // 1. INITIALIZE 3D SKIN VIEWER (skinview3d)
@@ -223,6 +404,8 @@ export const SkinEditor: React.FC = () => {
 
     viewer.playerObject.skin.visible = true;
     viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
+    attachGridsToSkin(viewer, modelType === 'slim');
+    applyLayerVisibility();
 
     const handleResize = () => {
       if (!viewerContainerRef.current || !skinViewerRef.current) return;
@@ -273,37 +456,27 @@ export const SkinEditor: React.FC = () => {
   useEffect(() => {
     if (!skinViewerRef.current) return;
     skinViewerRef.current.playerObject.skin.modelType = modelType;
-    if (canvasTextureRef.current) {
-      skinViewerRef.current.playerObject.skin.map = canvasTextureRef.current as any;
-      canvasTextureRef.current.needsUpdate = true;
-    }
-  }, [modelType]);
+    attachGridsToSkin(skinViewerRef.current, modelType === 'slim');
+    applyLayerVisibility();
+  }, [modelType, applyLayerVisibility]);
 
   // Update Layer & Body Part Visibility in 3D Viewport
+  useEffect(() => {
+    applyLayerVisibility();
+  }, [applyLayerVisibility]);
+
+  // Toggle 3D Voxel Grid Lines visibility
   useEffect(() => {
     if (!skinViewerRef.current) return;
     const skin = skinViewerRef.current.playerObject.skin;
     if (!skin) return;
 
-    const innerVisible = (activeLayerMode === 'body' || activeLayerMode === 'both') && innerLayerVisible;
-    const outerVisible = (activeLayerMode === 'outer' || activeLayerMode === 'both') && outerLayerVisible;
-
-    // Inner Layer (Body)
-    skin.head.innerLayer.visible = innerVisible && partsVisibility.head;
-    skin.body.innerLayer.visible = innerVisible && partsVisibility.torso;
-    skin.leftArm.innerLayer.visible = innerVisible && partsVisibility.leftArm;
-    skin.rightArm.innerLayer.visible = innerVisible && partsVisibility.rightArm;
-    skin.leftLeg.innerLayer.visible = innerVisible && partsVisibility.leftLeg;
-    skin.rightLeg.innerLayer.visible = innerVisible && partsVisibility.rightLeg;
-
-    // Outer Layer (Overlay / Armor / Hat / Jacket)
-    skin.head.outerLayer.visible = outerVisible && partsVisibility.head;
-    skin.body.outerLayer.visible = outerVisible && partsVisibility.torso;
-    skin.leftArm.outerLayer.visible = outerVisible && partsVisibility.leftArm;
-    skin.rightArm.outerLayer.visible = outerVisible && partsVisibility.rightArm;
-    skin.leftLeg.outerLayer.visible = outerVisible && partsVisibility.leftLeg;
-    skin.rightLeg.outerLayer.visible = outerVisible && partsVisibility.rightLeg;
-  }, [activeLayerMode, innerLayerVisible, outerLayerVisible, partsVisibility]);
+    skin.traverse((child) => {
+      if (child.name === 'skinGridLines') {
+        child.visible = showGrid;
+      }
+    });
+  }, [showGrid]);
 
   // --------------------------------------------------------------------------
   // 2. UNDO / REDO HISTORY ENGINE
@@ -484,6 +657,20 @@ export const SkinEditor: React.FC = () => {
     ctx.fillStyle = '#1e293b'; // Shoes
     ctx.fillRect(16, 60, 16, 4);
 
+    // 7. OUTER LAYER (Hat & Jacket Overlay)
+    // Hat: 3D hair bangs & sideburns overlay
+    ctx.fillStyle = '#92400e';
+    ctx.fillRect(40, 8, 8, 3); // Hat Front bangs
+    ctx.fillRect(32, 8, 8, 5); // Hat Right side hair
+    ctx.fillRect(48, 8, 8, 5); // Hat Left side hair
+    ctx.fillRect(56, 8, 8, 8); // Hat Back hair
+    ctx.fillRect(40, 0, 8, 8); // Hat Top hair
+    // Jacket: Collar & pocket details
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(20, 36, 8, 2); // Jacket collar
+    ctx.fillRect(20, 44, 3, 2); // Left pocket
+    ctx.fillRect(25, 44, 3, 2); // Right pocket
+
     setModelType(targetModel);
     syncTo3D();
     saveToHistory();
@@ -659,14 +846,11 @@ export const SkinEditor: React.FC = () => {
 
     parts.forEach(({ name, obj }) => {
       if (partsVisibility[name]) {
-        if (activeLayerMode === 'outer' && obj.outerLayer.visible) {
+        if (outerLayerVisible && obj.outerLayer.visible) {
           meshes.push(obj.outerLayer as any);
-        } else if (activeLayerMode === 'body' && obj.innerLayer.visible) {
+        }
+        if (innerLayerVisible && obj.innerLayer.visible) {
           meshes.push(obj.innerLayer as any);
-        } else {
-          // both: prioritize outer layer if visible, then inner
-          if (obj.outerLayer.visible) meshes.push(obj.outerLayer as any);
-          if (obj.innerLayer.visible) meshes.push(obj.innerLayer as any);
         }
       }
     });
@@ -759,17 +943,13 @@ export const SkinEditor: React.FC = () => {
         let isAllowed = false;
         for (const p of partNames) {
           if (partsVisibility[p]) {
-            if ((activeLayerMode === 'body' || activeLayerMode === 'both') && innerLayerVisible) {
-              if (isPixelInPart(px, py, p, 'inner', isSlim)) {
-                isAllowed = true;
-                break;
-              }
+            if (innerLayerVisible && isPixelInPart(px, py, p, 'inner', isSlim)) {
+              isAllowed = true;
+              break;
             }
-            if ((activeLayerMode === 'outer' || activeLayerMode === 'both') && outerLayerVisible) {
-              if (isPixelInPart(px, py, p, 'outer', isSlim)) {
-                isAllowed = true;
-                break;
-              }
+            if (outerLayerVisible && isPixelInPart(px, py, p, 'outer', isSlim)) {
+              isAllowed = true;
+              break;
             }
           }
         }
@@ -1111,30 +1291,49 @@ export const SkinEditor: React.FC = () => {
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     onClick={() => {
-                      setInnerLayerVisible((v) => !v);
-                      setActiveLayerMode((m) => (m === 'body' ? 'outer' : 'body'));
+                      if (innerLayerVisible && !outerLayerVisible) {
+                        setInnerLayerVisible(false);
+                        setOuterLayerVisible(true);
+                        showToast('Viewing Outer Layer only');
+                      } else {
+                        setInnerLayerVisible((v) => !v);
+                      }
                     }}
-                    className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                       innerLayerVisible
-                        ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md shadow-orange-950/40'
                         : 'bg-white/5 border border-white/10 text-slate-500 line-through hover:text-slate-300'
                     }`}
                   >
-                    Body
+                    <span>Body</span>
+                    {innerLayerVisible && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                   </button>
                   <button
                     onClick={() => {
-                      setOuterLayerVisible((v) => !v);
-                      setActiveLayerMode((m) => (m === 'outer' ? 'body' : 'outer'));
+                      if (outerLayerVisible && !innerLayerVisible) {
+                        setOuterLayerVisible(false);
+                        setInnerLayerVisible(true);
+                        showToast('Viewing Body Layer only');
+                      } else {
+                        setOuterLayerVisible((v) => !v);
+                      }
                     }}
-                    className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                       outerLayerVisible
-                        ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-md shadow-orange-950/40'
                         : 'bg-white/5 border border-white/10 text-slate-500 line-through hover:text-slate-300'
                     }`}
                   >
-                    Outer layer
+                    <span>Outer layer</span>
+                    {outerLayerVisible && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                   </button>
+                </div>
+                <div className="text-[10px] font-mono text-slate-400 mt-1.5 text-center">
+                  {innerLayerVisible && outerLayerVisible
+                    ? 'Both Body + Outer Layer visible'
+                    : innerLayerVisible
+                    ? 'Body Layer only'
+                    : 'Outer Layer only (3D Grid active)'}
                 </div>
               </div>
 
@@ -1340,7 +1539,7 @@ export const SkinEditor: React.FC = () => {
                 <span>Filters (Affects Only Selected Limbs & Layer):</span>
               </div>
               <span className="text-[9px] font-mono text-slate-400">
-                Active: {activeLayerMode.toUpperCase()} layer
+                Active: {innerLayerVisible && outerLayerVisible ? 'BODY + OUTER' : innerLayerVisible ? 'BODY ONLY' : 'OUTER ONLY'}
               </span>
             </div>
 
