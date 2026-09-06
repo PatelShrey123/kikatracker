@@ -4,6 +4,7 @@ import { fetchUserProfile, fetchUserInventory } from '../utils/api';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
+import { getSkinRenderUrl } from './Weapon3DViewer';
 
 interface CompareModalProps {
   isOpen: boolean;
@@ -83,29 +84,17 @@ export const CompareModal: React.FC<CompareModalProps> = ({
     setTheirVisibleCount(15);
   }, [theirSearchTerm]);
 
-  // Helper to resolve skin image render URL
+  // Helper to resolve skin image render URL with automatic api2 fallback
   const getItemRenderUrl = (item: any) => {
     if (!item) return null;
-    if (item.renderUrl) return item.renderUrl;
-
-    const cleanName = item.name.replace(/^_+/, '');
-    const nameKey = cleanName.toLowerCase();
-    const fallback = fallbackRenders[nameKey];
-    if (fallback && fallback.renderurl) return fallback.renderurl;
-
-    if (item.parent?.name) {
-      const comboKey = `${cleanName.toLowerCase()} ${item.parent.name.toLowerCase()}`;
-      const comboFallback = fallbackRenders[comboKey];
-      if (comboFallback && comboFallback.renderurl) return comboFallback.renderurl;
-    }
-    
+    const cleanName = item.name ? item.name.replace(/^_+/, '').trim() : '';
+    const cleanLower = cleanName.toLowerCase();
+    const fallback = fallbackRenders[cleanLower];
     const matched = publicItems.find(
-      (p) =>
-        p.id === item.id ||
-        (p.name.toLowerCase() === cleanName.toLowerCase() &&
-          p.type.toLowerCase() === item.type.toLowerCase())
+      (p) => p.name && p.name.toLowerCase() === cleanLower
     );
-    return matched ? matched.renderUrl : null;
+    const candidate = item.renderUrl || fallback?.renderurl || matched?.renderUrl || null;
+    return getSkinRenderUrl({ name: cleanName, renderUrl: candidate });
   };
 
   // Resolve item price helper

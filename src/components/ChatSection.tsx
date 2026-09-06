@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Wifi, WifiOff, Coins, ShieldAlert, Users, ExternalLink, ArrowDown } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
+import { getSkinRenderUrl } from './Weapon3DViewer';
 
 interface ChatUser {
   id: string;
@@ -153,26 +154,17 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     const priceData = marketPrices.get(compositeKey) || marketPrices.get(nameKey);
     const price = priceData ? priceData.baseValue : 0;
 
-    // Lookup Skin Render URL (using fallback renders JSON first)
-    let renderUrl = null;
+    // Lookup Skin Render URL with automatic api2 fallback
     const fallback = fallbackRenders[nameKey];
-    if (fallback && fallback.renderurl) {
-      renderUrl = fallback.renderurl;
-    } else {
-      // Try combo name e.g. "Delicate M60"
-      const comboKey = parentName ? `${nameKey} ${parentName.toLowerCase()}` : nameKey;
-      const comboFallback = fallbackRenders[comboKey];
-      if (comboFallback && comboFallback.renderurl) {
-        renderUrl = comboFallback.renderurl;
-      } else {
-        const itemData = publicItems.find(
-          (p) =>
-            p.name.toLowerCase() === name.toLowerCase() &&
-            (isCharacter ? p.type === 'BODY_SKIN' : p.parent?.name.toLowerCase() === parentName.toLowerCase())
-        );
-        renderUrl = itemData ? itemData.renderUrl : null;
-      }
-    }
+    const comboKey = parentName ? `${nameKey} ${parentName.toLowerCase()}` : nameKey;
+    const comboFallback = fallbackRenders[comboKey];
+    const itemData = publicItems.find(
+      (p) =>
+        p.name.toLowerCase() === name.toLowerCase() &&
+        (isCharacter ? p.type === 'BODY_SKIN' : p.parent?.name.toLowerCase() === parentName.toLowerCase())
+    );
+    const candidateUrl = fallback?.renderurl || comboFallback?.renderurl || itemData?.renderUrl || null;
+    const renderUrl = getSkinRenderUrl({ name, renderUrl: candidateUrl });
 
     const displayName = parentName ? `${name} ${parentName}` : name;
 

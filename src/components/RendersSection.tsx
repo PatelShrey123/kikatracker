@@ -10,7 +10,7 @@ import {
   Palette,
   Eye,
 } from 'lucide-react';
-import { Weapon3DViewer, isCharacterSkin } from './Weapon3DViewer';
+import { Weapon3DViewer, isCharacterSkin, getSkinRenderUrl, cleanTextureUrl } from './Weapon3DViewer';
 import type { MarketItem } from '../utils/csv';
 import { getCachedCatalog, setCachedCatalog, clearCachedCatalog } from '../utils/catalogCache';
 
@@ -162,32 +162,30 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
   const resolveTextureUrl = useCallback(
     (item: any): string | null => {
       if (!item) return null;
-      if (item.textureUrl && !item.textureUrl.endsWith('kirka.io')) {
-        return item.textureUrl;
+      const cleanName = item.name ? item.name.replace(/^_+/, '').trim() : '';
+      if (item.textureUrl && !item.textureUrl.endsWith('kirka.io') && !item.textureUrl.includes('render-mini')) {
+        return cleanTextureUrl(item.textureUrl);
       }
-      const cleanName = item.name.replace(/^_+/, '').trim().toLowerCase();
-      const fb = fallbackRenders[cleanName];
+      const cleanLower = cleanName.toLowerCase();
+      const fb = fallbackRenders[cleanLower];
       if (fb && (fb.textureUrl || fb.textureurl)) {
-        return fb.textureUrl || fb.textureurl;
+        return cleanTextureUrl(fb.textureUrl || fb.textureurl);
+      }
+      if (cleanName) {
+        return `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanName)}`;
       }
       return null;
     },
     [fallbackRenders]
   );
 
-  // Helper to resolve renderUrl for preview image
+  // Helper to resolve renderUrl for preview image with api2.kirka.io 3D fallback
   const resolveRenderUrl = useCallback(
     (item: any): string | null => {
       if (!item) return null;
-      if (item.renderUrl) return item.renderUrl;
-      const cleanName = item.name.replace(/^_+/, '').trim().toLowerCase();
-      const fb = fallbackRenders[cleanName];
-      if (fb && (fb.renderUrl || fb.renderurl)) {
-        return fb.renderUrl || fb.renderurl;
-      }
-      return null;
+      return getSkinRenderUrl(item);
     },
-    [fallbackRenders]
+    []
   );
 
   // Open Maximizer for an item
@@ -386,6 +384,13 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                       alt={item.name}
                       className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] group-hover:scale-115 transition-transform duration-500 ease-out"
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.dataset.fallback) {
+                          target.dataset.fallback = 'true';
+                          target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
+                        }
+                      }}
                     />
                   ) : (
                     <Box className="w-12 h-12 text-slate-600 group-hover:text-cyan-400 transition-colors" />

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { Weapon3DViewer, has3DViewerSupport } from './Weapon3DViewer';
+import { Weapon3DViewer, has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl } from './Weapon3DViewer';
 
 interface ItemInspectModalProps {
   isOpen: boolean;
@@ -90,21 +90,14 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
       textureUrl = matched.textureUrl;
     }
   }
-
-  // Resolve render URL from metadata, then fallback renders JSON, then fallback placeholder
-  let renderUrl = metadata.renderUrl || null;
-  if (!renderUrl) {
-    const fallback = fallbackRenders[normalizedName];
-    if (fallback && fallback.renderurl) {
-      renderUrl = fallback.renderurl;
-    } else {
-      const comboKey = normalizedType ? `${normalizedName} ${normalizedType}` : normalizedName;
-      const comboFallback = fallbackRenders[comboKey];
-      if (comboFallback && comboFallback.renderurl) {
-        renderUrl = comboFallback.renderurl;
-      }
-    }
+  if (!textureUrl && cleanName) {
+    textureUrl = `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanName)}`;
   }
+  textureUrl = cleanTextureUrl(textureUrl);
+
+  // Resolve render URL with live api2 fallback
+  const renderCandidate = metadata.renderUrl || fallbackRenders[normalizedName]?.renderurl || fallbackRenders[`${normalizedName} ${normalizedType}`]?.renderurl || null;
+  const renderUrl = getSkinRenderUrl({ name: cleanName, renderUrl: renderCandidate });
 
   // Format values safely
   const itemRarity = boltPriceData?.rarity || metadata.rarity || 'Common';

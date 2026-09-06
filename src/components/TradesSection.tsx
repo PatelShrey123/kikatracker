@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
+import { getSkinRenderUrl } from './Weapon3DViewer';
 
 interface TradesSectionProps {
   onSelectPlayer: (id: string, isShortId: boolean) => void;
@@ -153,19 +154,13 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return { label: 'C', name: 'COMMON', color: 'text-slate-400', border: 'border-slate-500/20 hover:border-slate-500 bg-slate-500/5' };
   };
 
-  // Resolve skin image render URL
+  // Resolve skin image render URL with automatic api2 fallback
   const getItemRenderUrl = (name: string) => {
     const nameKey = name.toLowerCase();
-
-    // 1. Check fallback renders map
     const fallback = fallbackRenders[nameKey];
-    if (fallback && fallback.renderurl) return fallback.renderurl;
-
-    // 2. Check complete skins metadata list
     const matched = allItemData.find((i) => i.name.toLowerCase() === nameKey);
-    if (matched && matched.renderUrl) return matched.renderUrl;
-
-    return null;
+    const candidate = fallback?.renderurl || matched?.renderUrl || null;
+    return getSkinRenderUrl({ name, renderUrl: candidate });
   };
 
   // Helper to look up skin price in Bolt database map

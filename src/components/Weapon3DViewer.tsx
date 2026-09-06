@@ -80,14 +80,30 @@ export function getProxiedTextureUrl(url: string | null | undefined): string {
 export function getSkinRenderUrl(itemOrName: any): string {
   if (!itemOrName) return `${import.meta.env.BASE_URL}render-mini.webp`;
   const name = typeof itemOrName === 'string' ? itemOrName : itemOrName.name;
-  const rawUrl = typeof itemOrName === 'object' ? itemOrName.renderUrl : null;
+  const cleanName = name ? name.replace(/^_+/, '').trim() : '';
+  const rawUrl = typeof itemOrName === 'object' ? (itemOrName.renderUrl || itemOrName.renderurl) : null;
   const cleaned = cleanTextureUrl(rawUrl);
-  if (cleaned) {
+
+  const isPlaceholder = !cleaned ||
+    cleaned.includes('render-mini') ||
+    cleaned.includes('/assets/img/render') ||
+    cleaned.endsWith('/render') ||
+    cleaned === 'https://kirka.io' ||
+    cleaned === 'https://kirka.io/';
+
+  // 1. If it has a real custom render URL (e.g. valid webp/png/data from API or api2)
+  if (cleaned && !isPlaceholder) {
+    if (cleaned.startsWith('https://api2.kirka.io') || cleaned.startsWith('data:') || cleaned.startsWith('blob:')) {
+      return cleaned;
+    }
     return getProxiedTextureUrl(cleaned);
   }
-  if (name) {
-    return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(name.replace(/^_+/, '').trim())}`;
+
+  // 2. If it's a placeholder or missing, query official 3D render from api2.kirka.io
+  if (cleanName) {
+    return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
   }
+
   return `${import.meta.env.BASE_URL}render-mini.webp`;
 }
 
