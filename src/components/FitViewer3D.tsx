@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { SkinViewer } from 'skinview3d';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { PlayerObject } from 'skinview3d';
 import { RotateCcw, Download, Loader2 } from 'lucide-react';
 import { WEAPON_MODEL_MAP, cleanTextureUrl, getProxiedTextureUrl } from './Weapon3DViewer';
 
@@ -29,38 +30,11 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
   className = 'w-full h-full min-h-[460px]',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const skinViewerRef = useRef<SkinViewer | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
+  const playerRef = useRef<PlayerObject | null>(null);
   const weaponMeshRef = useRef<THREE.Group | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Helper to pose character in authentic Kirka idle holding stance
-  const applyKirkaPose = (viewer: SkinViewer) => {
-    const skin = viewer.playerObject?.skin;
-    if (!skin) return;
-
-    // Angled body facing viewer
-    viewer.playerObject.rotation.y = 0.28;
-
-    // Right arm holding gun grip/trigger
-    skin.rightArm.rotation.x = -1.15;
-    skin.rightArm.rotation.y = -0.42;
-    skin.rightArm.rotation.z = 0.16;
-
-    // Left arm wrapped across torso supporting handguard
-    skin.leftArm.rotation.x = -0.92;
-    skin.leftArm.rotation.y = 0.68;
-    skin.leftArm.rotation.z = -0.26;
-
-    // Legs straight in athletic stance
-    skin.rightLeg.rotation.x = 0;
-    skin.rightLeg.rotation.z = 0.03;
-    skin.leftLeg.rotation.x = 0;
-    skin.leftLeg.rotation.z = -0.04;
-
-    // Head looking slightly toward viewer
-    skin.head.rotation.x = 0.08;
-    skin.head.rotation.y = -0.18;
-  };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -71,56 +45,53 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
     let isDisposed = false;
     let animId: number | null = null;
 
-    const canvas = document.createElement('canvas');
-    container.innerHTML = '';
-    container.appendChild(canvas);
-
-    // 1. Initialize SkinViewer with resolved skin source or James starter fallback
-    const cleanedCharTex = cleanTextureUrl(characterTextureUrl);
-    const initialSkin = cleanedCharTex ? getProxiedTextureUrl(cleanedCharTex) : STARTER_JAMES_SKIN;
-
-    const viewer = new SkinViewer({
-      canvas,
-      width,
-      height,
-      model: 'slim', // Kirka 3px slim voxel mesh
-      skin: initialSkin,
+    // 1. Native High-Performance WebGLRenderer
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      preserveDrawingBuffer: true,
+      powerPreference: 'high-performance',
     });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x183c88, 1); // Kirka royal blue backdrop
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    rendererRef.current = renderer;
 
-    skinViewerRef.current = viewer;
+    container.innerHTML = '';
+    container.appendChild(renderer.domElement);
 
-    // Kirka signature royal blue backdrop
-    viewer.background = 0x183c88;
-    viewer.controls.enablePan = true;
-    viewer.controls.enableZoom = true;
-    viewer.controls.enableRotate = true;
-    viewer.controls.target.set(0, 0, 0);
-    viewer.camera.position.set(0, 0, 52);
-    viewer.controls.update();
+    // 2. Scene & Camera
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 500);
+    camera.position.set(0, 0, 50);
 
-    viewer.playerObject.visible = true;
-    viewer.playerObject.skin.visible = true;
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 15;
+    controls.maxDistance = 120;
+    controls.target.set(0, 0, 0);
+    controls.update();
+    controlsRef.current = controls;
 
-    // Initial Kirka pose
-    applyKirkaPose(viewer);
-
-    // Studio Lighting
+    // 3. Studio Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
-    viewer.scene.add(ambientLight as any);
+    scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.4);
-    dirLight1.position.set(15, 25, 30);
-    viewer.scene.add(dirLight1 as any);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    keyLight.position.set(15, 25, 30);
+    scene.add(keyLight);
 
     const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.3);
     fillLight.position.set(-20, -5, 10);
-    viewer.scene.add(fillLight as any);
+    scene.add(fillLight);
 
     const rimLight = new THREE.DirectionalLight(0xfef08a, 1.1);
     rimLight.position.set(0, 20, -25);
-    viewer.scene.add(rimLight as any);
+    scene.add(rimLight);
 
-    // Soft drop shadow plane under the feet
+    // Soft drop shadow under player's feet
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = 128;
     shadowCanvas.height = 128;
@@ -143,30 +114,72 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
       const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
       shadowMesh.rotation.x = -Math.PI / 2;
       shadowMesh.position.set(0, -16.2, 0);
-      viewer.scene.add(shadowMesh as any);
+      scene.add(shadowMesh);
     }
 
-    // 2. Load & Attach 3D Primary Weapon Model
+    // 4. Kirka Voxel Character (PlayerObject)
+    const player = new PlayerObject();
+    player.skin.modelType = 'slim'; // Kirka 3px slim arm model
+
+    // Authentic Kirka gun-holding pose
+    player.rotation.y = 0.28;
+    player.skin.rightArm.rotation.set(-1.15, -0.42, 0.16);
+    player.skin.leftArm.rotation.set(-0.92, 0.68, -0.26);
+    player.skin.rightLeg.rotation.set(0, 0, 0.03);
+    player.skin.leftLeg.rotation.set(0, 0, -0.04);
+    player.skin.head.rotation.set(0.08, -0.18, 0);
+
+    scene.add(player as any);
+    playerRef.current = player;
+
+    // Load character skin texture with immediate James fallback
+    const cleanedCharTex = cleanTextureUrl(characterTextureUrl);
+    const targetCharUrl = cleanedCharTex ? getProxiedTextureUrl(cleanedCharTex) : STARTER_JAMES_SKIN;
+
+    const texLoader = new THREE.TextureLoader();
+    texLoader.crossOrigin = 'anonymous';
+    texLoader.load(
+      targetCharUrl,
+      (tex) => {
+        if (isDisposed) return;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.magFilter = THREE.NearestFilter;
+        tex.minFilter = THREE.NearestFilter;
+        (player.skin as any).map = tex;
+      },
+      undefined,
+      () => {
+        if (isDisposed) return;
+        texLoader.load(STARTER_JAMES_SKIN, (fTex) => {
+          fTex.colorSpace = THREE.SRGBColorSpace;
+          fTex.magFilter = THREE.NearestFilter;
+          fTex.minFilter = THREE.NearestFilter;
+          (player.skin as any).map = fTex;
+        });
+      }
+    );
+
+    // 5. Load & Attach 3D Primary Weapon Model
     const normalizedWeapon = (primaryWeaponType || 'SCAR').trim().toUpperCase().replace(/^_+/, '');
     const modelFile = WEAPON_MODEL_MAP[normalizedWeapon] || 'SCAR.glb';
 
     const attachWeapon = (gltfGroup: THREE.Group) => {
       if (isDisposed) return;
       if (weaponMeshRef.current) {
-        (viewer.playerObject as any).remove(weaponMeshRef.current);
+        (player as any).remove(weaponMeshRef.current);
         weaponMeshRef.current = null;
       }
 
       const gunClone = gltfGroup.clone(true);
 
-      // Proportionally scale gun to fit voxel character hands
+      // Proportionally scale weapon to voxel character proportions
       const box = new THREE.Box3().setFromObject(gunClone);
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
       const targetScale = 16.5 / maxDim;
       gunClone.scale.setScalar(targetScale);
 
-      // Position gun directly across chest in player's hands
+      // Sits directly across player hands and chest
       gunClone.position.set(1.5, -2.5, 7.2);
       gunClone.rotation.set(-0.24, 0.42, 0.32);
 
@@ -174,9 +187,9 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
       const cleanedGunTex = cleanTextureUrl(primaryTextureUrl);
       if (cleanedGunTex) {
         const proxiedTexUrl = getProxiedTextureUrl(cleanedGunTex);
-        const texLoader = new THREE.TextureLoader();
-        texLoader.crossOrigin = 'anonymous';
-        texLoader.load(proxiedTexUrl, (tex) => {
+        const gunLoader = new THREE.TextureLoader();
+        gunLoader.crossOrigin = 'anonymous';
+        gunLoader.load(proxiedTexUrl, (tex) => {
           if (isDisposed) return;
           tex.colorSpace = THREE.SRGBColorSpace;
           tex.magFilter = THREE.NearestFilter;
@@ -194,12 +207,11 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
         });
       }
 
-      (viewer.playerObject as any).add(gunClone);
+      (player as any).add(gunClone);
       weaponMeshRef.current = gunClone;
       setLoading(false);
     };
 
-    // Load weapon model with path fallback
     if (gltfModelCache.has(modelFile)) {
       attachWeapon(gltfModelCache.get(modelFile)!);
     } else {
@@ -217,7 +229,6 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
         },
         undefined,
         () => {
-          // Try fallback
           loader.load(
             fallbackPath,
             (fallbackGltf) => {
@@ -235,22 +246,20 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
       );
     }
 
-    // 3. Continuous 60 FPS Render Loop
+    // 6. Single Solid 60 FPS Render Loop (Zero Context Collisions)
     const animate = () => {
       if (isDisposed) return;
       animId = requestAnimationFrame(animate);
 
-      // Keep authentic holding stance
-      applyKirkaPose(viewer);
-
       // Subtle breathing motion for realistic showcase
       const t = Date.now() * 0.002;
-      if (viewer.playerObject?.skin?.head) {
-        viewer.playerObject.skin.head.rotation.y = -0.18 + Math.sin(t) * 0.03;
-        viewer.playerObject.skin.head.rotation.x = 0.08 + Math.cos(t * 0.8) * 0.015;
+      if (player.skin?.head) {
+        player.skin.head.rotation.y = -0.18 + Math.sin(t) * 0.03;
+        player.skin.head.rotation.x = 0.08 + Math.cos(t * 0.8) * 0.015;
       }
 
-      viewer.render();
+      controls.update();
+      renderer.render(scene, camera);
     };
     animate();
 
@@ -259,7 +268,9 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
       const w = container.clientWidth;
       const h = container.clientHeight;
       if (w > 0 && h > 0) {
-        viewer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
       }
     });
     resizeObserver.observe(container);
@@ -268,15 +279,17 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
       isDisposed = true;
       if (animId !== null) cancelAnimationFrame(animId);
       resizeObserver.disconnect();
-      skinViewerRef.current = null;
-      viewer.dispose();
+      renderer.dispose();
+      rendererRef.current = null;
+      controlsRef.current = null;
+      playerRef.current = null;
     };
   }, [characterTextureUrl, primaryWeaponType, primaryTextureUrl]);
 
   const handleExportSnapshot = () => {
-    if (!skinViewerRef.current) return;
+    if (!rendererRef.current) return;
     try {
-      const dataUrl = skinViewerRef.current.canvas.toDataURL('image/png');
+      const dataUrl = rendererRef.current.domElement.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `kirka_fit_${characterName.replace(/\s+/g, '_')}_${primarySkinName.replace(/\s+/g, '_')}.png`;
       link.href = dataUrl;
@@ -287,12 +300,10 @@ export const FitViewer3D: React.FC<FitViewer3DProps> = ({
   };
 
   const handleResetView = () => {
-    if (!skinViewerRef.current) return;
-    const v = skinViewerRef.current;
-    v.controls.target.set(0, 0, 0);
-    v.camera.position.set(0, 0, 52);
-    v.controls.update();
-    applyKirkaPose(v);
+    if (!controlsRef.current) return;
+    controlsRef.current.target.set(0, 0, 0);
+    controlsRef.current.object.position.set(0, 0, 50);
+    controlsRef.current.update();
   };
 
   return (

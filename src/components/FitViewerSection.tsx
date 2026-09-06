@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { FitViewer3D } from './FitViewer3D';
 import { fetchUserProfile } from '../utils/api';
+import { getSkinRenderUrl } from './Weapon3DViewer';
 
 interface FitViewerSectionProps {
   publicItems: any[];
@@ -93,8 +94,8 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
   // --- FILTERED CATALOG DATA ---
   // 1. All Character Skins (including in-game specials like Capy)
   const characterSkins = useMemo(() => {
-    const list = publicItems.filter(item => {
-      const type = (item.type || '').toUpperCase();
+    const list = (publicItems || []).filter(item => {
+      const type = (item?.type || '').toUpperCase();
       return type === 'BODY_SKIN' || type === 'CHARACTER';
     });
 
@@ -119,24 +120,24 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
   // 3. Skins for selected primary weapon
   const primarySkinsForWeapon = useMemo(() => {
     const targetParent = selectedPrimaryWeapon.toLowerCase();
-    return publicItems.filter(item => {
-      const pName = (item.parent?.name || '').toLowerCase();
+    return (publicItems || []).filter(item => {
+      const pName = (item?.parent?.name || '').toLowerCase();
       return pName === targetParent;
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [publicItems, selectedPrimaryWeapon]);
 
   // 4. Secondary (Revolver) skins
   const secondarySkins = useMemo(() => {
-    return publicItems.filter(item => {
-      const pName = (item.parent?.name || '').toLowerCase();
+    return (publicItems || []).filter(item => {
+      const pName = (item?.parent?.name || '').toLowerCase();
       return pName === 'revolver' || pName === 'pistol';
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [publicItems]);
 
   // 5. Melee (Bayonet / Tomahawk) skins
   const meleeSkins = useMemo(() => {
-    return publicItems.filter(item => {
-      const pName = (item.parent?.name || '').toLowerCase();
+    return (publicItems || []).filter(item => {
+      const pName = (item?.parent?.name || '').toLowerCase();
       return pName === 'bayonet' || pName === 'tomahawk' || pName === 'knife';
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [publicItems]);
@@ -323,7 +324,7 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
                 </span>
                 <div className="h-16 flex items-center justify-center mt-2">
                   <img
-                    src={activePrimaryItem?.renderUrl || `${import.meta.env.BASE_URL}render-mini.webp`}
+                    src={getSkinRenderUrl(activePrimaryItem || selectedPrimarySkin)}
                     alt={selectedPrimarySkin}
                     className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
                     onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
@@ -344,7 +345,7 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
                 </span>
                 <div className="h-16 flex items-center justify-center mt-2">
                   <img
-                    src={activeSecondaryItem?.renderUrl || `${import.meta.env.BASE_URL}render-mini.webp`}
+                    src={getSkinRenderUrl(activeSecondaryItem || selectedSecondarySkin)}
                     alt={selectedSecondarySkin}
                     className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
                     onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
@@ -365,7 +366,7 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
                 </span>
                 <div className="h-16 flex items-center justify-center mt-2">
                   <img
-                    src={activeMeleeItem?.renderUrl || `${import.meta.env.BASE_URL}render-mini.webp`}
+                    src={getSkinRenderUrl(activeMeleeItem || selectedMeleeSkin)}
                     alt={selectedMeleeSkin}
                     className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
                     onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
@@ -416,9 +417,12 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
                           }`}
                         >
                           <div className="flex items-center space-x-2.5 truncate">
-                            {char.renderUrl && (
-                              <img src={char.renderUrl} alt={char.name} className="w-5 h-5 object-contain" />
-                            )}
+                            <img 
+                              src={getSkinRenderUrl(char)} 
+                              alt={char.name} 
+                              className="w-5 h-5 object-contain" 
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
                             <span className="truncate">{char.name}</span>
                           </div>
                           {isSelected && <Check className="w-4 h-4 text-cyan-400" />}

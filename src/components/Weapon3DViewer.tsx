@@ -49,10 +49,17 @@ export function has3DViewerSupport(weaponTypeOrParent?: string): boolean {
   return !!getModelFileName(weaponTypeOrParent);
 }
 
-// Clean texture URL to handle Kirka API malformed data URIs (e.g. 'https://kirka.iodata:image/png;base64,...')
+// Clean texture URL to handle Kirka API malformed URIs (e.g. 'https://kirka.iodata:image/png;base64,...' or 'https://kirka.iohttps://api2.kirka.io/...')
 export function cleanTextureUrl(url: string | null | undefined): string | null {
   if (!url) return null;
-  const trimmed = url.trim();
+  let trimmed = url.trim();
+
+  // Fix malformed double prefix (e.g. 'https://kirka.iohttps://api2.kirka.io/...')
+  const secondHttp = trimmed.indexOf('http', 8);
+  if (secondHttp !== -1) {
+    trimmed = trimmed.substring(secondHttp);
+  }
+
   const dataIdx = trimmed.indexOf('data:image');
   if (dataIdx !== -1) {
     return trimmed.substring(dataIdx);
@@ -67,6 +74,21 @@ export function getProxiedTextureUrl(url: string | null | undefined): string {
     return cleaned;
   }
   return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}`;
+}
+
+// Universal skin render image resolver with automatic api2.kirka.io fallback
+export function getSkinRenderUrl(itemOrName: any): string {
+  if (!itemOrName) return `${import.meta.env.BASE_URL}render-mini.webp`;
+  const name = typeof itemOrName === 'string' ? itemOrName : itemOrName.name;
+  const rawUrl = typeof itemOrName === 'object' ? itemOrName.renderUrl : null;
+  const cleaned = cleanTextureUrl(rawUrl);
+  if (cleaned) {
+    return getProxiedTextureUrl(cleaned);
+  }
+  if (name) {
+    return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(name.replace(/^_+/, '').trim())}`;
+  }
+  return `${import.meta.env.BASE_URL}render-mini.webp`;
 }
 
 interface Weapon3DViewerProps {

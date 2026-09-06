@@ -105,6 +105,9 @@ function App() {
     if (cleanPath === '/renders' || cleanPath === '/3drenders') {
       return { tab: 'renders', player: null, clan: null, skin: null };
     }
+    if (cleanPath === '/fitviewer' || cleanPath === '/fit-viewer') {
+      return { tab: 'fitviewer', player: null, clan: null, skin: null };
+    }
     if (cleanPath === '/skineditor') {
       return { tab: 'skineditor', player: null, clan: null, skin: null };
     }
