@@ -185,10 +185,11 @@ export const SkinEditor: React.FC = () => {
 
   // Sync 2D Canvas changes to 3D Viewport in REAL TIME (60 FPS)
   const syncTo3D = useCallback(() => {
-    if (canvasTextureRef.current) {
-      canvasTextureRef.current.needsUpdate = true;
-    }
-  }, []);
+    if (!skinViewerRef.current || !canvasRef.current) return;
+    const viewer = skinViewerRef.current;
+    viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
+    viewer.playerObject.skin.visible = true;
+  }, [modelType]);
 
   // --------------------------------------------------------------------------
   // 1. INITIALIZE 3D SKIN VIEWER (skinview3d)
@@ -212,17 +213,16 @@ export const SkinEditor: React.FC = () => {
     viewer.controls.enableZoom = true;
     viewer.controls.enableRotate = true;
 
-    // Create live CanvasTexture linking the 2D canvas directly to the 3D model
-    const canvasTexture = new THREE.CanvasTexture(canvasRef.current);
-    canvasTexture.magFilter = THREE.NearestFilter;
-    canvasTexture.minFilter = THREE.NearestFilter;
-    canvasTexture.generateMipmaps = false;
-    canvasTextureRef.current = canvasTexture;
-
-    viewer.playerObject.skin.map = canvasTexture as any;
+    // Append canvas to container with full dimensions
+    viewer.canvas.style.width = '100%';
+    viewer.canvas.style.height = '100%';
+    viewer.canvas.style.display = 'block';
 
     viewerContainerRef.current.appendChild(viewer.canvas);
     skinViewerRef.current = viewer;
+
+    viewer.playerObject.skin.visible = true;
+    viewer.loadSkin(canvasRef.current, { model: modelType, makeVisible: true });
 
     const handleResize = () => {
       if (!viewerContainerRef.current || !skinViewerRef.current) return;
@@ -421,39 +421,68 @@ export const SkinEditor: React.FC = () => {
 
     ctx.clearRect(0, 0, SKIN_WIDTH, SKIN_HEIGHT);
 
-    // Procedural starter skin (Alex / Steve base)
-    ctx.fillStyle = '#e0ac69'; // Skin face
+    // 1. HEAD
+    ctx.fillStyle = '#e0ac69'; // Skin tone
     ctx.fillRect(8, 8, 8, 8); // Head Front
     ctx.fillRect(0, 8, 8, 8); // Head Right
     ctx.fillRect(16, 8, 8, 8); // Head Left
+    ctx.fillRect(24, 8, 8, 8); // Head Back
+    ctx.fillStyle = '#78350f'; // Brown Hair
     ctx.fillRect(8, 0, 8, 8); // Head Top
-    ctx.fillRect(16, 0, 8, 8); // Head Bottom
+    ctx.fillRect(8, 8, 8, 3); // Hair Bangs
+    ctx.fillRect(0, 8, 8, 4); // Hair Right
+    ctx.fillRect(16, 8, 8, 4); // Hair Left
+    ctx.fillRect(24, 8, 8, 8); // Hair Back
+    ctx.fillStyle = '#e0ac69'; // Head Bottom
+    ctx.fillRect(16, 0, 8, 8);
 
     // Eyes
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(9, 12, 2, 1);
     ctx.fillRect(13, 12, 2, 1);
-    ctx.fillStyle = '#2563eb';
+    ctx.fillStyle = '#2563eb'; // Blue iris
     ctx.fillRect(10, 12, 1, 1);
     ctx.fillRect(13, 12, 1, 1);
 
-    // Torso (Shirt)
+    // 2. TORSO (Gold Esports Jersey)
     ctx.fillStyle = '#d4af37'; // Gold
-    ctx.fillRect(20, 20, 8, 12);
-    ctx.fillRect(16, 20, 4, 12);
-    ctx.fillRect(28, 20, 4, 12);
-    ctx.fillRect(20, 16, 8, 4);
+    ctx.fillRect(20, 20, 8, 12); // Torso Front
+    ctx.fillRect(32, 20, 8, 12); // Torso Back
+    ctx.fillRect(16, 20, 4, 12); // Torso Right
+    ctx.fillRect(28, 20, 4, 12); // Torso Left
+    ctx.fillRect(20, 16, 8, 4); // Torso Top
+    ctx.fillRect(28, 16, 8, 4); // Torso Bottom
+    // Torso Details
+    ctx.fillStyle = '#0f172a'; // Obsidian collar & belt
+    ctx.fillRect(22, 20, 4, 2);
+    ctx.fillRect(20, 30, 8, 2);
 
-    // Arms
-    ctx.fillStyle = '#e0ac69';
+    // 3. RIGHT ARM
     const armW = targetModel === 'slim' ? 3 : 4;
-    ctx.fillRect(44, 20, armW, 12);
-    ctx.fillRect(36, 52, armW, 12);
+    ctx.fillStyle = '#d4af37'; // Sleeve top
+    ctx.fillRect(40, 16, armW * 2 + 8, 4);
+    ctx.fillRect(40, 20, armW * 2 + 8, 6);
+    ctx.fillStyle = '#e0ac69'; // Skin hand
+    ctx.fillRect(40, 26, armW * 2 + 8, 6);
 
-    // Legs (Pants)
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(4, 20, 4, 12);
-    ctx.fillRect(20, 52, 4, 12);
+    // 4. LEFT ARM
+    ctx.fillStyle = '#d4af37'; // Sleeve top
+    ctx.fillRect(32, 48, armW * 2 + 8, 4);
+    ctx.fillRect(32, 52, armW * 2 + 8, 6);
+    ctx.fillStyle = '#e0ac69'; // Skin hand
+    ctx.fillRect(32, 58, armW * 2 + 8, 6);
+
+    // 5. RIGHT LEG (Obsidian Pants)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 16, 16, 12);
+    ctx.fillStyle = '#1e293b'; // Shoes
+    ctx.fillRect(0, 28, 16, 4);
+
+    // 6. LEFT LEG (Obsidian Pants)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(16, 48, 16, 12);
+    ctx.fillStyle = '#1e293b'; // Shoes
+    ctx.fillRect(16, 60, 16, 4);
 
     setModelType(targetModel);
     syncTo3D();
@@ -461,7 +490,11 @@ export const SkinEditor: React.FC = () => {
   };
 
   useEffect(() => {
-    loadSkinFromUrl(SKIN_PRESETS[0].url, 'slim');
+    createProceduralStarterSkin('slim');
+    // Try to load online preset with fallback
+    loadSkinFromUrl(SKIN_PRESETS[0].url, 'slim').catch(() => {
+      createProceduralStarterSkin('slim');
+    });
   }, []);
 
   // --------------------------------------------------------------------------
