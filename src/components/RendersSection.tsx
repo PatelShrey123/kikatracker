@@ -10,7 +10,7 @@ import {
   Palette,
   Eye,
 } from 'lucide-react';
-import { Weapon3DViewer, isCharacterSkin, getSkinRenderUrl, cleanTextureUrl } from './Weapon3DViewer';
+import { Weapon3DViewer, isCharacterSkin, getSkinRenderUrl, cleanTextureUrl, isPlaceholderUrl } from './Weapon3DViewer';
 import type { MarketItem } from '../utils/csv';
 import { getCachedCatalog, setCachedCatalog, clearCachedCatalog } from '../utils/catalogCache';
 
@@ -386,7 +386,10 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                       loading="lazy"
                       onError={(e) => {
                         const target = e.currentTarget;
-                        if (!target.dataset.fallback) {
+                        if (!target.dataset.triedTexture && item.textureUrl && !isPlaceholderUrl(item.textureUrl)) {
+                          target.dataset.triedTexture = 'true';
+                          target.src = item.textureUrl;
+                        } else if (!target.dataset.fallback) {
                           target.dataset.fallback = 'true';
                           target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
                         }
