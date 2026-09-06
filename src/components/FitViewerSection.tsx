@@ -63,7 +63,45 @@ const PRESET_FITS = [
   }
 ];
 
-export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems }) => {
+class FitViewerErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[FitViewerErrorBoundary] Caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full max-w-4xl mx-auto my-12 p-8 rounded-2xl bg-[#0e162a] border border-red-500/30 text-center space-y-4 shadow-2xl">
+          <h2 className="text-xl font-bold text-white">⚠️ 3D Fit Viewer Encountered an Issue</h2>
+          <p className="text-sm text-slate-400">
+            {this.state.error?.message || 'An unexpected rendering error occurred.'}
+          </p>
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs transition-all cursor-pointer"
+          >
+            Reload Fit Viewer
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const FitViewerSectionInner: React.FC<FitViewerSectionProps> = ({ publicItems }) => {
   // Player Header Info
   const [playerName, setPlayerName] = useState('CrackedYOU');
   const [playerLevel, setPlayerLevel] = useState(96);
@@ -599,3 +637,9 @@ export const FitViewerSection: React.FC<FitViewerSectionProps> = ({ publicItems 
     </div>
   );
 };
+
+export const FitViewerSection: React.FC<FitViewerSectionProps> = (props) => (
+  <FitViewerErrorBoundary>
+    <FitViewerSectionInner {...props} />
+  </FitViewerErrorBoundary>
+);
