@@ -22,15 +22,16 @@ import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
 import type { MarketItem } from './utils/csv';
+import { getCachedCatalog, syncAndStoreCatalog } from './utils/catalogCache';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('search');
   const [activeUserProfile, setActiveUserProfile] = useState<UserProfile | null>(null);
   const [marketPrices, setMarketPrices] = useState<Map<string, MarketItem>>(new Map());
-  const [publicItems, setPublicItems] = useState<any[]>([]);
+  const [publicItems, setPublicItems] = useState<any[]>(() => getCachedCatalog() || []);
   const [fallbackRenders] = useState<Record<string, any>>({});
-  const [allItemData, setAllItemData] = useState<any[]>([]);
+  const [allItemData, setAllItemData] = useState<any[]>(() => getCachedCatalog() || []);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [activeClanName, setActiveClanName] = useState<string | null>(null);
@@ -50,23 +51,17 @@ function App() {
       setMarketPrices(priceMap);
     });
 
-    // 2. Fetch public items list from official Kirka API (1873 skins with live textureUrl & renderUrl)
+    // 2. Fetch public items list from official Kirka API and auto-sync any new skins
     fetchAllPublicItems().then((items) => {
       if (Array.isArray(items) && items.length > 0) {
-        setPublicItems(items);
-        setAllItemData((prev) => {
-          const map = new Map();
-          if (Array.isArray(prev)) {
-            prev.forEach((i) => i?.id && map.set(i.id, i));
-          }
-          items.forEach((i) => {
-            if (i?.id) {
-              map.set(i.id, { ...(map.get(i.id) || {}), ...i });
-            }
-          });
-          return Array.from(map.values());
-        });
-        console.log(`Loaded ${items.length} live skins directly from official Kirka API.`);
+        const { merged, newCount } = syncAndStoreCatalog(items);
+        setPublicItems(merged);
+        setAllItemData(merged);
+        if (newCount > 0) {
+          console.log(`[AutoSync] Stored and displayed ${newCount} newly discovered Kirka skins! Total cached: ${merged.length}`);
+        } else {
+          console.log(`[AutoSync] Catalog verified up-to-date with ${merged.length} skins.`);
+        }
       }
     });
 

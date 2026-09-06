@@ -91,3 +91,83 @@ export function clearCachedCatalog(): void {
     localStorage.removeItem(CACHE_KEY);
   } catch {}
 }
+
+/**
+ * Automatically merges live items from API into existing cache.
+ * If new skins are detected, saves their URLs and returns the merged list.
+ */
+export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; newCount: number } {
+  if (!Array.isArray(liveItems) || liveItems.length === 0) {
+    const existing = getCachedCatalog() || [];
+    return { merged: existing, newCount: 0 };
+  }
+
+  const existing = getCachedCatalog() || [];
+  const existingMap = new Map<string, CachedItem>();
+
+  existing.forEach((item) => {
+    if (item && item.name) {
+      const key = `${item.name.toLowerCase()}_${(item.parent?.name || item.type || '').toLowerCase()}`;
+      existingMap.set(key, item);
+    }
+  });
+
+  let newCount = 0;
+  liveItems.forEach((live) => {
+    if (live && live.name) {
+      const key = `${live.name.toLowerCase()}_${(live.parent?.name || live.type || '').toLowerCase()}`;
+      if (!existingMap.has(key)) {
+        newCount++;
+        existingMap.set(key, {
+          id: live.id,
+          name: live.name,
+          type: live.type,
+          rarity: live.rarity,
+          renderUrl: live.renderUrl || null,
+          textureUrl: live.textureUrl || null,
+          parent: live.parent ? { name: live.parent.name, type: live.parent.type } : null,
+          salePrice: live.salePrice || 0,
+        });
+      } else {
+        // Update URLs if missing in cache but present in live
+        const cached = existingMap.get(key)!;
+        if (!cached.renderUrl && live.renderUrl) cached.renderUrl = live.renderUrl;
+        if (!cached.textureUrl && live.textureUrl) cached.textureUrl = live.textureUrl;
+      }
+    }
+  });
+
+  const merged = Array.from(existingMap.values());
+  setCachedCatalog(merged);
+
+  return { merged, newCount };
+}
+
+/**
+ * Fast O(1) in-memory URL resolver for any skin
+ */
+export function getStoredSkinUrls(skinName: string, weaponType?: string): { renderUrl: string | null; textureUrl: string | null } {
+  const cached = getCachedCatalog();
+  if (!cached || !skinName) return { renderUrl: null, textureUrl: null };
+
+  const cleanName = skinName.replace(/^_+/, '').trim().toLowerCase();
+  const cleanType = weaponType ? weaponType.trim().toLowerCase() : '';
+
+  // Try exact composite match
+  if (cleanType) {
+    const composite = cached.find(
+      (c) => c.name.toLowerCase() === cleanName && (c.parent?.name || c.type || '').toLowerCase() === cleanType
+    );
+    if (composite) {
+      return { renderUrl: composite.renderUrl, textureUrl: composite.textureUrl };
+    }
+  }
+
+  // Fallback to name match
+  const matched = cached.find((c) => c.name.toLowerCase() === cleanName);
+  if (matched) {
+    return { renderUrl: matched.renderUrl, textureUrl: matched.textureUrl };
+  }
+
+  return { renderUrl: null, textureUrl: null };
+}
