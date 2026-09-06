@@ -76,7 +76,19 @@ export function getProxiedTextureUrl(url: string | null | undefined): string {
   return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}`;
 }
 
-// Universal skin render image resolver with automatic api2.kirka.io fallback
+export function isPlaceholderUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== 'string') return true;
+  const t = url.trim();
+  if (t === '' || t === 'https://kirka.io' || t === 'https://kirka.io/' || t === '/render') return true;
+  if (t.includes('render-mini.0ec8ea84') || t.includes('render-mini.67fdc7ae')) return true;
+  if (t.includes('render.0e1d4800') || t.includes('render.d8456ef7')) return true;
+  if (t.includes('__questions__')) return true;
+  return false;
+}
+
+// Universal skin render image resolver:
+// 1. Prioritize old API (api.kirka.io) renderUrl/textureUrl if available and not a placeholder
+// 2. Only fall back to api2.kirka.io when old API lacks a real render (e.g. Hi-Score, Sterling, Purp)
 export function getSkinRenderUrl(itemOrName: any): string {
   if (!itemOrName) return `${import.meta.env.BASE_URL}render-mini.webp`;
   const name = typeof itemOrName === 'string' ? itemOrName : itemOrName.name;
@@ -84,22 +96,15 @@ export function getSkinRenderUrl(itemOrName: any): string {
   const rawUrl = typeof itemOrName === 'object' ? (itemOrName.renderUrl || itemOrName.renderurl) : null;
   const cleaned = cleanTextureUrl(rawUrl);
 
-  const isPlaceholder = !cleaned ||
-    cleaned.includes('render-mini') ||
-    cleaned.includes('/assets/img/render') ||
-    cleaned.endsWith('/render') ||
-    cleaned === 'https://kirka.io' ||
-    cleaned === 'https://kirka.io/';
-
-  // 1. If it has a real custom render URL (e.g. valid webp/png/data from API or api2)
-  if (cleaned && !isPlaceholder) {
+  // 1. If old API (api.kirka.io) has a valid real render, use it!
+  if (cleaned && !isPlaceholderUrl(cleaned)) {
     if (cleaned.startsWith('https://api2.kirka.io') || cleaned.startsWith('data:') || cleaned.startsWith('blob:')) {
       return cleaned;
     }
     return getProxiedTextureUrl(cleaned);
   }
 
-  // 2. If it's a placeholder or missing, query official 3D render from api2.kirka.io
+  // 2. Only if old API doesn't have it (or it was a placeholder): query live official 3D render from api2.kirka.io
   if (cleanName) {
     return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
   }
