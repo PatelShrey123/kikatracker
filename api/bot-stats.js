@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   const supabaseUrl = process.env.SUPABASE_URL || 'https://bxebfeyqchjukibgfeqs.supabase.co';
-  const supabaseKey = process.env.SUPABASE_KEY || '';
+  const supabaseKey = process.env.SUPABASE_KEY || 'sb_publishable_I5SYfP4fDrzFP3_bPcXg9A_sUuuuWD2';
 
   try {
     if (!supabaseKey) {
