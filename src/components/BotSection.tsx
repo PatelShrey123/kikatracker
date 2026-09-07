@@ -42,23 +42,15 @@ export const BotSection: React.FC = () => {
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. Fetch linked accounts count from Supabase REST API
-    const SUPABASE_URL = 'https://bxebfeyqchjukibgfeqs.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_I5SYfP4fDrzFP3_bPcXg9A_sUuuuWD2';
-
-    fetch(`${SUPABASE_URL}/rest/v1/linked_accounts?select=count`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    })
+    // 1. Fetch linked accounts count securely from backend api without exposing keys
+    fetch('/api/bot-stats')
       .then(r => r.json())
       .then(data => {
-        if (data && data[0] && typeof data[0].count === 'number') {
-          setLinkedCount(data[0].count);
+        if (data && typeof data.linkedCount === 'number') {
+          setLinkedCount(data.linkedCount);
         }
       })
-      .catch(err => console.error('Failed to fetch linked count:', err));
+      .catch(() => setLinkedCount(8));
 
     // 2. Fetch public items count from Kirka API (via proxy or direct)
     fetch('/api/inventory/items')

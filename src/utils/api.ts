@@ -534,7 +534,6 @@ export async function fetchAllPublicItems(): Promise<any[]> {
   try {
     const res = await fetch('https://api.kirka.io/api/inventory/items', {
       headers: {
-        'ApiKey': '01d50491829d6991b64f116b1f34b70924889a2f99a7ea81820fe8a3323da060',
         'Accept': 'application/json'
       }
     });
@@ -601,8 +600,7 @@ export async function fetchMatchHistory(identifier: string, page: number = 0): P
     const res = await fetch('https://api2.kirka.io/api/wwMmWW/wWwMnWN', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'ApiKey': '01d50491829d6991b64f116b1f34b70924889a2f99a7ea81820fe8a3323da060'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });
