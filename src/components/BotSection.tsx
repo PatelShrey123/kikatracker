@@ -36,7 +36,7 @@ export const BotSection: React.FC = () => {
   const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=1532695214634831872&permissions=8&integration_type=0&scope=bot+applications.commands';
 
   const [linkedCount, setLinkedCount] = useState<number>(8);
-  const [catalogCount, setCatalogCount] = useState<number>(1425);
+  const [catalogCount, setCatalogCount] = useState<number>(1913);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
@@ -89,15 +89,27 @@ export const BotSection: React.FC = () => {
   const features = [
     {
       text: 'Exclusive Bolt Pricing Engine',
-      desc: 'Accurate community-standard Bolt valuation indices for all 1,400+ skins instead of inflated generic prices.',
+      desc: 'Accurate community-standard Bolt valuation indices for all 1,900+ skins instead of inflated generic prices.',
       icon: RefreshCw,
       tag: 'Bolt Standard'
+    },
+    {
+      text: 'Creator & Artist Attribution',
+      desc: 'Official creator and artist credits on every skin with .skin, recognizing the community artists behind each design.',
+      icon: Sparkles,
+      tag: 'Creator Credits'
     },
     {
       text: 'Custom Profile Backgrounds (.h)',
       desc: 'Set and flaunt custom uploaded artwork or wallpaper on your high-definition player profile cards.',
       icon: Heart,
       tag: 'Custom BGs'
+    },
+    {
+      text: 'Live Game Server Browser (.servers)',
+      desc: 'Monitor live match lobbies across all global regions (EU, US, ASIA, etc.) with player counts, ping, and maps.',
+      icon: Globe,
+      tag: 'Live Lobbies'
     },
     {
       text: 'Live Trades & Market Browser (.trade)',
@@ -163,7 +175,7 @@ export const BotSection: React.FC = () => {
     {
       name: '/inventory',
       prefix: '.inv [user | @discord]',
-      desc: 'Browse complete player inventory with full Bolt market valuation, rarity tier distribution, and page controls. Mention any linked Discord user to inspect their items!',
+      desc: 'Browse complete player inventory with full Bolt market valuation, 5x5 HD graphical cards, multi-tier 3D render fallbacks, and page controls. Mention any linked Discord user to inspect their items!',
       options: 'username | #ID | @discord',
       example: '.inv @tooexpert',
       category: 'stats',
@@ -193,12 +205,22 @@ export const BotSection: React.FC = () => {
     {
       name: '/skin',
       prefix: '.skin <name>',
-      desc: 'Look up any skin or item in the 1,400+ database with official 3D renders, rarity classification, Bolt valuation, and collection origin.',
+      desc: 'Look up any skin or item in the 1,900+ database with official 3D renders, creator/artist attribution credits, rarity classification, and Bolt valuation.',
       options: 'skin name',
       example: '.skin Golden Rain',
       category: 'trading',
-      badge: 'DATABASE',
-      badgeColor: 'from-amber-600 to-yellow-500'
+      badge: 'CREATOR CREDITS',
+      badgeColor: 'from-purple-500 to-indigo-500'
+    },
+    {
+      name: '/servers',
+      prefix: '.servers [region]',
+      desc: 'Browse live multiplayer Kirka match lobbies worldwide with player counts, regional switch buttons, active game modes, and maps.',
+      options: 'optional: region (eu, us, asia)',
+      example: '.servers eu',
+      category: 'utility',
+      badge: 'LIVE LOBBIES',
+      badgeColor: 'from-cyan-500 to-blue-500'
     },
     {
       name: '/clan',
@@ -310,7 +332,7 @@ export const BotSection: React.FC = () => {
           <div className="space-y-4 text-center md:text-left max-w-2xl">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-gold-primary/30 bg-gold-primary/10 text-gold-bright text-xs font-semibold tracking-wider uppercase font-mono">
               <Bot className="w-3.5 h-3.5 text-gold-bright" />
-              <span>Official KirkaTracker Bot v2.4</span>
+              <span>Official KirkaTracker Bot v2.5</span>
             </div>
             
             <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">
