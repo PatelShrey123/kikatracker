@@ -21,12 +21,12 @@ export default async function handler(req, res) {
     if (r.ok) {
       const data = await r.json();
       if (Array.isArray(data) && data[0] && typeof data[0].count === 'number') {
-        return res.status(200).json({ linkedCount: data[0].count });
+        return res.status(200).json({ linkedCount: data[0].count, serverCount: 18 });
       }
     }
   } catch (err) {
     console.error('Bot stats error:', err);
   }
 
-  res.status(200).json({ linkedCount: 8 });
+  res.status(200).json({ linkedCount: 8, serverCount: 18 });
 }

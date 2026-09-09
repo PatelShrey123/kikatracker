@@ -35,6 +35,7 @@ interface BotCommand {
 export const BotSection: React.FC = () => {
   const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=1532695214634831872&permissions=8&integration_type=0&scope=bot+applications.commands';
 
+  const [serverCount, setServerCount] = useState<number>(18);
   const [linkedCount, setLinkedCount] = useState<number>(8);
   const [catalogCount, setCatalogCount] = useState<number>(1913);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -42,15 +43,19 @@ export const BotSection: React.FC = () => {
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. Fetch linked accounts count securely from backend api without exposing keys
+    // 1. Fetch linked accounts and server count securely from backend api without exposing keys
     fetch('/api/bot-stats')
       .then(r => r.json())
       .then(data => {
-        if (data && typeof data.linkedCount === 'number') {
-          setLinkedCount(data.linkedCount);
+        if (data) {
+          if (typeof data.linkedCount === 'number') setLinkedCount(data.linkedCount);
+          if (typeof data.serverCount === 'number') setServerCount(data.serverCount);
         }
       })
-      .catch(() => setLinkedCount(8));
+      .catch(() => {
+        setLinkedCount(8);
+        setServerCount(18);
+      });
 
     // 2. Fetch public items count from Kirka API (via proxy or direct)
     fetch('/api/inventory/items')
@@ -79,6 +84,24 @@ export const BotSection: React.FC = () => {
   };
 
   const features = [
+    {
+      text: '2026 Event Quests & Requirements (.events)',
+      desc: 'Browse 2026 Kirka Event Quest slot requirements (kills/headshots), weapon types, and live circulating owners.',
+      icon: Swords,
+      tag: '2026 Quests'
+    },
+    {
+      text: 'Clan Wars Rewards Tracker (.cw)',
+      desc: 'Complete Clan Wars prizes for Top 3, Top 8, and Top 39 clans with live community Bolt values and active owner counts.',
+      icon: Shield,
+      tag: 'Clan Wars'
+    },
+    {
+      text: 'Live Store & Drop Notifier (.store, .storeupdate)',
+      desc: 'Monitor active in-game store bundles, limited stock counters, and get instant drop pings in your server.',
+      icon: Flame,
+      tag: 'Store Pings'
+    },
     {
       text: 'Exclusive Bolt Pricing Engine',
       desc: 'Accurate community-standard Bolt valuation indices for all 1,900+ skins instead of inflated generic prices.',
@@ -154,6 +177,56 @@ export const BotSection: React.FC = () => {
   ];
 
   const commands: BotCommand[] = [
+    {
+      name: '/events',
+      prefix: '.events [query]',
+      desc: 'Browse 2026 Kirka Event Quests slots, weapon types, exact kill and headshot requirements, and live skin circulation.',
+      options: 'optional: event number (e.g. 26, 27) | skin name',
+      example: '.events 26',
+      category: 'stats',
+      badge: '2026 EVENTS',
+      badgeColor: 'from-amber-500 to-yellow-500'
+    },
+    {
+      name: '/events (clanwars)',
+      prefix: '.cw [number | skin]',
+      desc: 'View Clan Wars prize skins for Top 3, Top 8, and Top 39 clans with live community Bolt values and player circulation counts.',
+      options: 'optional: war number (e.g. 48, 1) | skin name',
+      example: '.cw 48',
+      category: 'stats',
+      badge: 'CLAN WARS',
+      badgeColor: 'from-red-500 to-rose-600'
+    },
+    {
+      name: '/events (seasons)',
+      prefix: '.seasons [query]',
+      desc: 'Inspect exclusive Ranked Seasons skin sets and limited event shop archives with rarity and Bolt valuation.',
+      options: 'optional: season number | shop name',
+      example: '.seasons',
+      category: 'stats',
+      badge: 'SEASONS',
+      badgeColor: 'from-purple-500 to-violet-600'
+    },
+    {
+      name: '/store',
+      prefix: '.store [view]',
+      desc: 'Inspect live in-game Kirka store items, limited bundles, and stock counters (e.g. 12/25 left) with official 3D renders.',
+      options: 'optional: view (all, bundles, skins)',
+      example: '.store',
+      category: 'trading',
+      badge: 'LIVE STORE',
+      badgeColor: 'from-emerald-500 to-green-600'
+    },
+    {
+      name: '/storeupdate',
+      prefix: '.storeupdate [on/off]',
+      desc: 'Subscribe your Discord channel or DM to instant notifications whenever a new limited store rotation or skin drop goes live.',
+      options: 'on | off',
+      example: '.storeupdate on',
+      category: 'utility',
+      badge: 'NOTIFIER',
+      badgeColor: 'from-blue-500 to-cyan-500'
+    },
     {
       name: '/profile',
       prefix: '.profile [user]',
@@ -372,10 +445,10 @@ export const BotSection: React.FC = () => {
       >
         <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-2xl p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           <div className="text-3xl md:text-4xl font-black text-[#10b981] font-mono tracking-wider mb-2">
-            {Math.round(linkedCount * 1.4) + 12}
+            {serverCount}
           </div>
           <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase font-mono">
-            Registered Users
+            Discord Servers
           </div>
         </div>
 
@@ -425,7 +498,7 @@ export const BotSection: React.FC = () => {
               <h2 className="text-xl font-black text-white tracking-wide">Key Features</h2>
             </div>
             <span className="text-[10px] font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/20 px-2 py-0.5 rounded-full font-bold">
-              10 Features
+              {features.length} Features
             </span>
           </div>
 
