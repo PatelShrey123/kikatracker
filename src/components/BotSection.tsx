@@ -18,7 +18,8 @@ import {
   Gift,
   Link as LinkIcon,
   Flame,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Users
 } from 'lucide-react';
 
 interface BotCommand {
@@ -35,26 +36,29 @@ interface BotCommand {
 export const BotSection: React.FC = () => {
   const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=1532695214634831872&permissions=8&integration_type=0&scope=bot+applications.commands';
 
-  const [serverCount, setServerCount] = useState<number>(18);
-  const [linkedCount, setLinkedCount] = useState<number>(8);
+  const [serverCount, setServerCount] = useState<number>(19);
+  const [linkedCount, setLinkedCount] = useState<number>(54);
+  const [userReach, setUserReach] = useState<number>(2686);
   const [catalogCount, setCatalogCount] = useState<number>(1913);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. Fetch linked accounts and server count securely from backend api without exposing keys
+    // 1. Fetch linked accounts, user reach, and server count securely from backend api without exposing keys
     fetch('/api/bot-stats')
       .then(r => r.json())
       .then(data => {
         if (data) {
           if (typeof data.linkedCount === 'number') setLinkedCount(data.linkedCount);
           if (typeof data.serverCount === 'number') setServerCount(data.serverCount);
+          if (typeof data.userReach === 'number') setUserReach(data.userReach);
         }
       })
       .catch(() => {
-        setLinkedCount(8);
-        setServerCount(18);
+        setLinkedCount(54);
+        setServerCount(19);
+        setUserReach(2686);
       });
 
     // 2. Fetch public items count from Kirka API (via proxy or direct)
@@ -409,6 +413,10 @@ export const BotSection: React.FC = () => {
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400 font-bold flex items-center space-x-1.5">
+                <Users className="w-3.5 h-3.5" />
+                <span>{userReach.toLocaleString()}+ Players Reached</span>
+              </span>
               <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-slate-300 flex items-center space-x-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>Supports Prefix <code className="text-gold-bright font-bold">.</code> & Slash <code className="text-indigo-400 font-bold">/</code></span>
@@ -444,11 +452,11 @@ export const BotSection: React.FC = () => {
         className="grid grid-cols-2 lg:grid-cols-4 gap-6"
       >
         <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-2xl p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-          <div className="text-3xl md:text-4xl font-black text-[#10b981] font-mono tracking-wider mb-2">
-            {serverCount}
+          <div className="text-3xl md:text-4xl font-black text-[#38bdf8] font-mono tracking-wider mb-2">
+            {userReach.toLocaleString()}+
           </div>
-          <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase font-mono">
-            Discord Servers
+          <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase font-mono">
+            Total Players Reached
           </div>
         </div>
 
@@ -456,17 +464,17 @@ export const BotSection: React.FC = () => {
           <div className="text-3xl md:text-4xl font-black text-gold-bright font-mono tracking-wider mb-2">
             {linkedCount}
           </div>
-          <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase font-mono">
-            Linked Kirka Accounts
+          <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase font-mono">
+            Linked Kirka Profiles
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-2xl p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-          <div className="text-3xl md:text-4xl font-black text-indigo-400 font-mono tracking-wider mb-2">
-            {commands.length} Active
+          <div className="text-3xl md:text-4xl font-black text-[#10b981] font-mono tracking-wider mb-2">
+            {serverCount}
           </div>
-          <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase font-mono">
-            Commands & Features
+          <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase font-mono">
+            Discord Servers
           </div>
         </div>
 
@@ -474,7 +482,7 @@ export const BotSection: React.FC = () => {
           <div className="text-3xl md:text-4xl font-black text-amber-400 font-mono tracking-wider mb-2">
             {catalogCount.toLocaleString()}
           </div>
-          <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase font-mono">
+          <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase font-mono">
             Skin Catalog & Bolt Prices
           </div>
         </div>

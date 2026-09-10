@@ -113,17 +113,19 @@ export function getSkinRenderUrl(itemOrName: any): string {
 }
 
 interface Weapon3DViewerProps {
-  weaponType?: string;
-  textureUrl?: string | null;
+  weaponType: string;
+  textureUrl: string | null;
+  skinName?: string;
   className?: string;
   autoRotateDefault?: boolean;
 }
 
 export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
-  weaponType = '',
-  textureUrl = null,
-  className = 'w-full h-full min-h-[220px]',
-  autoRotateDefault = true,
+  weaponType,
+  textureUrl,
+  skinName,
+  className = 'w-full h-full',
+  autoRotateDefault = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
@@ -253,17 +255,27 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
 
     // High-speed cached texture loader with multiple fallbacks
     const loadTexturePromise = (url: string | null): Promise<THREE.Texture | null> => {
-      const cleaned = cleanTextureUrl(url);
-      if (!cleaned) return Promise.resolve(null);
-      if (textureCache.has(cleaned)) {
-        return Promise.resolve(textureCache.get(cleaned)!);
+      let targetUrl = cleanTextureUrl(url);
+
+      // If url is invalid or a placeholder, fallback to api2 skin texture if skinName is available
+      if (!targetUrl || isPlaceholderUrl(targetUrl)) {
+        if (skinName) {
+          const cleanSkin = skinName.replace(/^_+/, '').trim();
+          targetUrl = `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanSkin)}`;
+        } else {
+          return Promise.resolve(null);
+        }
+      }
+
+      if (textureCache.has(targetUrl)) {
+        return Promise.resolve(textureCache.get(targetUrl)!);
       }
 
       return new Promise((resolve) => {
         const texLoader = new THREE.TextureLoader();
         texLoader.crossOrigin = 'anonymous';
 
-        const proxied = getProxiedTextureUrl(cleaned);
+        const proxied = getProxiedTextureUrl(targetUrl);
 
         texLoader.load(
           proxied,
@@ -273,25 +285,47 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
             tex.magFilter = THREE.NearestFilter;
             tex.minFilter = THREE.NearestFilter;
             tex.generateMipmaps = false;
-            textureCache.set(cleaned, tex);
+            textureCache.set(targetUrl, tex);
             resolve(tex);
           },
           undefined,
           () => {
             // Direct fallback
             texLoader.load(
-              cleaned,
+              targetUrl,
               (directTex) => {
                 directTex.flipY = false;
                 directTex.colorSpace = THREE.SRGBColorSpace;
                 directTex.magFilter = THREE.NearestFilter;
                 directTex.minFilter = THREE.NearestFilter;
                 directTex.generateMipmaps = false;
-                textureCache.set(cleaned, directTex);
+                textureCache.set(targetUrl, directTex);
                 resolve(directTex);
               },
               undefined,
-              () => resolve(null)
+              () => {
+                // Secondary fallback to api2 skin-texture if url was different
+                if (skinName && !targetUrl.includes('api2.kirka.io')) {
+                  const cleanSkin = skinName.replace(/^_+/, '').trim();
+                  const api2Url = `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanSkin)}`;
+                  texLoader.load(
+                    getProxiedTextureUrl(api2Url),
+                    (api2Tex) => {
+                      api2Tex.flipY = false;
+                      api2Tex.colorSpace = THREE.SRGBColorSpace;
+                      api2Tex.magFilter = THREE.NearestFilter;
+                      api2Tex.minFilter = THREE.NearestFilter;
+                      api2Tex.generateMipmaps = false;
+                      textureCache.set(targetUrl, api2Tex);
+                      resolve(api2Tex);
+                    },
+                    undefined,
+                    () => resolve(null)
+                  );
+                } else {
+                  resolve(null);
+                }
+              }
             );
           }
         );

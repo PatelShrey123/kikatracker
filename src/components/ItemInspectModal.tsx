@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box, Palette } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { Weapon3DViewer, has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl } from './Weapon3DViewer';
+import { Weapon3DViewer, has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl, isPlaceholderUrl } from './Weapon3DViewer';
 import { resolveItemCreator } from '../utils/catalogCache';
 
 interface ItemInspectModalProps {
@@ -62,38 +62,58 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   const has3DModel = has3DViewerSupport(weaponModelType);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>(has3DModel ? '3d' : '2d');
 
-  // Resolve texture URL for 3D model
-  let textureUrl = initialTextureUrl || metadata.textureUrl || null;
+  // Helper to test if a texture candidate is actually valid (not placeholder, dummy, or homepage)
+  const isValidTexture = (url: string | null | undefined): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    const t = url.trim();
+    if (t === '' || t.endsWith('kirka.io') || t.endsWith('kirka.io/') || t.includes('render-mini')) return false;
+    return !isPlaceholderUrl(t);
+  };
+
+  // Resolve texture URL for 3D model with placeholder filtering
+  let textureUrl: string | null = null;
+  if (isValidTexture(initialTextureUrl)) {
+    textureUrl = initialTextureUrl;
+  } else if (isValidTexture(metadata.textureUrl)) {
+    textureUrl = metadata.textureUrl;
+  }
+
   if (!textureUrl) {
     const fallback = fallbackRenders[normalizedName];
-    if (fallback) {
-      textureUrl = fallback.textureurl || fallback.textureUrl || null;
+    if (fallback && isValidTexture(fallback.textureurl || fallback.textureUrl)) {
+      textureUrl = fallback.textureurl || fallback.textureUrl;
     }
   }
+
   if (!textureUrl) {
     const directFallback = fallbackRenders[cleanName] || fallbackRenders[itemName];
-    if (directFallback) {
-      textureUrl = directFallback.textureurl || directFallback.textureUrl || null;
+    if (directFallback && isValidTexture(directFallback.textureurl || directFallback.textureUrl)) {
+      textureUrl = directFallback.textureurl || directFallback.textureUrl;
     }
   }
+
   if (!textureUrl && normalizedType) {
     const comboKey = `${normalizedName} ${normalizedType}`;
     const comboFallback = fallbackRenders[comboKey];
-    if (comboFallback) {
-      textureUrl = comboFallback.textureurl || comboFallback.textureUrl || null;
+    if (comboFallback && isValidTexture(comboFallback.textureurl || comboFallback.textureUrl)) {
+      textureUrl = comboFallback.textureurl || comboFallback.textureUrl;
     }
   }
+
   if (!textureUrl && Array.isArray(allItemData)) {
     const matched = allItemData.find((i) =>
-      i.name && i.name.toLowerCase().trim() === normalizedName
+      i.name && i.name.toLowerCase().trim() === normalizedName && isValidTexture(i.textureUrl)
     );
     if (matched && matched.textureUrl) {
       textureUrl = matched.textureUrl;
     }
   }
+
+  // Reliable final fallback to official api2 texture endpoint
   if (!textureUrl && cleanName) {
     textureUrl = `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanName)}`;
   }
+
   textureUrl = cleanTextureUrl(textureUrl);
 
   // Resolve render URL with live api2 fallback
@@ -206,6 +226,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
               <Weapon3DViewer
                 weaponType={weaponModelType}
                 textureUrl={textureUrl}
+                skinName={cleanName}
                 className="w-full h-full"
               />
             </div>
