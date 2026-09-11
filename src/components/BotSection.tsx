@@ -750,33 +750,58 @@ export const BotSection: React.FC = () => {
               <p className="text-slate-300 text-sm leading-relaxed">
                 KirkaHub is 100% free with no paywalls. Your donations directly fund high-performance cloud hosting, instant in-game verification listeners, and 3D skin rendering.
               </p>
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-1 text-xs font-mono">
-                <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300">
-                  🇮🇳 <strong>India:</strong> Direct UPI via BuyMeAChai (Zero phone leak)
-                </span>
-                <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300">
-                  🌍 <strong>Gaming / Global:</strong> Valorant Points, Steam Cards, Amazon Gift Cards
-                </span>
+
+              <div className="space-y-2 pt-1">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 text-xs font-mono">
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300">
+                    🇮🇳 <strong>India:</strong> Direct UPI via BuyMeAChai (Zero phone leaks)
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
+                    🎯 <strong>Valorant VP:</strong> Riot ID <code className="text-white font-bold bg-black/40 px-1 py-0.5 rounded">IMSMARTY#2254</code>
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+                    🎁 <strong>Amazon E-Gift:</strong> <code className="text-white font-bold bg-black/40 px-1 py-0.5 rounded">meetshrey2402@gmail.com</code>
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full lg:w-auto justify-center lg:justify-end">
               <a
                 href="https://www.buymeachai.in/xpert"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-sm tracking-wide shadow-lg shadow-amber-500/20 transition-all cursor-pointer select-none"
+                className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-xs tracking-wide shadow-lg shadow-amber-500/20 transition-all cursor-pointer select-none"
               >
-                <Coffee className="w-4 h-4" />
+                <Coffee className="w-3.5 h-3.5" />
                 <span>Buy Me A Chai (UPI)</span>
               </a>
+
+              <a
+                href="https://www.codashop.com/en-in/valorant"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+              >
+                <span>Gift Valorant Points</span>
+              </a>
+
+              <a
+                href="https://www.amazon.in/dp/B00KGE2EYC"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 text-emerald-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+              >
+                <span>Amazon E-Gift Card</span>
+              </a>
+
               <a
                 href="https://discord.gg/3zStCadBtP"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm tracking-wide transition-all cursor-pointer select-none"
+                className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
               >
-                <span>Submit Gift Cards in Discord</span>
+                <span>Tracker Bot Server</span>
               </a>
             </div>
           </div>
