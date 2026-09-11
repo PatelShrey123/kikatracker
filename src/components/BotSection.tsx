@@ -19,7 +19,8 @@ import {
   Link as LinkIcon,
   Flame,
   ArrowRightLeft,
-  Users
+  Users,
+  Coffee
 } from 'lucide-react';
 
 interface BotCommand {
@@ -366,6 +367,34 @@ export const BotSection: React.FC = () => {
       options: 'optional: command',
       example: '.help trade',
       category: 'utility'
+    },
+    {
+      name: '/donate',
+      prefix: '.donate [submit <code>]',
+      desc: 'Support 24/7 server hosting! Direct UPI via Buy Me A Chai (buymeachai.in/xpert) or tip with Steam codes, Valorant Points (VP), and Amazon Gift Cards.',
+      options: 'optional: submit <code>',
+      example: '.donate',
+      category: 'utility',
+      badge: 'SUPPORT',
+      badgeColor: 'from-amber-500 to-yellow-500'
+    },
+    {
+      name: '/support',
+      prefix: '.support',
+      desc: 'Join the official Tracker Bot Discord server for direct help, perks, suggestions, and dev chat.',
+      options: 'none',
+      example: '.support',
+      category: 'utility',
+      badge: 'COMMUNITY',
+      badgeColor: 'from-blue-500 to-indigo-500'
+    },
+    {
+      name: '/suggest',
+      prefix: '.suggest <idea>',
+      desc: 'Submit a feature idea or feedback directly to the developers in our #ideas channel.',
+      options: 'your idea',
+      example: '.suggest add online friends notifier',
+      category: 'utility'
     }
   ];
 
@@ -429,6 +458,18 @@ export const BotSection: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <motion.a
+              href="https://www.buymeachai.in/xpert"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center justify-center space-x-2 px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(245,158,11,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
+            >
+              <Coffee className="w-4 h-4 text-amber-400" />
+              <span>Buy Me A Chai</span>
+            </motion.a>
+
             <motion.a
               href={inviteUrl}
               target="_blank"
@@ -686,6 +727,58 @@ export const BotSection: React.FC = () => {
                 ))
               )}
             </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* 4. Support & Donation Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-[#140e04] via-[#0d0d15] to-[#040509] p-8 md:p-10 shadow-[0_12px_40px_rgba(245,158,11,0.1)] relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+            <div className="space-y-3 text-center lg:text-left max-w-2xl">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-semibold uppercase font-mono tracking-wider">
+                <Coffee className="w-3.5 h-3.5 text-amber-400" />
+                <span>Support KirkaHub 24/7 Hosting</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-white">
+                Love KirkaHub? <span className="text-amber-400">Support Development</span>
+              </h2>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                KirkaHub is 100% free with no paywalls. Your donations directly fund high-performance cloud hosting, instant in-game verification listeners, and 3D skin rendering.
+              </p>
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-1 text-xs font-mono">
+                <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300">
+                  🇮🇳 <strong>India:</strong> Direct UPI via BuyMeAChai (Zero phone leak)
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300">
+                  🌍 <strong>Gaming / Global:</strong> Valorant Points, Steam Cards, Amazon Gift Cards
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              <a
+                href="https://www.buymeachai.in/xpert"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-sm tracking-wide shadow-lg shadow-amber-500/20 transition-all cursor-pointer select-none"
+              >
+                <Coffee className="w-4 h-4" />
+                <span>Buy Me A Chai (UPI)</span>
+              </a>
+              <a
+                href="https://discord.gg/3zStCadBtP"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm tracking-wide transition-all cursor-pointer select-none"
+              >
+                <span>Submit Gift Cards in Discord</span>
+              </a>
+            </div>
           </div>
         </motion.div>
 
