@@ -6,10 +6,10 @@ export default async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL || 'https://bxebfeyqchjukibgfeqs.supabase.co';
   const supabaseKey = process.env.SUPABASE_KEY || 'sb_publishable_I5SYfP4fDrzFP3_bPcXg9A_sUuuuWD2';
 
-  let linkedCount = 54;
-  let customBgCount = 22;
+  let linkedCount = 57;
+  let customBgCount = 24;
   const serverCount = 19;
-  const userReach = 2686;
+  const userReach = 2688;
 
   try {
     if (supabaseKey) {
