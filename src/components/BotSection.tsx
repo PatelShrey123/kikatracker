@@ -53,15 +53,10 @@ export const BotSection: React.FC = () => {
   const [copiedRiotId, setCopiedRiotId] = useState<boolean>(false);
   const RIOT_ID = 'IMSMARTY#2254';
 
-  const handleCopyRiotId = () => {
-    navigator.clipboard.writeText(RIOT_ID);
-    setCopiedRiotId(true);
-    setTimeout(() => setCopiedRiotId(false), 2500);
-  };
-
   const handleOpenCodashop = () => {
     navigator.clipboard.writeText(RIOT_ID);
     setCopiedRiotId(true);
+    setTimeout(() => setCopiedRiotId(false), 2500);
     setTimeout(() => {
       window.open('https://www.codashop.com/en-in/valorant', '_blank', 'noopener,noreferrer');
     }, 250);
@@ -489,7 +484,7 @@ export const BotSection: React.FC = () => {
               className="flex items-center justify-center space-x-2 px-5 py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(245,158,11,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
               <Coffee className="w-4 h-4 text-amber-400" />
-              <span>Buy Me A Chai</span>
+              <span>🇮🇳 Indian Donator</span>
             </motion.a>
 
             <motion.button
@@ -499,8 +494,8 @@ export const BotSection: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               className="flex items-center justify-center space-x-2 px-5 py-4 rounded-2xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(99,102,241,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
-              <Gamepad2 className="w-4 h-4 text-indigo-400" />
-              <span>🎯 Gift Valorant Points</span>
+              <Globe className="w-4 h-4 text-indigo-400" />
+              <span>🌍 International Donator</span>
             </motion.button>
 
             <motion.a
@@ -813,16 +808,25 @@ export const BotSection: React.FC = () => {
                     className="flex-1 min-w-[140px] flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-xs tracking-wide shadow-lg shadow-amber-500/20 transition-all cursor-pointer select-none"
                   >
                     <Coffee className="w-3.5 h-3.5" />
-                    <span>Buy Me A Chai (UPI)</span>
+                    <span>🇮🇳 Indian Donator (UPI)</span>
                   </a>
 
                   <button
                     type="button"
-                    onClick={() => setShowVpModal(true)}
+                    onClick={handleOpenCodashop}
                     className="flex-1 min-w-[140px] flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-indigo-500/20 transition-all cursor-pointer select-none"
                   >
-                    <Gamepad2 className="w-3.5 h-3.5" />
-                    <span>🎯 Codashop VP</span>
+                    {copiedRiotId ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-300">Copied ID!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Gamepad2 className="w-3.5 h-3.5" />
+                        <span>🎯 Codashop VP</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -845,11 +849,20 @@ export const BotSection: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowVpModal(true)}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs tracking-wide shadow-lg shadow-indigo-600/20 transition-all cursor-pointer select-none"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>🌍 Open International Donator Options</span>
+                  </button>
+
                   <a
                     href="https://www.seagm.com/valorant-gift-card-india?ps=Search-Results:Related-cards"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
                   >
                     <Gamepad2 className="w-3.5 h-3.5" />
                     <span>SEAGM Valorant</span>
@@ -859,7 +872,7 @@ export const BotSection: React.FC = () => {
                     href="https://www.seagm.com/amazon-gift-card-india?ps=Universal-Search"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
                   >
                     <Gift className="w-3.5 h-3.5" />
                     <span>SEAGM Amazon</span>
@@ -869,7 +882,7 @@ export const BotSection: React.FC = () => {
                     href="https://discord.gg/3zStCadBtP"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs tracking-wide shadow-lg shadow-emerald-600/20 transition-all cursor-pointer select-none"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
                   >
                     <Bot className="w-3.5 h-3.5" />
                     <span>Submit Code to Discord Bot (.donate submit)</span>
@@ -881,7 +894,7 @@ export const BotSection: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* 5. Valorant Points / Codashop Instructions Modal */}
+        {/* 5. International Donator Modal */}
         <AnimatePresence>
           {showVpModal && (
             <motion.div
@@ -911,127 +924,98 @@ export const BotSection: React.FC = () => {
                 {/* Header */}
                 <div className="space-y-2 pr-8">
                   <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs font-semibold uppercase font-mono tracking-wider">
-                    <Gamepad2 className="w-3.5 h-3.5" />
-                    <span>Direct In-Game Top-Up</span>
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>Global Donation Portal</span>
                   </div>
                   <h3 className="text-xl md:text-2xl font-black text-white">
-                    Gift Valorant Points (VP)
+                    🌍 International Donator
                   </h3>
                   <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-                    Tops up the developer's Valorant account directly via Codashop. No gift card codes to submit or verify!
+                    Outside India? Pay in your local currency (USD, EUR, MYR, GBP) using <strong>PayPal, Apple Pay, Google Pay, or Credit Card</strong> via SEAGM!
                   </p>
                 </div>
 
-                {/* Riot ID Box */}
-                <div className="mt-5 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] font-mono text-indigo-300 uppercase tracking-wider">
-                    <span>Developer Riot ID:</span>
-                    <span className="text-slate-400">Riot Games • India</span>
-                  </div>
-                  <div className="flex items-center justify-between bg-black/60 border border-white/10 rounded-xl px-4 py-3">
-                    <code className="text-lg md:text-xl font-mono font-black text-amber-300 tracking-wider">
-                      {RIOT_ID}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={handleCopyRiotId}
-                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-200 text-xs font-bold transition-all cursor-pointer"
-                    >
-                      {copiedRiotId ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Copy ID</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* 3 Steps Guide */}
-                <div className="mt-5 space-y-2.5">
-                  <h4 className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                    How it works (3 Quick Steps):
-                  </h4>
-                  <div className="space-y-2 text-xs md:text-sm text-slate-200">
-                    <div className="flex items-start space-x-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
-                      <div>
-                        <strong className="text-white">Auto-Copy & Open:</strong> Click the button below. We'll automatically copy <code className="text-amber-300 bg-black/40 px-1 py-0.5 rounded">{RIOT_ID}</code> to your clipboard and open Codashop.
+                {/* Two Main Options: Valorant & Amazon */}
+                <div className="mt-5 space-y-3">
+                  {/* Option 1: Valorant Points (India) */}
+                  <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Gamepad2 className="w-4 h-4 text-indigo-400" />
+                        <span className="font-bold text-sm text-white">Option 1: Valorant Points (India)</span>
                       </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold">PayPal / Apple Pay</span>
                     </div>
-                    <div className="flex items-start space-x-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
-                      <div>
-                        <strong className="text-white">Paste Riot ID:</strong> In Codashop Step 1, paste (Ctrl+V) into the <strong>Riot ID</strong> field.
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
-                      <div>
-                        <strong className="text-white">Select VP & Pay:</strong> Pick any recharge amount (from ₹99 / 115 VP) and pay with UPI (Paytm, GPay, PhonePe). The points land instantly in-game!
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* International Donators Box */}
-                <div className="mt-4 p-3.5 rounded-2xl bg-indigo-950/60 border border-indigo-500/30 text-xs text-slate-300 space-y-2">
-                  <div className="flex items-center space-x-1.5 font-bold text-indigo-300">
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>Outside India? (International Donators)</span>
-                  </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Codashop India only accepts Indian UPI. If you are in Malaysia, the US, Europe, or worldwide, buy an <strong>India-Region card</strong> on SEAGM with PayPal / Apple Pay / Credit Card, then submit the code to our Discord bot:
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-1">
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Buy an India-region Valorant Points code on SEAGM with your local card or PayPal.
+                    </p>
                     <a
                       href="https://www.seagm.com/valorant-gift-card-india?ps=Search-Results:Related-cards"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2.5 py-1.5 rounded-lg bg-indigo-500/30 hover:bg-indigo-500/40 border border-indigo-500/40 text-indigo-200 text-xs font-bold flex items-center space-x-1"
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-xs tracking-wide shadow-md shadow-indigo-500/20 transition-all cursor-pointer select-none"
                     >
-                      <Gamepad2 className="w-3 h-3" />
-                      <span>Buy Valorant (India) on SEAGM</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Buy Valorant Points (India) on SEAGM</span>
                     </a>
+                  </div>
+
+                  {/* Option 2: Amazon Pay Gift Card (India) */}
+                  <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Gift className="w-4 h-4 text-amber-400" />
+                        <span className="font-bold text-sm text-white">Option 2: Amazon Pay Gift Card (India)</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold">PayPal / Apple Pay</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Buy an India Amazon Pay voucher on SEAGM with your local card or PayPal.
+                    </p>
                     <a
                       href="https://www.seagm.com/amazon-gift-card-india?ps=Universal-Search"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-bold flex items-center space-x-1"
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-extrabold text-xs tracking-wide shadow-md shadow-amber-500/20 transition-all cursor-pointer select-none"
                     >
-                      <Gift className="w-3 h-3" />
-                      <span>Buy Amazon (India) on SEAGM</span>
-                    </a>
-                    <a
-                      href="https://discord.gg/3zStCadBtP"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center space-x-1"
-                    >
-                      <Bot className="w-3 h-3" />
-                      <span>Submit Code in Discord (.donate submit)</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Buy Amazon Pay (India) on SEAGM</span>
                     </a>
                   </div>
-                  <p className="text-[10px] text-slate-400">
-                    *Typing <code className="text-white bg-black/40 px-1 py-0.5 rounded">.donate submit &lt;code&gt;</code> in Discord hides your code and <strong>DMs it directly to developer @tooexpert</strong>!
-                  </p>
+                </div>
+
+                {/* 3 Steps Guide */}
+                <div className="mt-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+                  <h4 className="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
+                    <span>How it works (3 Simple Steps):</span>
+                  </h4>
+                  <div className="space-y-1.5 text-xs text-slate-300">
+                    <div className="flex items-start space-x-2">
+                      <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">1</span>
+                      <span>Click either <strong>Valorant</strong> or <strong>Amazon</strong> above to buy the India code on SEAGM.</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">2</span>
+                      <span>Copy your digital voucher code from SEAGM.</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">3</span>
+                      <span>Click below to join Discord and type <code className="text-amber-300 bg-black/40 px-1 py-0.5 rounded">.donate submit &lt;code&gt;</code>. The bot hides it and <strong>DMs it directly to developer @tooexpert</strong>!</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleOpenCodashop}
-                    className="w-full flex items-center justify-center space-x-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-indigo-500/30 transition-all cursor-pointer"
+                <div className="mt-5 flex flex-col sm:flex-row items-center gap-2.5">
+                  <a
+                    href="https://discord.gg/3zStCadBtP"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center space-x-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-emerald-600/25 transition-all cursor-pointer select-none"
                   >
-                    <ExternalLink className="w-4 h-4" />
-                    <span>{copiedRiotId ? '✅ Copied! Opening Codashop...' : '🚀 Copy ID & Open Codashop'}</span>
-                  </button>
+                    <Bot className="w-4 h-4" />
+                    <span>🚀 Open Discord to Submit Code (.donate submit)</span>
+                  </a>
                   <button
                     type="button"
                     onClick={() => setShowVpModal(false)}
@@ -1040,10 +1024,6 @@ export const BotSection: React.FC = () => {
                     Close
                   </button>
                 </div>
-
-                <p className="mt-3 text-[11px] text-slate-500 leading-tight text-center">
-                  *Official top-up partners (Codashop, UniPin) prevent pre-filling player IDs via URL for account protection. Our button auto-copies {RIOT_ID} so donators never have to memorize or type it manually.
-                </p>
               </motion.div>
             </motion.div>
           )}
