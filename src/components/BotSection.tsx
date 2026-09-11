@@ -790,10 +790,10 @@ export const BotSection: React.FC = () => {
                     🇮🇳 <strong>India:</strong> Direct UPI via BuyMeAChai (Zero phone leaks)
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
-                    🎯 <strong>Valorant VP:</strong> Riot ID <code className="text-white font-bold bg-black/40 px-1 py-0.5 rounded">IMSMARTY#2254</code> (Direct Top-Up)
+                    🎯 <strong>Valorant VP:</strong> Riot ID <code className="text-white font-bold bg-black/40 px-1 py-0.5 rounded">IMSMARTY#2254</code> (Codashop)
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-                    🎁 <strong>Gift Cards:</strong> Steam & Amazon Codes via Discord
+                    🌍 <strong>International:</strong> Steam Wallet Cards ($/€ auto-convert) or SEAGM India VP Codes
                   </span>
                 </div>
               </div>
@@ -927,6 +927,17 @@ export const BotSection: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* International Donators Box */}
+                <div className="mt-4 p-3 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 text-xs text-slate-300 space-y-1">
+                  <div className="flex items-center space-x-1.5 font-bold text-indigo-300">
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>Outside India? (International Donators)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Codashop India only accepts Indian UPI. If you are outside India, you can purchase an <strong>India Region Valorant Prepaid Code</strong> on <a href="https://www.seagm.com/valorant-points-india" target="_blank" rel="noopener noreferrer" className="text-amber-300 underline font-semibold">SEAGM</a> with PayPal / Credit Card, or send a global <strong>Steam Wallet Card</strong> via Discord <code className="text-white bg-black/40 px-1 py-0.5 rounded">.donate submit &lt;code&gt;</code>!
+                  </p>
                 </div>
 
                 {/* Action Buttons */}
