@@ -457,17 +457,28 @@ export const BotSection: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full sm:w-auto">
             <motion.a
               href="https://www.buymeachai.in/xpert"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center space-x-2 px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(245,158,11,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
+              className="flex items-center justify-center space-x-2 px-5 py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(245,158,11,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
               <Coffee className="w-4 h-4 text-amber-400" />
               <span>Buy Me A Chai</span>
+            </motion.a>
+
+            <motion.a
+              href="https://www.codashop.com/en-in/valorant"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center justify-center space-x-2 px-5 py-4 rounded-2xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(99,102,241,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
+            >
+              <span>🎯 Gift Valorant Points</span>
             </motion.a>
 
             <motion.a
@@ -476,7 +487,7 @@ export const BotSection: React.FC = () => {
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center space-x-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-gold-primary to-yellow-600 hover:from-gold-bright hover:to-gold-primary text-black font-extrabold text-base tracking-wide shadow-[0_4px_25px_rgba(212,175,55,0.35)] transition-all cursor-pointer select-none w-full sm:w-auto"
+              className="flex items-center justify-center space-x-3 px-7 py-4 rounded-2xl bg-gradient-to-r from-gold-primary to-yellow-600 hover:from-gold-bright hover:to-gold-primary text-black font-extrabold text-base tracking-wide shadow-[0_4px_25px_rgba(212,175,55,0.35)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
               <Download className="w-5 h-5" />
               <span>Add to Discord</span>
@@ -757,10 +768,10 @@ export const BotSection: React.FC = () => {
                     🇮🇳 <strong>India:</strong> Direct UPI via BuyMeAChai (Zero phone leaks)
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
-                    🎯 <strong>Valorant VP:</strong> Riot ID <code className="text-white font-bold bg-black/40 px-1 py-0.5 rounded">IMSMARTY#2254</code>
+                    🎯 <strong>Valorant VP:</strong> Riot ID <code className="text-white font-bold bg-black/40 px-1 py-0.5 rounded">IMSMARTY#2254</code> (Direct Top-Up)
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-                    🎁 <strong>Amazon E-Gift:</strong> <code className="text-white font-bold bg-black/40 px-1 py-0.5 rounded">meetshrey2402@gmail.com</code>
+                    🎁 <strong>Gift Cards:</strong> Steam & Amazon Codes via Discord
                   </span>
                 </div>
               </div>
@@ -781,18 +792,9 @@ export const BotSection: React.FC = () => {
                 href="https://www.codashop.com/en-in/valorant"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+                className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-indigo-500/20 transition-all cursor-pointer select-none"
               >
-                <span>Gift Valorant Points</span>
-              </a>
-
-              <a
-                href="https://www.amazon.in/dp/B00KGE2EYC"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 text-emerald-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
-              >
-                <span>Amazon E-Gift Card</span>
+                <span>🎯 Gift Valorant Points</span>
               </a>
 
               <a
@@ -801,7 +803,7 @@ export const BotSection: React.FC = () => {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
               >
-                <span>Tracker Bot Server</span>
+                <span>Tracker Bot Discord (Submit Gift Cards)</span>
               </a>
             </div>
           </div>
