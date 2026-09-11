@@ -20,7 +20,10 @@ import {
   Flame,
   ArrowRightLeft,
   Users,
-  Coffee
+  Coffee,
+  X,
+  ExternalLink,
+  Gamepad2
 } from 'lucide-react';
 
 interface BotCommand {
@@ -44,6 +47,25 @@ export const BotSection: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
+
+  // Valorant Points Modal State
+  const [showVpModal, setShowVpModal] = useState<boolean>(false);
+  const [copiedRiotId, setCopiedRiotId] = useState<boolean>(false);
+  const RIOT_ID = 'IMSMARTY#2254';
+
+  const handleCopyRiotId = () => {
+    navigator.clipboard.writeText(RIOT_ID);
+    setCopiedRiotId(true);
+    setTimeout(() => setCopiedRiotId(false), 2500);
+  };
+
+  const handleOpenCodashop = () => {
+    navigator.clipboard.writeText(RIOT_ID);
+    setCopiedRiotId(true);
+    setTimeout(() => {
+      window.open('https://www.codashop.com/en-in/valorant', '_blank', 'noopener,noreferrer');
+    }, 250);
+  };
 
   useEffect(() => {
     // 1. Fetch linked accounts, user reach, and server count securely from backend api without exposing keys
@@ -470,16 +492,16 @@ export const BotSection: React.FC = () => {
               <span>Buy Me A Chai</span>
             </motion.a>
 
-            <motion.a
-              href="https://www.codashop.com/en-in/valorant"
-              target="_blank"
-              rel="noopener noreferrer"
+            <motion.button
+              type="button"
+              onClick={() => setShowVpModal(true)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
               className="flex items-center justify-center space-x-2 px-5 py-4 rounded-2xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(99,102,241,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
+              <Gamepad2 className="w-4 h-4 text-indigo-400" />
               <span>🎯 Gift Valorant Points</span>
-            </motion.a>
+            </motion.button>
 
             <motion.a
               href={inviteUrl}
@@ -788,14 +810,14 @@ export const BotSection: React.FC = () => {
                 <span>Buy Me A Chai (UPI)</span>
               </a>
 
-              <a
-                href="https://www.codashop.com/en-in/valorant"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => setShowVpModal(true)}
                 className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-indigo-500/20 transition-all cursor-pointer select-none"
               >
+                <Gamepad2 className="w-3.5 h-3.5" />
                 <span>🎯 Gift Valorant Points</span>
-              </a>
+              </button>
 
               <a
                 href="https://discord.gg/3zStCadBtP"
@@ -808,6 +830,131 @@ export const BotSection: React.FC = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* 5. Valorant Points / Codashop Instructions Modal */}
+        <AnimatePresence>
+          {showVpModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+              onClick={() => setShowVpModal(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: 15 }}
+                transition={{ duration: 0.2 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-lg rounded-3xl border border-indigo-500/30 bg-[#0c0d18] p-6 md:p-8 shadow-[0_0_50px_rgba(99,102,241,0.25)] text-left"
+              >
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowVpModal(false)}
+                  className="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                {/* Header */}
+                <div className="space-y-2 pr-8">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs font-semibold uppercase font-mono tracking-wider">
+                    <Gamepad2 className="w-3.5 h-3.5" />
+                    <span>Direct In-Game Top-Up</span>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-black text-white">
+                    Gift Valorant Points (VP)
+                  </h3>
+                  <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
+                    Tops up the developer's Valorant account directly via Codashop. No gift card codes to submit or verify!
+                  </p>
+                </div>
+
+                {/* Riot ID Box */}
+                <div className="mt-5 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-indigo-300 uppercase tracking-wider">
+                    <span>Developer Riot ID:</span>
+                    <span className="text-slate-400">Riot Games • India</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-black/60 border border-white/10 rounded-xl px-4 py-3">
+                    <code className="text-lg md:text-xl font-mono font-black text-amber-300 tracking-wider">
+                      {RIOT_ID}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={handleCopyRiotId}
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-200 text-xs font-bold transition-all cursor-pointer"
+                    >
+                      {copiedRiotId ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy ID</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3 Steps Guide */}
+                <div className="mt-5 space-y-2.5">
+                  <h4 className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+                    How it works (3 Quick Steps):
+                  </h4>
+                  <div className="space-y-2 text-xs md:text-sm text-slate-200">
+                    <div className="flex items-start space-x-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
+                      <div>
+                        <strong className="text-white">Auto-Copy & Open:</strong> Click the button below. We'll automatically copy <code className="text-amber-300 bg-black/40 px-1 py-0.5 rounded">{RIOT_ID}</code> to your clipboard and open Codashop.
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
+                      <div>
+                        <strong className="text-white">Paste Riot ID:</strong> In Codashop Step 1, paste (Ctrl+V) into the <strong>Riot ID</strong> field.
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
+                      <div>
+                        <strong className="text-white">Select VP & Pay:</strong> Pick any recharge amount (from ₹99 / 115 VP) and pay with UPI (Paytm, GPay, PhonePe). The points land instantly in-game!
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleOpenCodashop}
+                    className="w-full flex items-center justify-center space-x-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-indigo-500/30 transition-all cursor-pointer"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>{copiedRiotId ? '✅ Copied! Opening Codashop...' : '🚀 Copy ID & Open Codashop'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowVpModal(false)}
+                    className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm border border-white/10 transition-all cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <p className="mt-3 text-[11px] text-slate-500 leading-tight text-center">
+                  *Official top-up partners (Codashop, UniPin) prevent pre-filling player IDs via URL for account protection. Our button auto-copies {RIOT_ID} so donators never have to memorize or type it manually.
+                </p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>
