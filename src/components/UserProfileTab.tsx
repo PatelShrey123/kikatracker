@@ -62,22 +62,33 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     setAvatarError(false);
     if (profile.activeBodySkin) {
       let texture = profile.activeBodySkin.textureUrl;
+      const cleanSkinName = (profile.activeBodySkin.name || '').replace(/^_+/, '').trim().toLowerCase();
+
       if (!texture && allItemData && Array.isArray(allItemData)) {
         // Look up texture in the allItemData repository JSON
-        const nameKey = profile.activeBodySkin.name.toLowerCase();
         const matched = allItemData.find(
-          (i) => i.name.toLowerCase() === nameKey && i.type === 'BODY_SKIN'
+          (i) => i.name && i.name.replace(/^_+/, '').trim().toLowerCase() === cleanSkinName && (i.type === 'BODY_SKIN' || i.type === 'CHARACTER')
         );
-        if (matched) texture = matched.textureUrl;
+        if (matched?.textureUrl) texture = matched.textureUrl;
+      }
+
+      if (!texture && publicItems && Array.isArray(publicItems)) {
+        // Fallback to publicItems database
+        const matchedPublic = publicItems.find(
+          (i) => i.name && i.name.replace(/^_+/, '').trim().toLowerCase() === cleanSkinName && (i.type === 'BODY_SKIN' || i.type === 'CHARACTER')
+        );
+        if (matchedPublic?.textureUrl) texture = matchedPublic.textureUrl;
       }
 
       if (texture) {
         cropMinecraftHead(texture)
-          .then((headUrl) => setCroppedHeadUrl(headUrl))
+          .then((headUrl) => {
+            if (headUrl) setCroppedHeadUrl(headUrl);
+          })
           .catch((err) => console.error('Failed to crop profile head texture:', err));
       }
     }
-  }, [profile.activeBodySkin, allItemData]);
+  }, [profile.activeBodySkin, allItemData, publicItems]);
 
   // Helper to map item to market price
   const getItemPrice = (item: any) => {
@@ -158,15 +169,9 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       </button>
 
       {/* Profile Header Card */}
-      <div className={`relative overflow-hidden border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all ${
-        vip 
-          ? 'bg-gradient-to-br from-[#120b22] via-[#0b0517] to-[#180e2e] border-purple-500/35 shadow-[0_0_35px_rgba(168,85,247,0.18)] vip-card-aura' 
-          : 'bg-gradient-to-br from-obsidian-card to-[#161925] border-obsidian-border'
-      }`}>
+      <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
         {/* Subtle background glow */}
-        <div className={`absolute -right-16 -top-16 w-64 h-64 rounded-full filter blur-3xl pointer-events-none ${
-          vip ? 'bg-purple-600/20' : 'bg-gold-primary/5'
-        }`} />
+        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-gold-primary/5 filter blur-3xl pointer-events-none" />
         
         <div className="flex items-center space-x-6">
           {/* Square Avatar Column (displays cropped head/face!) */}
@@ -181,26 +186,33 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                   src={croppedHeadUrl}
                   alt={profile.activeBodySkin?.name || profile.name}
                   onError={() => setAvatarError(true)}
-                  className="w-14 h-14 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                  className="w-14 h-14 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [image-rendering:pixelated]"
                 />
               ) : profile.activeBodySkin && !avatarError ? (
                 <img
-                  src={getSkinRenderUrl(profile.activeBodySkin)}
+                  src={getItemRenderUrl(profile.activeBodySkin) || getSkinRenderUrl(profile.activeBodySkin)}
                   alt={profile.activeBodySkin.name}
                   onError={() => setAvatarError(true)}
                   className="w-14 h-14 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                 />
               ) : (
-                /* Sleek Initial / Pixel Avatar fallback */
-                <div className={`w-14 h-14 rounded-lg flex items-center justify-center shadow-inner ${
-                  vip
-                    ? 'bg-gradient-to-br from-purple-600/30 via-violet-900/20 to-transparent border border-purple-400/40'
-                    : 'bg-gradient-to-br from-amber-500/20 via-yellow-600/10 to-transparent border border-gold-primary/30'
-                }`}>
-                  <span className={`font-mono font-black text-2xl select-none ${vip ? 'text-purple-black-wave' : 'text-gold-bright'}`}>
-                    {(profile.name || 'U').charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                /* Classic Kirka Pixel Block Character Head Fallback */
+                <svg viewBox="0 0 8 8" className="w-14 h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] [image-rendering:pixelated]">
+                  {/* Base head skin tone */}
+                  <rect width="8" height="8" fill="#f6c297" />
+                  {/* Hair top & sides */}
+                  <rect x="0" y="0" width="8" height="2" fill="#4a3728" />
+                  <rect x="0" y="2" width="1" height="3" fill="#4a3728" />
+                  <rect x="7" y="2" width="1" height="3" fill="#4a3728" />
+                  {/* Classic blue eyes */}
+                  <rect x="1" y="3" width="2" height="1" fill="#2563eb" />
+                  <rect x="5" y="3" width="2" height="1" fill="#2563eb" />
+                  {/* White eye reflections */}
+                  <rect x="2" y="3" width="1" height="1" fill="#ffffff" />
+                  <rect x="6" y="3" width="1" height="1" fill="#ffffff" />
+                  {/* Mouth */}
+                  <rect x="3" y="6" width="2" height="1" fill="#b91c1c" />
+                </svg>
               )}
             </div>
             <span className={`text-[11px] font-black font-mono ${

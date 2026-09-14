@@ -175,32 +175,20 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             )}
           </form>
 
-          {/* Quick VIP Supporter Search Chips */}
+          {/* Quick VIP Supporter Search Chip */}
           <div className="pt-2 flex flex-wrap items-center justify-center gap-2 pointer-events-auto select-none max-w-xl">
             <span className="text-[10px] font-mono text-purple-400/90 uppercase tracking-wider mr-0.5 flex items-center space-x-1">
-              <span>⚡ VIP Supporters:</span>
+              <span>⚡ VIP Supporter:</span>
             </span>
-            {[
-              { id: 'CARSON', label: '#CARSON' },
-              { id: 'FUYR7K', label: '#FUYR7K' },
-              { id: 'KATANA', label: '#KATANA' },
-              { id: '3H2D6N', label: '#3H2D6N' },
-              { id: '21R01G', label: '#21R01G' },
-              { id: 'CAGCUU', label: '#CAGCUU' },
-              { id: 'KFTANI', label: '#KFTANI' },
-              { id: 'O2EA45', label: '#O2EA45' }
-            ].map(chip => (
-              <button
-                key={chip.id}
-                type="button"
-                onClick={() => onSearch(chip.id, true)}
-                className="chip-purple-wave px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold text-purple-200 hover:text-white transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center space-x-1"
-                title={`View ${chip.label} VIP Profile`}
-              >
-                <span className="text-[9px] text-purple-400">⚡</span>
-                <span className="text-purple-black-wave">{chip.label}</span>
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => onSearch('CARSON', true)}
+              className="chip-purple-wave px-3 py-1 rounded-lg text-xs font-mono font-bold text-purple-200 hover:text-white transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center space-x-1.5"
+              title="View #CARSON VIP Profile"
+            >
+              <span className="text-[10px] text-purple-400">⚡</span>
+              <span className="text-purple-black-wave font-black tracking-wider">#CARSON</span>
+            </button>
           </div>
 
         </div>
