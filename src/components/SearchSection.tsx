@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Compass, AlertCircle, ArrowRight, Award, Trophy, ShieldAlert } from 'lucide-react';
 import { fetchSoloLeaderboard, fetchUserProfile } from '../utils/api';
-import { isVip } from '../utils/vip';
+import { getVipType, getVipTextClass, getVipBadgeClass } from '../utils/vip';
 import { GridScan } from './GridScan';
 
 interface SearchSectionProps {
@@ -175,10 +175,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             )}
           </form>
 
-          {/* Quick VIP Supporter Search Chip */}
+          {/* Quick VIP Supporter Search Chips */}
           <div className="pt-2 flex flex-wrap items-center justify-center gap-2 pointer-events-auto select-none max-w-xl">
             <span className="text-[10px] font-mono text-purple-400/90 uppercase tracking-wider mr-0.5 flex items-center space-x-1">
-              <span>⚡ VIP Supporter:</span>
+              <span>⚡ VIP Supporters:</span>
             </span>
             <button
               type="button"
@@ -188,6 +188,15 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             >
               <span className="text-[10px] text-purple-400">⚡</span>
               <span className="text-purple-black-wave font-black tracking-wider">#CARSON</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSearch('TTTVBJ', true)}
+              className="chip-yip-wave px-3 py-1 rounded-lg text-xs font-mono font-bold text-cyan-200 hover:text-white transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center space-x-1.5"
+              title="View #TTTVBJ (Yip) VIP Profile"
+            >
+              <span className="text-[10px] text-cyan-300">⚡</span>
+              <span className="text-yip-blue-wave font-black tracking-wider">#TTTVBJ (Yip)</span>
             </button>
           </div>
 
@@ -207,25 +216,34 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {featuredProfiles.map((player) => {
-                const isPlayerVip = isVip(player.shortId);
+                const vipType = getVipType(player.shortId);
+                const isPlayerVip = vipType !== null;
+                const vipTextClass = getVipTextClass(player.shortId);
+                const vipBadgeClass = getVipBadgeClass(player.shortId);
                 return (
                   <div
                     key={player.shortId}
                     onClick={() => onSearch(player.shortId, player.isShortId)}
                     className={`group cursor-pointer bg-gradient-to-br border p-5 rounded-2xl transition-all duration-300 relative shadow-sm overflow-hidden flex flex-col justify-between h-[160px] ${
                       isPlayerVip
-                        ? 'from-[#140b24] to-[#0c0517] border-purple-500/40 hover:border-purple-400/70 shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.35)]'
+                        ? vipType === 'yip'
+                          ? 'from-[#08142c] to-[#040a18] border-cyan-500/40 hover:border-cyan-400/70 shadow-[0_0_20px_rgba(82,126,255,0.2)] hover:shadow-[0_0_25px_rgba(82,126,255,0.35)]'
+                          : 'from-[#140b24] to-[#0c0517] border-purple-500/40 hover:border-purple-400/70 shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.35)]'
                         : 'from-[#12141D] to-[#0c0d15] border-obsidian-border hover:border-gold-primary/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
                     }`}
                   >
                     <div className={`absolute top-0 left-0 right-0 h-0.5 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 ${
-                      isPlayerVip ? 'bg-gradient-to-r from-purple-500 to-violet-300' : 'bg-gradient-to-r from-gold-primary to-gold-bright'
+                      isPlayerVip
+                        ? vipType === 'yip'
+                          ? 'bg-gradient-to-r from-blue-500 to-cyan-300'
+                          : 'bg-gradient-to-r from-purple-500 to-violet-300'
+                        : 'bg-gradient-to-r from-gold-primary to-gold-bright'
                     }`} />
                     
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col">
                         <span className={`text-sm font-black uppercase leading-none transition-colors ${
-                          isPlayerVip ? 'text-purple-black-wave' : 'text-white group-hover:text-gold-bright'
+                          isPlayerVip ? vipTextClass : 'text-white group-hover:text-gold-bright'
                         }`}>
                           {player.name}
                         </span>
@@ -233,10 +251,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
                       </div>
                       <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded uppercase max-w-[90px] truncate ${
                         isPlayerVip 
-                          ? 'badge-purple-wave text-purple-200 border-purple-500/40' 
+                          ? `${vipBadgeClass} border`
                           : 'bg-[#04050a] border border-white/5 text-slate-400'
                       }`}>
-                        {isPlayerVip ? '⚡ VIP' : player.isShortId ? `#${player.shortId}` : 'PROFILE'}
+                        {isPlayerVip ? (vipType === 'yip' ? '⚡ YIP' : '⚡ VIP') : player.isShortId ? `#${player.shortId}` : 'PROFILE'}
                       </span>
                     </div>
 

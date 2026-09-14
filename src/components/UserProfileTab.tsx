@@ -9,7 +9,7 @@ import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
 import { getSkinRenderUrl } from './Weapon3DViewer';
-import { isVip, getVipRoleLabel } from '../utils/vip';
+import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass } from '../utils/vip';
 interface UserProfileTabProps {
   profile: UserProfile;
   onBack: () => void;
@@ -169,8 +169,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
   const kd = rawDeaths > 0 ? (rawKills / rawDeaths).toFixed(2) : rawKills.toFixed(2);
   const winRate = rawGames > 0 ? ((rawWins / rawGames) * 100).toFixed(1) + '%' : '0%';
-  const vip = isVip(profile.shortId) || isVip(profile.id);
+  const vipType = getVipType(profile.shortId || profile.id);
+  const vip = vipType !== null;
   const vipRole = getVipRoleLabel(profile.shortId || profile.id);
+  const vipTextClass = getVipTextClass(profile.shortId || profile.id);
+  const vipBadgeClass = getVipBadgeClass(profile.shortId || profile.id);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 select-text">
@@ -194,13 +197,18 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
         {/* Subtle background glow */}
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-gold-primary/5 filter blur-3xl pointer-events-none" />
+        {vip && (
+          <div className={`absolute inset-0 pointer-events-none ${vipType === 'yip' ? 'yip-card-aura' : 'vip-card-aura'}`} />
+        )}
         
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-6 relative z-10">
           {/* Square Avatar Column (displays cropped head/face!) */}
           <div className="flex flex-col items-center space-y-2">
             <div className={`relative w-20 h-20 bg-obsidian-dark rounded-xl flex items-center justify-center p-1.5 overflow-hidden transition-all ${
               vip 
-                ? 'border-2 border-purple-500/70 shadow-[0_0_22px_rgba(168,85,247,0.45)] vip-avatar-glow' 
+                ? vipType === 'yip'
+                  ? 'border-2 border-cyan-400/80 shadow-[0_0_22px_rgba(82,126,255,0.6)] yip-avatar-glow'
+                  : 'border-2 border-purple-500/70 shadow-[0_0_22px_rgba(168,85,247,0.45)] vip-avatar-glow'
                 : 'border border-gold-primary/20 shadow-gold-glow'
             }`}>
               {croppedHeadUrl && !avatarError ? (
@@ -238,7 +246,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               )}
             </div>
             <span className={`text-[11px] font-black font-mono ${
-              vip ? 'text-purple-black-wave filter drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]' : 'text-slate-300'
+              vip ? `${vipTextClass} filter drop-shadow-[0_0_6px_rgba(82,126,255,0.6)]` : 'text-slate-300'
             }`}>
               #{profile.shortId}
             </span>
@@ -247,7 +255,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
               {vip ? (
-                <span className="badge-purple-wave text-purple-200 font-mono text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded shadow-[0_0_14px_rgba(168,85,247,0.35)] flex items-center space-x-1 select-none">
+                <span className={`${vipBadgeClass} font-mono text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded shadow-[0_0_14px_rgba(82,126,255,0.35)] flex items-center space-x-1 select-none`}>
                   <span>{vipRole}</span>
                 </span>
               ) : (
@@ -257,11 +265,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               )}
             </div>
             <h2 className={`text-2xl sm:text-3xl font-extrabold leading-tight flex items-center space-x-2 ${
-              vip ? 'text-purple-black-wave' : 'text-white'
+              vip ? vipTextClass : 'text-white'
             }`}>
               <span>{profile.name}</span>
               {vip && (
-                <span className="text-base text-purple-300 filter drop-shadow-[0_0_8px_rgba(192,132,252,0.9)] animate-pulse select-none" title="Premium VIP Supporter">
+                <span className={`text-base ${vipType === 'yip' ? 'text-cyan-300 filter drop-shadow-[0_0_8px_rgba(192,245,255,0.9)]' : 'text-purple-300 filter drop-shadow-[0_0_8px_rgba(192,132,252,0.9)]'} animate-pulse select-none`} title={`Premium VIP Supporter (${vipType === 'yip' ? 'Yip' : 'Souless'})`}>
                   ⚡
                 </span>
               )}

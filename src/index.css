@@ -263,3 +263,86 @@
               radial-gradient(circle at bottom left, rgba(126, 34, 206, 0.1), transparent 50%);
 }
 
+/* =========================================================================
+   Yip Premium Electric Blue & Cyan Wave Effect (#527EFF & #C0F5FF)
+   ========================================================================= */
+@keyframes yip-wave-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 280% 50%;
+  }
+}
+
+@keyframes yip-wave-glow {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(82, 126, 255, 0.7)) drop-shadow(0 0 14px rgba(192, 245, 255, 0.45));
+  }
+  100% {
+    filter: drop-shadow(0 0 10px rgba(192, 245, 255, 0.95)) drop-shadow(0 0 24px rgba(82, 126, 255, 0.7));
+  }
+}
+
+.text-yip-blue-wave {
+  background: linear-gradient(
+    110deg,
+    #527eff 0%,
+    #8bb2ff 15%,
+    #c0f5ff 28%,
+    #ffffff 38%,
+    #0a1835 50%,
+    #2554d7 65%,
+    #c0f5ff 82%,
+    #527eff 100%
+  );
+  background-size: 280% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: yip-wave-flow 3.5s linear infinite, yip-wave-glow 2.5s ease-in-out infinite alternate;
+  display: inline-block;
+  font-weight: 800;
+}
+
+.badge-yip-blue-wave {
+  background: linear-gradient(
+    110deg,
+    rgba(82, 126, 255, 0.4) 0%,
+    rgba(6, 16, 34, 0.95) 35%,
+    rgba(192, 245, 255, 0.35) 70%,
+    rgba(6, 16, 34, 0.95) 100%
+  );
+  background-size: 250% 100%;
+  animation: yip-wave-flow 4s linear infinite;
+  border: 1px solid rgba(82, 126, 255, 0.75);
+  box-shadow: 0 0 14px rgba(82, 126, 255, 0.35), inset 0 0 10px rgba(192, 245, 255, 0.2);
+}
+
+.chip-yip-wave {
+  background: linear-gradient(
+    110deg,
+    rgba(8, 20, 44, 0.85) 0%,
+    rgba(82, 126, 255, 0.4) 40%,
+    rgba(5, 14, 30, 0.95) 70%,
+    rgba(192, 245, 255, 0.35) 100%
+  );
+  background-size: 250% 100%;
+  animation: yip-wave-flow 4s linear infinite;
+  border: 1px solid rgba(82, 126, 255, 0.5);
+}
+
+.chip-yip-wave:hover {
+  border-color: rgba(192, 245, 255, 0.85);
+  box-shadow: 0 0 16px rgba(82, 126, 255, 0.5);
+}
+
+.yip-avatar-glow {
+  border-color: rgba(82, 126, 255, 0.8) !important;
+  box-shadow: 0 0 22px rgba(82, 126, 255, 0.55), inset 0 0 14px rgba(192, 245, 255, 0.3) !important;
+}
+
+.yip-card-aura {
+  background: radial-gradient(circle at top right, rgba(82, 126, 255, 0.2), transparent 60%),
+              radial-gradient(circle at bottom left, rgba(192, 245, 255, 0.12), transparent 50%);
+}
+
