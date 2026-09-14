@@ -235,6 +235,59 @@ function App() {
     initRouting();
   }, []);
 
+  // Dynamic SEO Document Title Manager
+  useEffect(() => {
+    if (activeUserProfile) {
+      document.title = `${activeUserProfile.name} (#${activeUserProfile.shortId}) — Kirka Profile, Stats & Inventory | Kirka Hub`;
+      return;
+    }
+    if (activeClanName) {
+      document.title = `[${activeClanName}] Clan Roster & Stats — Kirka Hub`;
+      return;
+    }
+
+    switch (activeTab) {
+      case 'search':
+        document.title = 'Kirka Hub — Kirka.io Tracker, Player Profile & Inventory Value';
+        break;
+      case 'prices':
+        document.title = 'Kirka Market Prices & Weapon Skin Value List | Kirka Hub';
+        break;
+      case 'trades':
+        document.title = 'Kirka Live Trades & Market Exchange | Kirka Hub';
+        break;
+      case 'clans':
+        document.title = 'Kirka Clan Registry & Leaderboard Rankings | Kirka Hub';
+        break;
+      case 'clantracker':
+        document.title = 'Kirka Clan Activity Tracker & Member Logs | Kirka Hub';
+        break;
+      case 'ranked':
+        document.title = 'Kirka Ranked S&D Leaderboards & ELO Ladder | Kirka Hub';
+        break;
+      case 'daily':
+        document.title = 'Kirka Daily Competitors & Top Scores | Kirka Hub';
+        break;
+      case 'compare':
+        document.title = 'Compare Kirka Player Profiles & Inventories | Kirka Hub';
+        break;
+      case 'renders':
+        document.title = 'Kirka 3D Weapon Skins & Character Renders | Kirka Hub';
+        break;
+      case 'skineditor':
+        document.title = 'Kirka Minecraft Skin Editor & Custom Texture Studio | Kirka Hub';
+        break;
+      case 'chat':
+        document.title = 'Kirka Live Global Chat & Player Lobby | Kirka Hub';
+        break;
+      case 'bot':
+        document.title = 'Kirka Discord Bot & Slash Commands | Kirka Hub';
+        break;
+      default:
+        document.title = 'Kirka Hub — Kirka.io Tracker, Player Profile & Inventory Value';
+    }
+  }, [activeTab, activeUserProfile, activeClanName]);
+
   const handlePlayerSearch = async (id: string, isShortId: boolean) => {
     let searchId = id.trim();
     let searchIsShortId = isShortId;

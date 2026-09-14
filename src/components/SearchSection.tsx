@@ -130,11 +130,11 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         {/* Hero Content Wrapper */}
         <div className="relative z-10 flex flex-col items-center justify-center space-y-6 max-w-2xl mx-auto pointer-events-none">
           <img src={`${import.meta.env.BASE_URL}search_portal.png`} alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
-          <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase select-none">
-            Kirka.io <span className="text-gold-gradient">Hub</span>
-          </h2>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase select-none">
+            Kirka <span className="text-gold-gradient">Hub</span>
+          </h1>
           <p className="text-sm sm:text-base text-slate-400 max-w-xl font-medium leading-relaxed select-none">
-            Search player profiles to calculate total net-worth inventory valuations, inspect active weapon loadouts, and track leaderboard ranks.
+            Kirka.io Tracker — Search any player's Kirka profile, calculate real-time Kirka inventory net worth and skin valuations, inspect 3D weapon loadouts, and track live ranked leaderboards.
           </p>
 
           {/* Input box */}
@@ -200,10 +200,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         {/* Left 2 Columns: Recommended Profiles */}
         <div className="lg:col-span-2 space-y-8">
           <div>
-            <h3 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2 mb-4">
+            <h2 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2 mb-4">
               <Compass className="w-4.5 h-4.5 text-slate-500" />
-              <span>RECOMMENDED PLAYER REGISTRY</span>
-            </h3>
+              <span>RECOMMENDED KIRKA PROFILES & PLAYER LOOKUP</span>
+            </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {featuredProfiles.map((player) => {
@@ -271,10 +271,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 
         {/* Right Column: Live Tracker Info Panel */}
         <div className="lg:col-span-1 space-y-6">
-          <h3 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2">
+          <h2 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2">
             <Trophy className="w-4.5 h-4.5 text-slate-500" />
-            <span>CORE CAPABILITIES</span>
-          </h3>
+            <span>KIRKA INVENTORY & TRACKER FEATURES</span>
+          </h2>
 
           <div className="bg-obsidian-card border border-obsidian-border rounded-2xl p-5 space-y-4">
             {/* Capability 1 */}

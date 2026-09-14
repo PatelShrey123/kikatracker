@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /favicon.ico
+Allow: /icon-*.png
+Allow: /apple-touch-icon.png
+Allow: /mascot-square.png
+
+Sitemap: https://kirkahub.online/sitemap.xml

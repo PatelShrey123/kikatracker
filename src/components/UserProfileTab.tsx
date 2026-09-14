@@ -56,6 +56,21 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       .catch((err) => console.error('Failed to load public items database:', err));
   }, [profile.id]);
 
+  // Dynamic SEO Page Title update
+  useEffect(() => {
+    const prevTitle = document.title;
+    if (profileTab === 'inventory') {
+      document.title = `${profile.name} (#${profile.shortId}) — Kirka Inventory Valuation & Net Worth | Kirka Hub`;
+    } else if (profileTab === 'matches') {
+      document.title = `${profile.name} (#${profile.shortId}) — Kirka Match History & Games | Kirka Hub`;
+    } else {
+      document.title = `${profile.name} (#${profile.shortId}) — Kirka Profile & Player Stats | Kirka Hub`;
+    }
+    return () => {
+      document.title = prevTitle;
+    };
+  }, [profile.name, profile.shortId, profileTab]);
+
   // Crop equipped character skin texture to display head face
   useEffect(() => {
     setCroppedHeadUrl(null);
@@ -159,14 +174,21 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 select-text">
-      {/* Back navigation */}
-      <button
-        onClick={onBack}
-        className="flex items-center space-x-2 text-slate-400 hover:text-gold-bright transition-colors font-mono text-sm cursor-pointer"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Search</span>
-      </button>
+      {/* SEO Breadcrumb & Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-obsidian-border/50 pb-3">
+        <button
+          onClick={onBack}
+          className="flex items-center space-x-2 text-slate-400 hover:text-gold-bright transition-colors font-mono text-sm cursor-pointer w-fit"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Search</span>
+        </button>
+        <h1 className="text-xs sm:text-sm font-mono text-slate-400 uppercase tracking-widest flex items-center space-x-1.5">
+          <span className="text-slate-500">Kirka Profile:</span>
+          <span className="text-white font-bold">{profile.name}</span>
+          <span className="text-gold-bright font-black">#{profile.shortId}</span>
+        </h1>
+      </div>
 
       {/* Profile Header Card */}
       <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
@@ -350,10 +372,10 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           <div className="space-y-10">
             {/* 1. Equipped Loadout Cards */}
             <div className="space-y-4">
-              <h3 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2 border-b border-obsidian-border/50 pb-3">
+              <h2 className="text-xs font-mono text-slate-400 tracking-widest uppercase flex items-center space-x-2 border-b border-obsidian-border/50 pb-3">
                 <Shield className="w-4 h-4 text-gold-primary" />
-                <span>Active Combat Loadout</span>
-              </h3>
+                <span>Kirka Profile Loadout & Equipped Skins</span>
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
                 {/* Character skin card */}
@@ -596,6 +618,10 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
         {profileTab === 'inventory' && (
           /* Inventory Valuation Tab */
           <div className="space-y-6">
+            <h2 className="text-xs sm:text-sm font-mono text-slate-400 tracking-wider uppercase flex items-center space-x-2 border-b border-obsidian-border/50 pb-3">
+              <Database className="w-4 h-4 text-gold-primary" />
+              <span>Kirka Inventory Valuation & Net Worth Calculator</span>
+            </h2>
             <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                 {/* Net Worth Block */}
