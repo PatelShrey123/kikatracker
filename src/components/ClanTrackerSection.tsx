@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { fetchClanDetail } from '../utils/api';
 import type { ClanResponse, ClanMember } from '../utils/api';
+import { isVip } from '../utils/vip';
 
 // Interface for localStorage snapshots
 interface ClanSnapshot {
@@ -481,9 +482,20 @@ export const ClanTrackerSection: React.FC = () => {
                             {idx + 1}
                           </td>
                           <td className="py-4 px-6 font-semibold text-slate-200">
-                            <span className="hover:text-gold-bright cursor-pointer transition">
-                              {member.user.name}
-                            </span>
+                            <div className="flex items-center space-x-1.5">
+                              <span className={`hover:underline cursor-pointer transition ${
+                                (isVip(member.user.shortId) || isVip(member.user.id))
+                                  ? 'text-purple-black-wave font-bold'
+                                  : 'hover:text-gold-bright'
+                              }`}>
+                                {member.user.name}
+                              </span>
+                              {(isVip(member.user.shortId) || isVip(member.user.id)) && (
+                                <span className="badge-purple-wave text-purple-200 text-[8px] font-bold px-1 rounded uppercase tracking-wider font-mono">
+                                  ⚡ VIP
+                                </span>
+                              )}
+                            </div>
                             <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
                               Lvl {member.user.level}
                             </span>

@@ -6,6 +6,7 @@ import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
 import { getSkinRenderUrl } from './Weapon3DViewer';
+import { isVip } from '../utils/vip';
 
 interface CompareSectionProps {
   marketPrices: Map<string, MarketItem>;
@@ -611,7 +612,12 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                 )}
               </div>
               <div className="space-y-1">
-                <span className="text-lg font-black text-white uppercase tracking-wider block leading-tight">{primaryProfile.name}</span>
+                <span className={`text-lg font-black uppercase tracking-wider block leading-tight ${
+                  (isVip(primaryProfile.shortId) || isVip(primaryProfile.id)) ? 'text-purple-black-wave' : 'text-white'
+                }`}>
+                  {primaryProfile.name}
+                  {(isVip(primaryProfile.shortId) || isVip(primaryProfile.id)) && ' ⚡'}
+                </span>
                 {primaryProfile.clan && (
                   <span className="text-xs font-mono font-bold text-indigo-400 block">[{primaryProfile.clan}]</span>
                 )}
@@ -627,7 +633,12 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
 
             <div className="flex items-center space-x-4 z-10 text-right justify-end">
               <div className="space-y-1">
-                <span className="text-lg font-black text-white uppercase tracking-wider block leading-tight">{compareProfile.name}</span>
+                <span className={`text-lg font-black uppercase tracking-wider block leading-tight ${
+                  (isVip(compareProfile.shortId) || isVip(compareProfile.id)) ? 'text-purple-black-wave' : 'text-white'
+                }`}>
+                  {compareProfile.name}
+                  {(isVip(compareProfile.shortId) || isVip(compareProfile.id)) && ' ⚡'}
+                </span>
                 {compareProfile.clan && (
                   <span className="text-xs font-mono font-bold text-gold-bright block">[{compareProfile.clan}]</span>
                 )}

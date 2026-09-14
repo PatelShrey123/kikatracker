@@ -9,6 +9,7 @@ import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
 import { getSkinRenderUrl } from './Weapon3DViewer';
+import { isVip, getVipRoleLabel } from '../utils/vip';
 interface UserProfileTabProps {
   profile: UserProfile;
   onBack: () => void;
@@ -142,6 +143,8 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
   const kd = rawDeaths > 0 ? (rawKills / rawDeaths).toFixed(2) : rawKills.toFixed(2);
   const winRate = rawGames > 0 ? ((rawWins / rawGames) * 100).toFixed(1) + '%' : '0%';
+  const vip = isVip(profile.shortId) || isVip(profile.id);
+  const vipRole = getVipRoleLabel(profile.shortId || profile.id);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 select-text">
@@ -155,14 +158,24 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       </button>
 
       {/* Profile Header Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className={`relative overflow-hidden border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all ${
+        vip 
+          ? 'bg-gradient-to-br from-[#120b22] via-[#0b0517] to-[#180e2e] border-purple-500/35 shadow-[0_0_35px_rgba(168,85,247,0.18)] vip-card-aura' 
+          : 'bg-gradient-to-br from-obsidian-card to-[#161925] border-obsidian-border'
+      }`}>
         {/* Subtle background glow */}
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-gold-primary/5 rounded-full filter blur-3xl pointer-events-none" />
+        <div className={`absolute -right-16 -top-16 w-64 h-64 rounded-full filter blur-3xl pointer-events-none ${
+          vip ? 'bg-purple-600/20' : 'bg-gold-primary/5'
+        }`} />
         
         <div className="flex items-center space-x-6">
           {/* Square Avatar Column (displays cropped head/face!) */}
           <div className="flex flex-col items-center space-y-2">
-            <div className="relative w-20 h-20 bg-obsidian-dark border border-gold-primary/20 rounded-xl flex items-center justify-center p-1.5 shadow-gold-glow overflow-hidden">
+            <div className={`relative w-20 h-20 bg-obsidian-dark rounded-xl flex items-center justify-center p-1.5 overflow-hidden transition-all ${
+              vip 
+                ? 'border-2 border-purple-500/70 shadow-[0_0_22px_rgba(168,85,247,0.45)] vip-avatar-glow' 
+                : 'border border-gold-primary/20 shadow-gold-glow'
+            }`}>
               {croppedHeadUrl && !avatarError ? (
                 <img
                   src={croppedHeadUrl}
@@ -179,23 +192,46 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                 />
               ) : (
                 /* Sleek Initial / Pixel Avatar fallback */
-                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-500/20 via-yellow-600/10 to-transparent border border-gold-primary/30 flex items-center justify-center shadow-inner">
-                  <span className="font-mono font-black text-2xl text-gold-bright select-none">
+                <div className={`w-14 h-14 rounded-lg flex items-center justify-center shadow-inner ${
+                  vip
+                    ? 'bg-gradient-to-br from-purple-600/30 via-violet-900/20 to-transparent border border-purple-400/40'
+                    : 'bg-gradient-to-br from-amber-500/20 via-yellow-600/10 to-transparent border border-gold-primary/30'
+                }`}>
+                  <span className={`font-mono font-black text-2xl select-none ${vip ? 'text-purple-black-wave' : 'text-gold-bright'}`}>
                     {(profile.name || 'U').charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
             </div>
-            <span className="text-[11px] font-black font-mono text-slate-300">
+            <span className={`text-[11px] font-black font-mono ${
+              vip ? 'text-purple-black-wave filter drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]' : 'text-slate-300'
+            }`}>
               #{profile.shortId}
             </span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-gold-bright uppercase tracking-widest bg-gold-primary/10 border border-gold-primary/30 px-2.5 py-0.5 rounded w-fit block font-mono">
-              {profile.role}
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">{profile.name}</h2>
+            <div className="flex items-center space-x-2">
+              {vip ? (
+                <span className="badge-purple-wave text-purple-200 font-mono text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded shadow-[0_0_14px_rgba(168,85,247,0.35)] flex items-center space-x-1 select-none">
+                  <span>{vipRole}</span>
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-gold-bright uppercase tracking-widest bg-gold-primary/10 border border-gold-primary/30 px-2.5 py-0.5 rounded w-fit block font-mono">
+                  {profile.role}
+                </span>
+              )}
+            </div>
+            <h2 className={`text-2xl sm:text-3xl font-extrabold leading-tight flex items-center space-x-2 ${
+              vip ? 'text-purple-black-wave' : 'text-white'
+            }`}>
+              <span>{profile.name}</span>
+              {vip && (
+                <span className="text-base text-purple-300 filter drop-shadow-[0_0_8px_rgba(192,132,252,0.9)] animate-pulse select-none" title="Premium VIP Supporter">
+                  ⚡
+                </span>
+              )}
+            </h2>
             
             <div className="flex flex-col space-y-0.5 text-xs text-slate-400 font-mono">
               <div className="flex items-center space-x-2">

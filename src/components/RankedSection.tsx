@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Trophy, Search, ShieldAlert } from 'lucide-react';
 import type { RankedLeaderboardResult } from '../utils/api';
 import { fetchRanked1v1, fetchRanked2v2, fetchRankedSAD } from '../utils/api';
+import { isVip } from '../utils/vip';
 
 interface RankedSectionProps {
   onSelectPlayer: (id: string, isShortId: boolean) => void;
@@ -157,14 +158,25 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
 
                       {/* Player Name */}
                       <td className="py-4 px-6">
-                        <div className="flex items-center space-x-2.5">
-                          <span className="text-sm font-semibold text-white group-hover:text-gold-bright transition-colors">
-                            {player.name}
-                          </span>
-                          <span className="text-[9px] font-mono bg-obsidian-deep text-slate-500 px-1 py-0.5 rounded border border-white/5 uppercase">
-                            {player.shortId}
-                          </span>
-                        </div>
+                        {(() => {
+                          const vip = isVip(player.shortId) || isVip(player.id);
+                          return (
+                            <div className="flex items-center space-x-2.5">
+                              <span className={`text-sm font-semibold transition-colors ${
+                                vip ? 'text-purple-black-wave font-bold' : 'text-white group-hover:text-gold-bright'
+                              }`}>
+                                {player.name}
+                              </span>
+                              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded uppercase ${
+                                vip 
+                                  ? 'badge-purple-wave text-purple-200 border-purple-500/40 font-bold' 
+                                  : 'bg-obsidian-deep text-slate-500 border border-white/5'
+                              }`}>
+                                {vip ? `⚡ #${player.shortId}` : player.shortId}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       {/* KLO rating score */}

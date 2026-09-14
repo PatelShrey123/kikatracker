@@ -3,6 +3,7 @@ import { Search, Users2, MessageSquare, AlertCircle, Calendar, ArrowLeft } from 
 import type { ClanLeaderboardResult, ClanResponse, ClanMember } from '../utils/api';
 import { fetchClanLeaderboard, fetchClanDetail, fetchUserProfile } from '../utils/api';
 import { cropMinecraftHead } from '../utils/skinCropper';
+import { isVip } from '../utils/vip';
 
 interface ClansSectionProps {
   onSelectPlayer: (id: string, isShortId: boolean) => void;
@@ -53,12 +54,15 @@ const ClanMemberCard: React.FC<{
   }, [member.user.id, fallbackRenders, allItemData]);
 
   const role = member.role.toUpperCase();
+  const vip = isVip(member.user.shortId) || isVip(member.user.id);
 
   return (
     <div
       onClick={() => onSelectPlayer(member.user.id, false)}
       className={`group cursor-pointer flex items-center justify-between p-4 rounded-xl border transition-all duration-300 select-none ${
-        isLeader
+        vip
+          ? 'bg-[#130b24]/60 border-purple-500/40 hover:border-purple-400 hover:shadow-[0_0_18px_rgba(168,85,247,0.25)]'
+          : isLeader
           ? 'bg-red-500/5 border-red-500/25 hover:border-red-500/55 hover:shadow-[0_0_15px_rgba(239,68,68,0.06)]'
           : isOfficer
           ? 'bg-gold-primary/5 border-gold-primary/20 hover:border-gold-primary/45 hover:shadow-[0_0_15px_rgba(212,175,55,0.06)]'
@@ -68,7 +72,9 @@ const ClanMemberCard: React.FC<{
       <div className="flex items-center space-x-3">
         {/* Profile/Character Square avatar picture (renders cropped skin head!) */}
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs border overflow-hidden relative flex-shrink-0 ${
-          isLeader
+          vip
+            ? 'bg-purple-950/80 border-purple-400/60 shadow-[0_0_12px_rgba(168,85,247,0.4)]'
+            : isLeader
             ? 'bg-red-950/80 border-red-500/40 text-red-400'
             : isOfficer
             ? 'bg-[#29220c]/80 border-gold-primary/40 text-gold-bright'
@@ -92,7 +98,9 @@ const ClanMemberCard: React.FC<{
         </div>
         <div>
           <span className={`text-sm font-semibold block transition-colors ${
-            isLeader
+            vip
+              ? 'text-purple-black-wave font-bold'
+              : isLeader
               ? 'text-red-400 group-hover:text-red-300 font-bold'
               : isOfficer
               ? 'text-gold-bright group-hover:text-gold-primary'
@@ -100,9 +108,16 @@ const ClanMemberCard: React.FC<{
           }`}>
             {member.user.name}
           </span>
-          <span className="text-[10px] text-slate-500 font-mono">
-            {role} • Lvl {member.user.level}
-          </span>
+          <div className="flex items-center space-x-1.5 mt-0.5">
+            {vip && (
+              <span className="badge-purple-wave text-purple-200 text-[8px] font-bold px-1 rounded uppercase tracking-wider font-mono">
+                VIP
+              </span>
+            )}
+            <span className="text-[10px] text-slate-500 font-mono">
+              {role} • Lvl {member.user.level}
+            </span>
+          </div>
         </div>
       </div>
 

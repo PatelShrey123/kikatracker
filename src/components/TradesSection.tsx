@@ -3,6 +3,7 @@ import { RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { getSkinRenderUrl } from './Weapon3DViewer';
+import { isVip } from '../utils/vip';
 
 interface TradesSectionProps {
   onSelectPlayer: (id: string, isShortId: boolean) => void;
@@ -245,12 +246,22 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="flex items-center space-x-2 font-mono">
             <span className="text-gold-primary font-bold">#{trade.tradeId}</span>
             <span className="text-slate-600">|</span>
-            <button
-              onClick={() => parseUsernameClick(trade.userAndTag)}
-              className="text-white hover:text-gold-bright font-black uppercase tracking-wider transition-colors hover:underline cursor-pointer"
-            >
-              {trade.userAndTag}
-            </button>
+            {(() => {
+              const tag = trade.userAndTag || '';
+              const shortIdCandidate = tag.includes('#') ? tag.split('#').pop() : tag;
+              const isTraderVip = isVip(shortIdCandidate) || isVip(tag);
+              return (
+                <button
+                  onClick={() => parseUsernameClick(trade.userAndTag)}
+                  className={`font-black uppercase tracking-wider transition-colors hover:underline cursor-pointer flex items-center space-x-1 ${
+                    isTraderVip ? 'text-purple-black-wave' : 'text-white hover:text-gold-bright'
+                  }`}
+                >
+                  <span>{trade.userAndTag}</span>
+                  {isTraderVip && <span className="text-[10px] text-purple-300">⚡</span>}
+                </button>
+              );
+            })()}
           </div>
           <span className="text-slate-500 font-mono">
             {new Date(trade.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -386,19 +397,39 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="flex flex-wrap items-center gap-1.5 font-mono">
             <span className="text-gold-primary font-bold">#{trade.tradeId}</span>
             <span className="text-slate-600">|</span>
-            <button
-              onClick={() => parseUsernameClick(trade.offerer)}
-              className="text-white hover:text-gold-bright font-black uppercase tracking-wider transition-colors hover:underline cursor-pointer"
-            >
-              {trade.offerer}
-            </button>
+            {(() => {
+              const tag1 = trade.offerer || '';
+              const id1 = tag1.includes('#') ? tag1.split('#').pop() : tag1;
+              const vip1 = isVip(id1) || isVip(tag1);
+              return (
+                <button
+                  onClick={() => parseUsernameClick(trade.offerer)}
+                  className={`font-black uppercase tracking-wider transition-colors hover:underline cursor-pointer flex items-center space-x-0.5 ${
+                    vip1 ? 'text-purple-black-wave' : 'text-white hover:text-gold-bright'
+                  }`}
+                >
+                  <span>{trade.offerer}</span>
+                  {vip1 && <span className="text-[10px] text-purple-300">⚡</span>}
+                </button>
+              );
+            })()}
             <span className="text-slate-500 font-bold">🤝 Swap 🤝</span>
-            <button
-              onClick={() => parseUsernameClick(trade.accepter)}
-              className="text-white hover:text-gold-bright font-black uppercase tracking-wider transition-colors hover:underline cursor-pointer"
-            >
-              {trade.accepter}
-            </button>
+            {(() => {
+              const tag2 = trade.accepter || '';
+              const id2 = tag2.includes('#') ? tag2.split('#').pop() : tag2;
+              const vip2 = isVip(id2) || isVip(tag2);
+              return (
+                <button
+                  onClick={() => parseUsernameClick(trade.accepter)}
+                  className={`font-black uppercase tracking-wider transition-colors hover:underline cursor-pointer flex items-center space-x-0.5 ${
+                    vip2 ? 'text-purple-black-wave' : 'text-white hover:text-gold-bright'
+                  }`}
+                >
+                  <span>{trade.accepter}</span>
+                  {vip2 && <span className="text-[10px] text-purple-300">⚡</span>}
+                </button>
+              );
+            })()}
           </div>
           <span className="text-slate-500 font-mono text-[10px]">
             {new Date(trade.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

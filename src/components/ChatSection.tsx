@@ -3,6 +3,7 @@ import { Send, Wifi, WifiOff, Coins, ShieldAlert, Users, ExternalLink, ArrowDown
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { getSkinRenderUrl } from './Weapon3DViewer';
+import { isVip } from '../utils/vip';
 
 interface ChatUser {
   id: string;
@@ -333,17 +334,31 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                   {/* Player details */}
                   <div className="flex flex-wrap items-baseline gap-1.5 flex-1 leading-relaxed">
                     {/* Clickable Username */}
-                    <span
-                      onClick={() => {
-                        if (msg.user) onSelectPlayer(msg.user.id, false);
-                      }}
-                      className={`font-black font-mono cursor-pointer hover:text-gold-bright hover:underline transition-colors flex items-center space-x-0.5 ${
-                        isMe ? 'text-gold-bright' : isBot ? 'text-amber-400' : 'text-[#818cf8]'
-                      }`}
-                    >
-                      <span>{msg.user?.name}</span>
-                      <span className="opacity-60">#{msg.user?.shortId}</span>
-                    </span>
+                    {(() => {
+                      const isVipUser = msg.user ? (isVip(msg.user.shortId) || isVip(msg.user.id)) : false;
+                      return (
+                        <span
+                          onClick={() => {
+                            if (msg.user) onSelectPlayer(msg.user.id, false);
+                          }}
+                          className={`font-black font-mono cursor-pointer hover:underline transition-colors flex items-center space-x-1 ${
+                            isVipUser 
+                              ? 'text-purple-black-wave' 
+                              : isMe 
+                              ? 'text-gold-bright hover:text-gold-bright' 
+                              : isBot 
+                              ? 'text-amber-400 hover:text-gold-bright' 
+                              : 'text-[#818cf8] hover:text-gold-bright'
+                          }`}
+                        >
+                          <span>{msg.user?.name}</span>
+                          <span className={isVipUser ? 'opacity-90 text-[10px]' : 'opacity-60'}>#{msg.user?.shortId}</span>
+                          {isVipUser && (
+                            <span className="text-[10px] text-purple-300 filter drop-shadow-[0_0_4px_rgba(192,132,252,0.9)] animate-pulse select-none" title="Premium VIP Supporter">⚡</span>
+                          )}
+                        </span>
+                      );
+                    })()}
 
                     {/* Level Tag */}
                     <span className="text-[10px] font-mono text-slate-500">

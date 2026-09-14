@@ -5,6 +5,7 @@ import type { UserProfile, UserInventoryItem } from '../utils/api';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { getSkinRenderUrl } from './Weapon3DViewer';
+import { isVip } from '../utils/vip';
 
 interface CompareModalProps {
   isOpen: boolean;
@@ -14,14 +15,14 @@ interface CompareModalProps {
   marketPrices: Map<string, MarketItem>;
   fallbackRenders: Record<string, any>;
   publicItems: any[];
-  allItemData: any[];
   initialType: 'stats' | 'inventory';
 }
 
 const QUICK_COMPARE_PROFILES = [
+  { name: 'Carson', shortId: 'CARSON' },
+  { name: 'CrackedYOU', shortId: 'FUYR7K' },
   { name: 'shadow', shortId: 'HESHPY' },
-  { name: 'Hisoka', shortId: 'S2WVOK' },
-  { name: 'Bot#0', shortId: '9VECSU' }
+  { name: 'Hisoka', shortId: 'S2WVOK' }
 ];
 
 export const CompareModal: React.FC<CompareModalProps> = ({
@@ -421,7 +422,12 @@ export const CompareModal: React.FC<CompareModalProps> = ({
             <div className="bg-[#0b0c13] border-b border-obsidian-border/50 p-5 grid grid-cols-3 items-center flex-shrink-0 text-center select-none">
               {/* Primary User info */}
               <div className="space-y-1">
-                <span className="text-sm font-black text-white uppercase tracking-wider">{primaryProfile.name}</span>
+                <span className={`text-sm font-black uppercase tracking-wider block ${
+                  (isVip(primaryProfile.shortId) || isVip(primaryProfile.id)) ? 'text-purple-black-wave' : 'text-white'
+                }`}>
+                  {primaryProfile.name}
+                  {(isVip(primaryProfile.shortId) || isVip(primaryProfile.id)) && ' ⚡'}
+                </span>
                 {primaryProfile.clan && (
                   <span className="text-[9px] font-mono font-bold text-indigo-400 block">CLAN: {primaryProfile.clan}</span>
                 )}
@@ -437,7 +443,12 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
               {/* Compare User info */}
               <div className="space-y-1">
-                <span className="text-sm font-black text-white uppercase tracking-wider">{compareProfile.name}</span>
+                <span className={`text-sm font-black uppercase tracking-wider block ${
+                  (isVip(compareProfile.shortId) || isVip(compareProfile.id)) ? 'text-purple-black-wave' : 'text-white'
+                }`}>
+                  {compareProfile.name}
+                  {(isVip(compareProfile.shortId) || isVip(compareProfile.id)) && ' ⚡'}
+                </span>
                 {compareProfile.clan && (
                   <span className="text-[9px] font-mono font-bold text-gold-bright block">CLAN: {compareProfile.clan}</span>
                 )}

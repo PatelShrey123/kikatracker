@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Search, Trophy, TrendingUp } from 'lucide-react';
 import type { SoloLeaderboardResult } from '../utils/api';
 import { fetchSoloLeaderboard } from '../utils/api';
+import { isVip } from '../utils/vip';
 
 interface DailySectionProps {
   onSelectPlayer: (id: string, isShortId: boolean) => void;
@@ -101,19 +102,28 @@ export const DailySection: React.FC<DailySectionProps> = ({ onSelectPlayer }) =>
                         )}
                       </td>
 
-                      {/* Player Name */}
-                      <td className="py-4.5 px-6">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-semibold text-white group-hover:text-gold-bright transition-colors">
-                            {player.name}
-                          </span>
-                          {rank === 1 && (
-                            <span className="bg-gold-primary/10 text-gold-bright border border-gold-primary/30 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
-                              Daily MVP
+                        {/* Player Name */}
+                        <td className="py-4.5 px-6">
+                          <div className="flex items-center space-x-2">
+                            <span className={`text-sm font-semibold transition-colors ${
+                              isVip(player.userId)
+                                ? 'text-purple-black-wave font-bold'
+                                : 'text-white group-hover:text-gold-bright'
+                            }`}>
+                              {player.name}
                             </span>
-                          )}
-                        </div>
-                      </td>
+                            {isVip(player.userId) && (
+                              <span className="badge-purple-wave text-purple-200 border-purple-500/40 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono uppercase tracking-wider flex items-center space-x-0.5">
+                                <span>⚡ VIP</span>
+                              </span>
+                            )}
+                            {rank === 1 && (
+                              <span className="bg-gold-primary/10 text-gold-bright border border-gold-primary/30 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                                Daily MVP
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
                       {/* Daily Score */}
                       <td className="py-4.5 px-6 text-right font-mono text-sm font-bold text-slate-300 group-hover:text-gold-bright transition-colors">
