@@ -27,6 +27,21 @@ export const VIP_UUIDS = new Set([
   '57c35b3e-2b0c-4971-b1b3-c6e3271ece0d'
 ]);
 
+/**
+ * VIP Custom Background Wallpapers (GIFs / high-res images)
+ */
+export const VIP_BACKGROUNDS: Record<string, string> = {
+  'FUYR7K': 'https://static2.klipy.com/ii/a15b48460c436e1e92c85ffc680932cc/26/23/DQA3cJ5a.gif',
+  'e45990f7-cb60-48c6-b664-41a0d09d25a1': 'https://static2.klipy.com/ii/a15b48460c436e1e92c85ffc680932cc/26/23/DQA3cJ5a.gif'
+};
+
+export function getVipBackground(idOrShortId?: string | null): string | null {
+  if (!idOrShortId) return null;
+  const clean = idOrShortId.trim().toUpperCase().replace(/^#+/, '');
+  const lower = idOrShortId.trim().toLowerCase();
+  return VIP_BACKGROUNDS[clean] || VIP_BACKGROUNDS[lower] || null;
+}
+
 export type VipType = 'yip' | 'souless' | null;
 
 /**

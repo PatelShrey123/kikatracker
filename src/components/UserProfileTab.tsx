@@ -9,7 +9,7 @@ import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
 import { getSkinRenderUrl } from './Weapon3DViewer';
-import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass } from '../utils/vip';
+import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass, getVipBackground } from '../utils/vip';
 interface UserProfileTabProps {
   profile: UserProfile;
   onBack: () => void;
@@ -174,6 +174,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const vipRole = getVipRoleLabel(profile.shortId || profile.id);
   const vipTextClass = getVipTextClass(profile.shortId || profile.id);
   const vipBadgeClass = getVipBadgeClass(profile.shortId || profile.id);
+  const vipBackground = getVipBackground(profile.shortId || profile.id);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 select-text">
@@ -195,6 +196,17 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
       {/* Profile Header Card */}
       <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
+        {vipBackground && (
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <img 
+              src={vipBackground} 
+              alt="Custom Background" 
+              className="w-full h-full object-cover opacity-35 filter brightness-95 contrast-125 scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f17] via-[#0d0f17]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0d0f17]/80 via-transparent to-[#0d0f17]/80" />
+          </div>
+        )}
         {/* Subtle background glow */}
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-gold-primary/5 filter blur-3xl pointer-events-none" />
         {vip && (
