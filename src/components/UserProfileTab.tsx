@@ -9,6 +9,7 @@ import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
 import { getSkinRenderUrl } from './Weapon3DViewer';
+import { InGameFitShowcase } from './InGameFitShowcase';
 import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass, getVipBackground } from '../utils/vip';
 interface UserProfileTabProps {
   profile: UserProfile;
@@ -32,7 +33,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   onCompare
 }) => {
   const isInventoryRoute = typeof window !== 'undefined' && window.location.pathname.includes('/inventory');
-  const [profileTab, setProfileTab] = useState<'stats' | 'inventory' | 'matches'>(isInventoryRoute ? 'inventory' : 'stats');
+  const isLocalhost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1'
+  );
+  const [profileTab, setProfileTab] = useState<'stats' | 'fit' | 'inventory' | 'matches'>(isInventoryRoute ? 'inventory' : 'stats');
   const [inventory, setInventory] = useState<UserInventoryItem[]>([]);
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
@@ -328,21 +333,37 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
       {/* Tab Navigation */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-obsidian-border gap-3 sm:gap-0">
-        <div className="flex">
+        <div className="flex flex-wrap">
           <button
             onClick={() => setProfileTab('stats')}
-            className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+            className={`flex items-center space-x-2 px-5 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
               profileTab === 'stats'
                 ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
             }`}
           >
             <Target className="w-4 h-4" />
-            <span>Stats & Loadout</span>
+            <span>Player Stats</span>
           </button>
+          {isLocalhost && (
+            <button
+              onClick={() => setProfileTab('fit')}
+              className={`flex items-center space-x-2 px-5 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+                profileTab === 'fit'
+                  ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
+                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
+              }`}
+            >
+              <Shield className="w-4 h-4 text-cyan-400" />
+              <span className="flex items-center space-x-1.5">
+                <span>3D Inventory</span>
+                <span className="text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-1.5 py-0.2 rounded uppercase">FIT</span>
+              </span>
+            </button>
+          )}
           <button
             onClick={() => setProfileTab('inventory')}
-            className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+            className={`flex items-center space-x-2 px-5 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
               profileTab === 'inventory'
                 ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
@@ -353,7 +374,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           </button>
           <button
             onClick={() => setProfileTab('matches')}
-            className={`flex items-center space-x-2 px-6 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
+            className={`flex items-center space-x-2 px-5 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
               profileTab === 'matches'
                 ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
@@ -388,14 +409,41 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
       {/* Tab Contents */}
       <div>
+        {isLocalhost && profileTab === 'fit' && (
+          <div className="py-6 flex flex-col items-center">
+            <div className="w-full max-w-xl mb-4 text-center">
+              <h2 className="text-lg font-bold text-white tracking-wide">Unofficial 3D Fit Showcase</h2>
+              <p className="text-xs font-mono text-slate-400 mt-1">Interactive 3D character preview with equipped weapons matching Kirka's in-game inventory</p>
+            </div>
+            <InGameFitShowcase 
+              profile={profile}
+              inventory={inventory}
+              allItemData={allItemData}
+              publicItems={publicItems}
+              fallbackRenders={fallbackRenders}
+              getItemRenderUrl={getItemRenderUrl}
+              onInspectItem={onInspectItem}
+            />
+          </div>
+        )}
+
         {profileTab === 'stats' && (
           <div className="space-y-10">
             {/* 1. Equipped Loadout Cards */}
             <div className="space-y-4">
-              <h2 className="text-xs font-mono text-slate-400 tracking-widest uppercase flex items-center space-x-2 border-b border-obsidian-border/50 pb-3">
-                <Shield className="w-4 h-4 text-gold-primary" />
-                <span>Kirka Profile Loadout & Equipped Skins</span>
-              </h2>
+              <div className="flex items-center justify-between border-b border-obsidian-border/50 pb-3">
+                <h2 className="text-xs font-mono text-slate-400 tracking-widest uppercase flex items-center space-x-2">
+                  <Shield className="w-4 h-4 text-gold-primary" />
+                  <span>Equipped Skin Cards & Market Valuation</span>
+                </h2>
+                <button
+                  onClick={() => setProfileTab('fit')}
+                  className="text-xs font-mono font-bold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 cursor-pointer transition-colors"
+                >
+                  <span>Open 3D Inventory Fit</span>
+                  <span>→</span>
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
                 {/* Character skin card */}

@@ -2,6 +2,8 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+import path from 'path';
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const apiKey = env.KIRKA_API_KEY || '';
@@ -9,6 +11,11 @@ export default defineConfig(({ mode }) => {
   return {
     base: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? '/' : './',
     plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        three: path.resolve(__dirname, 'node_modules/skinview3d/node_modules/three')
+      }
+    },
     server: {
       proxy: {
         '/api2': {
@@ -33,6 +40,12 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/trade-api/, '')
+        },
+        '/kirka-assets': {
+          target: 'https://kirka.io',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/kirka-assets/, '')
         }
       }
     }

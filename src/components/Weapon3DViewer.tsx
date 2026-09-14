@@ -73,6 +73,12 @@ export function getProxiedTextureUrl(url: string | null | undefined): string {
   if (cleaned.startsWith('data:') || cleaned.startsWith('blob:') || cleaned.startsWith('/')) {
     return cleaned;
   }
+  if (cleaned.startsWith('https://kirka.io/')) {
+    return cleaned.replace('https://kirka.io/', '/kirka-assets/');
+  }
+  if (cleaned.startsWith('http://kirka.io/')) {
+    return cleaned.replace('http://kirka.io/', '/kirka-assets/');
+  }
   return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}`;
 }
 
@@ -80,7 +86,7 @@ export function isPlaceholderUrl(url: string | null | undefined): boolean {
   if (!url || typeof url !== 'string') return true;
   const t = url.trim();
   if (t === '' || t === 'https://kirka.io' || t === 'https://kirka.io/' || t === '/render') return true;
-  if (t.includes('render-mini.0ec8ea84')) return true;
+  if (t.endsWith('/render-mini.webp') || t === 'render-mini.webp') return true;
   if (t.includes('render.0e1d4800') || t.includes('render.d8456ef7')) return true;
   if (t.includes('__questions__')) return true;
   return false;
