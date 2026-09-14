@@ -47,13 +47,8 @@ export function isVipUser(user?: { id?: string; shortId?: string; name?: string 
 /**
  * Returns the custom VIP role label
  */
-export function getVipRoleLabel(idOrShortId?: string | null): string {
-  if (!idOrShortId) return 'VIP SUPPORTER';
-  const clean = idOrShortId.trim().toUpperCase().replace(/^#+/, '');
-  if (clean === 'CARSON' || clean === 'FUYR7K') {
-    return '⚡ CARSON VIP';
-  }
-  return '⚡ VIP SUPPORTER';
+export function getVipRoleLabel(_idOrShortId?: string | null): string {
+  return '⚡ SOULLESS';
 }
 
 /**
