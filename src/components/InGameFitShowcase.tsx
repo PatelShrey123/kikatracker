@@ -381,13 +381,13 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
         weaponHolder.scale.setScalar(targetScale);
 
         // Weapon Orientation exactly matching Kirka Reference:
-        // - Barrel points UP and to the viewer's RIGHT (+21 degrees up across chest)
+        // - Barrel points UP and to the viewer's RIGHT (+20 degrees up across chest)
         // - Buttstock rests on player's right shoulder/chest (viewer's left)
         // - Scope & sights are on TOP, leaning naturally toward camera
-        weaponHolder.rotation.set(-1.69, 0.35, -2.94);
+        weaponHolder.rotation.set(-1.50, -0.32, -0.16);
 
         // Position directly at the dual-hand contact point in player space
-        weaponPivot.position.set(0.0, 0.4, 5.5);
+        weaponPivot.position.set(-0.5, 0.6, 5.2);
         weaponPivot.add(weaponHolder);
 
         console.log('[FitViewer] 3D weapon centered and mounted successfully in hands!');
