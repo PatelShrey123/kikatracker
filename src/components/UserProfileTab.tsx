@@ -411,10 +411,6 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       <div>
         {isLocalhost && profileTab === 'fit' && (
           <div className="py-6 flex flex-col items-center">
-            <div className="w-full max-w-xl mb-4 text-center">
-              <h2 className="text-lg font-bold text-white tracking-wide">Unofficial 3D Fit Showcase</h2>
-              <p className="text-xs font-mono text-slate-400 mt-1">Interactive 3D character preview with equipped weapons matching Kirka's in-game inventory</p>
-            </div>
             <InGameFitShowcase 
               profile={profile}
               inventory={inventory}

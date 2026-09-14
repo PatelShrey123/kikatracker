@@ -19,7 +19,7 @@
   --color-rarity-rare: #3B82F6;
   --color-rarity-common: #64748B;
 
-  --font-sans: "Doto", "Outfit", "Inter", sans-serif;
+  --font-sans: "Outfit", "Inter", system-ui, -apple-system, sans-serif;
 
   --shadow-gold-glow: 0 0 15px rgba(212, 175, 55, 0.15);
   --shadow-gold-glow-bright: 0 0 25px rgba(255, 215, 0, 0.3);

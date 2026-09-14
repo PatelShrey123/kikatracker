@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { SkinViewer } from 'skinview3d';
-import { RotateCw, Crosshair } from 'lucide-react';
+import { Crosshair } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import { fetchAllPublicItems } from '../utils/api';
 import { getProxiedTextureUrl, cleanTextureUrl, WEAPON_MODEL_MAP } from './Weapon3DViewer';
@@ -85,7 +85,6 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const skinViewerRef = useRef<SkinViewer | null>(null);
-  const [isRotating, setIsRotating] = useState(false);
   const [itemsDb, setItemsDb] = useState<any[]>(publicItems || []);
 
   // Ensure public items database is loaded for resolving 2D weapon renders & textures
@@ -216,19 +215,17 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
 
     viewer.playerObject.visible = true;
     viewer.playerObject.skin.visible = true;
-
-    viewer.autoRotate = isRotating;
-    viewer.autoRotateSpeed = 1.0;
+    viewer.autoRotate = false;
 
     // CAMERA FRAMING:
-    // Positioning playerObject down at y=-6.0 and targeting y=-6.0 ensures:
-    // 1. Head has 60px of clean headroom beneath the [99] #carson title
-    // 2. Feet sit naturally planted on the floor shadow at the bottom
-    viewer.camera.position.set(0, -3.0, 54.0);
-    viewer.controls.target.set(0, -6.0, 0);
+    // Positioning playerObject down at y=-7.5 and targeting y=-7.5 ensures:
+    // 1. Head has ample clean headroom beneath the [99] #carson title
+    // 2. Feet sit naturally planted on the floor shadow right above the bottom border
+    viewer.camera.position.set(0, -3.5, 52.0);
+    viewer.controls.target.set(0, -7.5, 0);
     viewer.controls.update();
 
-    viewer.playerObject.position.set(0, -6.0, 0);
+    viewer.playerObject.position.set(0, -7.5, 0);
 
     // 3D Floor Shadow Mesh placed directly at y = -16.02 (under soles of player's shoes)
     // This makes it physically impossible for the feet to float in the air
@@ -239,8 +236,8 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
     if (shadowCtx) {
       const grad = shadowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
       grad.addColorStop(0, 'rgba(0, 0, 0, 0.75)');
-      grad.addColorStop(0.4, 'rgba(0, 0, 0, 0.4)');
-      grad.addColorStop(0.8, 'rgba(0, 0, 0, 0.1)');
+      grad.addColorStop(0.45, 'rgba(0, 0, 0, 0.38)');
+      grad.addColorStop(0.8, 'rgba(0, 0, 0, 0.08)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       shadowCtx.fillStyle = grad;
       shadowCtx.fillRect(0, 0, 128, 128);
@@ -383,14 +380,14 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
         weaponHolder.add(weaponMesh);
         weaponHolder.scale.setScalar(targetScale);
 
-        // Weapon Orientation matching Kirka Reference:
-        // - Barrel points diagonally up and to the right (+21 degrees up)
-        // - Buttstock rests on player's right shoulder/chest
-        // - Top sights face upward and lean naturally toward viewer
-        weaponHolder.rotation.set(-1.45, -0.35, 0.20);
+        // Weapon Orientation exactly matching Kirka Reference:
+        // - Barrel points UP and to the viewer's RIGHT (+21 degrees up across chest)
+        // - Buttstock rests on player's right shoulder/chest (viewer's left)
+        // - Scope & sights are on TOP, leaning naturally toward camera
+        weaponHolder.rotation.set(-1.69, 0.35, -2.94);
 
         // Position directly at the dual-hand contact point in player space
-        weaponPivot.position.set(-0.4, 0.5, 5.5);
+        weaponPivot.position.set(0.0, 0.4, 5.5);
         weaponPivot.add(weaponHolder);
 
         console.log('[FitViewer] 3D weapon centered and mounted successfully in hands!');
@@ -411,7 +408,7 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
       skin.head.rotation.x = 0.02 + breath * 0.4;
       skin.rightArm.rotation.x = -0.65 + breath;
       skin.leftArm.rotation.x = -0.85 + breath;
-      weaponPivot.position.y = 0.5 + breath * 1.2;
+      weaponPivot.position.y = 0.4 + breath * 1.2;
 
       animFrameId = requestAnimationFrame(animatePose);
     };
@@ -437,43 +434,30 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
     };
   }, [charTextureUrl, loadout.primary, itemsDb]);
 
-  useEffect(() => {
-    if (!skinViewerRef.current) return;
-    skinViewerRef.current.autoRotate = isRotating;
-  }, [isRotating]);
-
   const primaryImg = resolveWeaponImage(loadout.primary);
   const secondaryImg = resolveWeaponImage(loadout.secondary);
   const meleeImg = resolveWeaponImage(loadout.melee);
 
+  const cleanSansStyle = { fontFamily: 'Outfit, Inter, system-ui, -apple-system, sans-serif' };
+
   return (
-    <div className="w-full max-w-xl mx-auto bg-[#1c2438] border border-[#2b3554] rounded-xl shadow-2xl overflow-hidden font-sans select-none">
+    <div className="w-full max-w-xl mx-auto bg-[#1c2438] border border-[#2b3554] rounded-xl shadow-2xl overflow-hidden select-none" style={cleanSansStyle}>
       {/* Main 3D Character Canvas Area */}
       <div className="relative w-full h-[450px] sm:h-[480px] bg-[#1a2238] flex flex-col items-center justify-between overflow-hidden">
         {/* Top Level + Player Name Banner (Identical to Official Kirka In-Game Showcase) */}
-        <div className="absolute top-4 left-5 z-10 flex items-center space-x-3 pointer-events-none">
-          <span className="bg-[#fbbf24] text-slate-950 font-black text-sm px-2.5 py-0.5 rounded shadow-sm">
+        <div className="absolute top-4 left-5 z-10 flex items-center space-x-3 pointer-events-none" style={cleanSansStyle}>
+          <span 
+            className="bg-[#fbbf24] text-slate-950 font-black text-sm px-2.5 py-0.5 rounded shadow-sm"
+            style={cleanSansStyle}
+          >
             {profile.level || 1}
           </span>
-          <span className="text-white font-extrabold text-2xl tracking-wide font-sans drop-shadow-md">
+          <span 
+            className="text-white font-extrabold text-2xl tracking-wide drop-shadow-md"
+            style={cleanSansStyle}
+          >
             {profile.name}
           </span>
-        </div>
-
-        {/* 360° Rotate Button (Sleek Floating Glass Pill, Top Right) */}
-        <div className="absolute top-3.5 right-4 z-10">
-          <button
-            onClick={() => setIsRotating(!isRotating)}
-            title="Toggle 360° Rotate"
-            className={`px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1.5 transition-all cursor-pointer backdrop-blur border ${
-              isRotating 
-                ? 'bg-amber-400 text-black font-bold border-amber-300 shadow-lg shadow-amber-400/20' 
-                : 'bg-[#222b42]/80 text-slate-200 border-white/10 hover:text-white hover:bg-[#2e3a5a]'
-            }`}
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-            <span className="font-mono text-[10px] uppercase font-bold">360° Rotate</span>
-          </button>
         </div>
 
         {/* 3D Skinview3d Canvas Container */}
@@ -484,13 +468,16 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
       </div>
 
       {/* Bottom 3-Weapon Loadout Slots (Exact Kirka In-Game 3-Slot Bar) */}
-      <div className="grid grid-cols-3 divide-x divide-[#2b3554] border-t border-[#2b3554] bg-[#161d2f]">
+      <div className="grid grid-cols-3 divide-x divide-[#2b3554] border-t border-[#2b3554] bg-[#161d2f]" style={cleanSansStyle}>
         {/* 1. Primary Weapon */}
         <div 
           onClick={() => loadout.primary && onInspectItem?.(loadout.primary.name, loadout.primary.parent?.name || 'weapon_skin', 1)}
           className="p-3 flex flex-col justify-between h-28 hover:bg-white/[0.04] transition-colors cursor-pointer group relative"
         >
-          <span className="text-sm font-bold text-white tracking-wide truncate font-sans">
+          <span 
+            className="text-sm font-bold text-white tracking-wide truncate"
+            style={cleanSansStyle}
+          >
             {loadout.primary?.name || 'Primary'}
           </span>
 
@@ -512,7 +499,10 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
           onClick={() => loadout.secondary && onInspectItem?.(loadout.secondary.name, loadout.secondary.parent?.name || 'weapon_skin', 1)}
           className="p-3 flex flex-col justify-between h-28 hover:bg-white/[0.04] transition-colors cursor-pointer group relative"
         >
-          <span className="text-sm font-bold text-white tracking-wide truncate font-sans">
+          <span 
+            className="text-sm font-bold text-white tracking-wide truncate"
+            style={cleanSansStyle}
+          >
             {loadout.secondary?.name || 'Secondary'}
           </span>
 
@@ -534,7 +524,10 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
           onClick={() => loadout.melee && onInspectItem?.(loadout.melee.name, loadout.melee.parent?.name || 'weapon_skin', 1)}
           className="p-3 flex flex-col justify-between h-28 hover:bg-white/[0.04] transition-colors cursor-pointer group relative"
         >
-          <span className="text-sm font-bold text-white tracking-wide truncate font-sans">
+          <span 
+            className="text-sm font-bold text-white tracking-wide truncate"
+            style={cleanSansStyle}
+          >
             {loadout.melee?.name || 'Melee'}
           </span>
 
