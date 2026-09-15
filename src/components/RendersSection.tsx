@@ -388,12 +388,20 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                       loading="lazy"
                       onError={(e) => {
                         const target = e.currentTarget;
-                        if (!target.dataset.triedTexture && item.textureUrl && !isPlaceholderUrl(item.textureUrl)) {
-                          target.dataset.triedTexture = 'true';
-                          target.src = item.textureUrl;
-                        } else if (!target.dataset.fallback) {
+                        if (!target.dataset.fallback) {
                           target.dataset.fallback = 'true';
-                          target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
+                          if (isChar) {
+                            target.src = 'https://kirka.io/assets/img/render.b8016858.png';
+                          } else {
+                            const baseMatch = activeCatalog.find(
+                              (c: any) => c.name && (c.name.toLowerCase() === weaponType.toLowerCase() || c.name.toLowerCase() === `_${weaponType.toLowerCase()}`)
+                            );
+                            if (baseMatch?.renderUrl && !isPlaceholderUrl(baseMatch.renderUrl)) {
+                              target.src = baseMatch.renderUrl;
+                            } else {
+                              target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
+                            }
+                          }
                         }
                       }}
                     />

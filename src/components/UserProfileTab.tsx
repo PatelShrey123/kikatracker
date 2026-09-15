@@ -8,7 +8,8 @@ import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
-import { getSkinRenderUrl } from './Weapon3DViewer';
+import { getSkinRenderUrl, isPlaceholderUrl } from './Weapon3DViewer';
+import { getCachedCatalog } from '../utils/catalogCache';
 import { InGameFitShowcase } from './InGameFitShowcase';
 import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass, getVipBackground } from '../utils/vip';
 interface UserProfileTabProps {
@@ -37,7 +38,10 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     window.location.hostname === 'localhost' || 
     window.location.hostname === '127.0.0.1'
   );
-  const [profileTab, setProfileTab] = useState<'stats' | 'fit' | 'inventory' | 'matches'>(isInventoryRoute ? 'inventory' : 'stats');
+  const initialTab = (isLocalhost && typeof window !== 'undefined' && (window.location.search.includes('tab=fit') || window.location.hash.includes('fit'))) 
+    ? 'fit' 
+    : (isInventoryRoute ? 'inventory' : 'stats');
+  const [profileTab, setProfileTab] = useState<'stats' | 'fit' | 'inventory' | 'matches'>(initialTab);
   const [inventory, setInventory] = useState<UserInventoryItem[]>([]);
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
@@ -131,11 +135,16 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     const cleanName = item.name ? item.name.replace(/^_+/, '').trim() : '';
     const cleanLower = cleanName.toLowerCase();
     const fallback = fallbackRenders[cleanLower];
-    const matched = publicItems.find(
-      (p) => p.name && p.name.toLowerCase() === cleanLower
+    const catalog = (publicItems && publicItems.length > 0)
+      ? publicItems
+      : (allItemData && allItemData.length > 0)
+        ? allItemData
+        : (getCachedCatalog() || []);
+    const matched = catalog.find(
+      (p: any) => p.name && p.name.toLowerCase() === cleanLower
     );
     const candidate = item.renderUrl || fallback?.renderurl || matched?.renderUrl || null;
-    return getSkinRenderUrl({ name: cleanName, renderUrl: candidate });
+    return getSkinRenderUrl({ ...item, name: cleanName, renderUrl: candidate });
   };
 
   // Compute total valuation
@@ -432,13 +441,15 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                   <Shield className="w-4 h-4 text-gold-primary" />
                   <span>Equipped Skin Cards & Market Valuation</span>
                 </h2>
-                <button
-                  onClick={() => setProfileTab('fit')}
-                  className="text-xs font-mono font-bold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 cursor-pointer transition-colors"
-                >
-                  <span>Open 3D Inventory Fit</span>
-                  <span>→</span>
-                </button>
+                {isLocalhost && (
+                  <button
+                    onClick={() => setProfileTab('fit')}
+                    className="text-xs font-mono font-bold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 cursor-pointer transition-colors"
+                  >
+                    <span>Open 3D Inventory Fit</span>
+                    <span>→</span>
+                  </button>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
@@ -476,6 +487,13 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                         src={getItemRenderUrl(profile.activeBodySkin) || ''}
                         alt={profile.activeBodySkin.name}
                         className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.fallback) {
+                            target.dataset.fallback = 'true';
+                            target.src = 'https://kirka.io/assets/img/render.b8016858.png';
+                          }
+                        }}
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center text-slate-600 opacity-20">
@@ -541,6 +559,20 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                         src={getItemRenderUrl(profile.activeWeapon1Skin) || ''}
                         alt={profile.activeWeapon1Skin.name}
                         className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.fallback) {
+                            target.dataset.fallback = 'true';
+                            const baseName = profile.activeWeapon1Skin?.parent?.name || '';
+                            const catalog = (publicItems && publicItems.length > 0) ? publicItems : (allItemData || []);
+                            const baseMatch = catalog.find((c: any) => c.name && c.name.toLowerCase() === baseName.toLowerCase());
+                            if (baseMatch?.renderUrl && !isPlaceholderUrl(baseMatch.renderUrl)) {
+                              target.src = baseMatch.renderUrl;
+                            } else {
+                              target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
+                            }
+                          }
+                        }}
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center text-slate-600 opacity-20">
@@ -776,6 +808,17 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                             src={renderUrl}
                             alt={item.name}
                             className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              if (!target.dataset.fallback) {
+                                target.dataset.fallback = 'true';
+                                if (item.type === 'BODY_SKIN') {
+                                  target.src = 'https://kirka.io/assets/img/render.b8016858.png';
+                                } else {
+                                  target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
+                                }
+                              }
+                            }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-slate-600">

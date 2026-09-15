@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { SkinViewer, IdleAnimation } from 'skinview3d';
 import { RotateCw, ZoomIn, Loader2, Sparkles } from 'lucide-react';
+import { getCachedCatalog } from '../utils/catalogCache';
 
 export const WEAPON_MODEL_MAP: Record<string, string> = {
   'VITA': 'VITA.glb',
@@ -93,8 +94,9 @@ export function isPlaceholderUrl(url: string | null | undefined): boolean {
 }
 
 // Universal skin render image resolver:
-// 1. Prioritize old API (api.kirka.io) renderUrl/textureUrl if available and not a placeholder
-// 2. Only fall back to api2.kirka.io when old API lacks a real render (e.g. Hi-Score, Sterling, Purp)
+// 1. Prioritize official CDN renderUrl directly for <img> tags (no proxy needed!)
+// 2. Look up skin name in client-cached catalog if renderUrl is missing or placeholder
+// 3. Fall back gracefully to base weapon or character render instead of flat UV textures or pistols
 export function getSkinRenderUrl(itemOrName: any): string {
   if (!itemOrName) return `${import.meta.env.BASE_URL}render-mini.webp`;
   const name = typeof itemOrName === 'string' ? itemOrName : itemOrName.name;
@@ -102,15 +104,54 @@ export function getSkinRenderUrl(itemOrName: any): string {
   const rawUrl = typeof itemOrName === 'object' ? (itemOrName.renderUrl || itemOrName.renderurl) : null;
   const cleaned = cleanTextureUrl(rawUrl);
 
-  // 1. If old API (api.kirka.io) has a valid real render, use it!
+  // 1. If valid renderUrl is provided, return direct CDN URL (<img> tags do not need CORS proxy)
   if (cleaned && !isPlaceholderUrl(cleaned)) {
-    if (cleaned.startsWith('https://api2.kirka.io') || cleaned.startsWith('data:') || cleaned.startsWith('blob:')) {
-      return cleaned;
-    }
-    return getProxiedTextureUrl(cleaned);
+    return cleaned;
   }
 
-  // 2. Only if old API doesn't have it (or it was a placeholder): query live official 3D render from api2.kirka.io
+  // 2. If renderUrl missing or placeholder, look up item in client-side cached catalog
+  if (cleanName) {
+    try {
+      const cached = getCachedCatalog();
+      if (cached && Array.isArray(cached)) {
+        const lower = cleanName.toLowerCase();
+        const found = cached.find((c) => c.name && c.name.toLowerCase() === lower);
+        if (found?.renderUrl && !isPlaceholderUrl(found.renderUrl)) {
+          return cleanTextureUrl(found.renderUrl)!;
+        }
+      }
+    } catch {}
+  }
+
+  // 3. If item is a character skin, return official Kirka default character render (NOT a pistol!)
+  const isChar = typeof itemOrName === 'object' && (
+    itemOrName.type === 'BODY_SKIN' ||
+    itemOrName.type === 'CHARACTER' ||
+    itemOrName.parent?.name === 'CHARACTER' ||
+    isCharacterSkin(itemOrName.parent?.name || itemOrName.type)
+  );
+  if (isChar) {
+    return 'https://kirka.io/assets/img/render.b8016858.png';
+  }
+
+  // 4. If item is a weapon skin with a known parent, try finding the base weapon render
+  if (typeof itemOrName === 'object' && itemOrName.parent?.name) {
+    const baseName = itemOrName.parent.name.trim();
+    try {
+      const cached = getCachedCatalog();
+      if (cached && Array.isArray(cached)) {
+        const lowerBase = baseName.toLowerCase();
+        const foundBase = cached.find(
+          (c) => c.name && (c.name.toLowerCase() === lowerBase || c.name.toLowerCase() === `_${lowerBase}`)
+        );
+        if (foundBase?.renderUrl && !isPlaceholderUrl(foundBase.renderUrl)) {
+          return cleanTextureUrl(foundBase.renderUrl)!;
+        }
+      }
+    } catch {}
+  }
+
+  // 5. Query live official 3D render from api2.kirka.io if skin name is present
   if (cleanName) {
     return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
   }

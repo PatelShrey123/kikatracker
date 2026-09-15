@@ -4,6 +4,7 @@
     { "source": "/api2/:path*", "destination": "/api/proxy?api2=1&endpoint=:path*" },
     { "source": "/api/:path*", "destination": "/api/proxy?endpoint=:path*" },
     { "source": "/trade-api/:path*", "destination": "https://kirka.lukeskywalk.com/:path*" },
+    { "source": "/kirka-assets/:path*", "destination": "https://kirka.io/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
