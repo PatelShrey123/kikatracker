@@ -1,4 +1,4 @@
-// Client-side browser storage caching for Kirka skin catalog
+﻿// Client-side browser storage caching for Kirka skin catalog
 // Stores renderUrl and textureUrl locally in user's browser (localStorage / IndexedDB)
 // Avoids repeated API hits and never stores private data in the GitHub repo!
 
@@ -20,6 +20,7 @@ export interface CachedItem {
     rarity?: string;
   } | null;
   salePrice?: number;
+  published?: boolean;
 }
 
 interface CachePayload {
@@ -72,6 +73,7 @@ export function setCachedCatalog(items: CachedItem[]): void {
       creators: i.creators || null,
       parent: i.parent ? { name: i.parent.name, type: i.parent.type } : null,
       salePrice: i.salePrice || 0,
+      published: i.published,
     }));
 
     const payload: CachePayload = {
@@ -130,13 +132,17 @@ export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; n
           creators: live.creators || null,
           parent: live.parent ? { name: live.parent.name, type: live.parent.type } : null,
           salePrice: live.salePrice || 0,
+          published: live.published,
         });
       } else {
-        // Update URLs and creators if missing in cache but present in live
+        // Live data wins: skins move from api2 placeholders to official renders (and get re-rendered),
+        // so cached URLs must be refreshed rather than only filled in when missing
         const cached = existingMap.get(key)!;
-        if (!cached.renderUrl && live.renderUrl) cached.renderUrl = live.renderUrl;
-        if (!cached.textureUrl && live.textureUrl) cached.textureUrl = live.textureUrl;
-        if ((!cached.creators || cached.creators.length === 0) && live.creators) cached.creators = live.creators;
+        if (live.renderUrl) cached.renderUrl = live.renderUrl;
+        if (live.textureUrl) cached.textureUrl = live.textureUrl;
+        if (live.rarity) cached.rarity = live.rarity;
+        if (typeof live.published === 'boolean') cached.published = live.published;
+        if (live.creators && live.creators.length > 0) cached.creators = live.creators;
       }
     }
   });

@@ -1,549 +1,425 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { SkinViewer } from 'skinview3d';
-import { Crosshair } from 'lucide-react';
+import { Crosshair, Loader2 } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
-import { fetchAllPublicItems } from '../utils/api';
-import { getProxiedTextureUrl, cleanTextureUrl, WEAPON_MODEL_MAP } from './Weapon3DViewer';
+import {
+  getProxiedTextureUrl,
+  cleanTextureUrl,
+  getModelFileName,
+  getModelUrl,
+  getSkinRenderUrl,
+  isPlaceholderUrl,
+  loadSkinTexture,
+  loadWeaponModel,
+} from './Weapon3DViewer';
+
+export interface FitOverrides {
+  character?: LoadoutItem | null;
+  primary?: LoadoutItem | null;
+  secondary?: LoadoutItem | null;
+  melee?: LoadoutItem | null;
+}
 
 interface InGameFitShowcaseProps {
   profile: UserProfile;
   inventory: UserInventoryItem[];
-  allItemData?: any[];
-  publicItems?: any[];
-  fallbackRenders?: Record<string, any>;
-  getItemRenderUrl?: (item: any) => string | null;
+  catalog?: any[];
+  overrides?: FitOverrides;
   onInspectItem?: (name: string, type?: string, amount?: number, textureUrl?: string | null) => void;
 }
 
-// Procedurally generate a high-fidelity Kirka dark combat skin (purple eyes & accents) as a guaranteed fallback
-function getStarterSkinDataUrl(): string {
-  const canvas = document.createElement('canvas');
-  canvas.width = 64;
-  canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return '';
+export type LoadoutItem = {
+  name: string;
+  type?: string;
+  parent?: { name: string; type?: string } | null;
+  renderUrl?: string | null;
+  textureUrl?: string | null;
+};
 
-  // Background / Body Dark Camo
-  ctx.fillStyle = '#1e1e24';
-  ctx.fillRect(0, 0, 64, 64);
+export type FitPose = 'pose1' | 'pose2' | 'pose3';
 
-  // Head front
-  ctx.fillStyle = '#161620';
-  ctx.fillRect(8, 8, 8, 8);
-  // Head top/sides/back
-  ctx.fillStyle = '#111116';
-  ctx.fillRect(0, 8, 8, 8);
-  ctx.fillRect(16, 8, 8, 8);
-  ctx.fillRect(24, 8, 8, 8);
-  ctx.fillRect(8, 0, 8, 8);
+const PRIMARY_WEAPONS = ['SCAR', 'VITA', 'AR-9', 'LAR', 'M60', 'MAC-10', 'WEATIE', 'REVOLVER'];
+const SECONDARY_WEAPONS = ['SHARK', 'PISTOL'];
+const MELEE_WEAPONS = ['TOMAHAWK', 'BAYONET', 'KNIFE'];
 
-  // Purple Kirka Glowing Eyes
-  ctx.fillStyle = '#a855f7';
-  ctx.fillRect(9, 12, 2, 1);
-  ctx.fillRect(13, 12, 2, 1);
-  ctx.fillStyle = '#c084fc';
-  ctx.fillRect(10, 12, 1, 1);
-  ctx.fillRect(13, 12, 1, 1);
+// Kirka's lobby character rig (from kirka.io). Each "poseN" animation has a matching "poseN"
+// empty that the weapon is parented to, with the weapon's "Lever" empty (grip) placed on it.
+const CHARACTER_MODEL = 'KirkaCharacter.glb';
+const CHARACTER_SCALE = 1.65;
+const ANIMATION_SPEED = 0.75;
 
-  // Torso (Dark combat armor with purple accents)
-  ctx.fillStyle = '#14141e';
-  ctx.fillRect(20, 20, 8, 12);
-  ctx.fillStyle = '#2d1b4e';
-  ctx.fillRect(21, 23, 6, 6);
-  ctx.fillStyle = '#9333ea';
-  ctx.fillRect(23, 25, 2, 2);
+// Per-weapon scale applied on the pose empty (kirka.io uses a per-weapon table in the same range)
+const WEAPON_SCALE: Record<string, number> = {
+  'SCAR.glb': 2.8,
+  'VITA.glb': 2.4,
+  'AR-9.glb': 2.7,
+  'LAR.glb': 3,
+  'M60.glb': 2.7,
+  'MAC-10.glb': 3,
+  'Weatie.glb': 3,
+  'Revolver.glb': 1.6,
+  'Shark.glb': 1.6,
+  'Tomahawk.glb': 5,
+  'Bayonet.glb': 5,
+};
 
-  // Arms
-  ctx.fillStyle = '#1a1a24';
-  ctx.fillRect(44, 20, 4, 12);
-  ctx.fillRect(36, 52, 4, 12);
-  ctx.fillStyle = '#7e22ce';
-  ctx.fillRect(44, 28, 4, 4);
-  ctx.fillRect(36, 60, 4, 4);
-
-  // Legs
-  ctx.fillStyle = '#12121a';
-  ctx.fillRect(4, 20, 4, 12);
-  ctx.fillRect(20, 52, 4, 12);
-  ctx.fillStyle = '#261738';
-  ctx.fillRect(4, 24, 4, 4);
-  ctx.fillRect(20, 56, 4, 4);
-
-  return canvas.toDataURL('image/png');
+function cleanName(name?: string | null): string {
+  return (name || '').replace(/^_+/, '').trim();
 }
 
-export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({
-  profile,
-  inventory,
-  allItemData = [],
-  publicItems = [],
-  fallbackRenders = {},
-  getItemRenderUrl,
-  onInspectItem
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const skinViewerRef = useRef<SkinViewer | null>(null);
-  const [itemsDb, setItemsDb] = useState<any[]>(publicItems || []);
+function findCatalogItem(catalog: any[], name: string, predicate?: (item: any) => boolean) {
+  const lower = cleanName(name).toLowerCase();
+  if (!lower) return null;
+  return catalog.find((c) => c?.name && cleanName(c.name).toLowerCase() === lower && (!predicate || predicate(c))) || null;
+}
 
-  // Ensure public items database is loaded for resolving 2D weapon renders & textures
-  useEffect(() => {
-    if (publicItems && publicItems.length > 0) {
-      setItemsDb(publicItems);
-      return;
-    }
-    fetchAllPublicItems()
-      .then((items) => {
-        if (Array.isArray(items) && items.length > 0) {
-          setItemsDb(items);
-        }
-      })
-      .catch(() => {});
-  }, [publicItems]);
+function slotRenderUrl(item: LoadoutItem | null, catalog: any[]): string | null {
+  if (!item) return null;
+  if (item.renderUrl && !isPlaceholderUrl(item.renderUrl)) return cleanTextureUrl(item.renderUrl);
+  const match = findCatalogItem(catalog, item.name, (c) => !item.parent?.name || cleanName(c.parent?.name).toUpperCase() === cleanName(item.parent?.name).toUpperCase());
+  if (match?.renderUrl && !isPlaceholderUrl(match.renderUrl)) return cleanTextureUrl(match.renderUrl);
+  return getSkinRenderUrl(item);
+}
 
-  // 1. Resolve Equipped Character Skin & Texture
-  const activeChar = useMemo(() => {
-    if (profile.activeBodySkin && profile.activeBodySkin.name) {
-      return profile.activeBodySkin;
-    }
-    const selectedBody = inventory.find(
-      (inv) => inv.isSelected && (inv.item.type === 'BODY_SKIN' || (inv.item.type as any) === 'CHARACTER')
-    );
-    return selectedBody ? selectedBody.item : null;
-  }, [profile.activeBodySkin, inventory]);
-
-  const charTextureUrl = useMemo(() => {
-    if (!activeChar) return null;
-    let tex = activeChar.textureUrl;
-    const cleanName = (activeChar.name || '').replace(/^_+/, '').trim().toLowerCase();
-
-    const pool = [...(itemsDb || []), ...(allItemData || [])];
-    const match = pool.find(
-      (i) => i.name && i.name.replace(/^_+/, '').trim().toLowerCase() === cleanName && (i.type === 'BODY_SKIN' || i.type === 'CHARACTER')
-    );
-    if (match?.textureUrl) tex = match.textureUrl;
-
-    const cleaned = tex ? cleanTextureUrl(tex) : null;
-    if (cleaned && (cleaned === 'https://kirka.io' || cleaned === 'https://kirka.io/')) {
-      return null;
-    }
-    return cleaned;
-  }, [activeChar, allItemData, itemsDb]);
-
-  // 2. Resolve Equipped Weapons (Primary, Secondary, Melee)
-  const loadout = useMemo(() => {
-    const selectedItems = inventory.filter((i) => i.isSelected).map((i) => i.item);
-
-    let primary = profile.activeWeapon1Skin || null;
-    if (!primary) {
-      primary = selectedItems.find((item) => {
-        const parent = (item.parent?.name || '').toUpperCase();
-        return ['SCAR', 'VITA', 'AR-9', 'LAR', 'M60', 'MAC-10', 'WEATIE'].includes(parent);
-      }) || null;
-    }
-
-    let secondary = selectedItems.find((item) => {
-      const parent = (item.parent?.name || '').toUpperCase();
-      return ['SHARK', 'REVOLVER', 'PISTOL'].includes(parent);
-    }) || null;
-
-    let melee = selectedItems.find((item) => {
-      const parent = (item.parent?.name || '').toUpperCase();
-      const type = (item.type || '').toUpperCase();
-      return ['BAYONET', 'TOMAHAWK', 'KNIFE', 'MELEE'].includes(parent) || type === 'WEAPON_3';
-    }) || null;
-
-    return { primary, secondary, melee };
-  }, [profile.activeWeapon1Skin, inventory]);
-
-  // Robust weapon render resolver directly querying Kirka's asset CDN
-  const resolveWeaponImage = (item: any) => {
-    if (!item) return null;
-    const rawName = (item.name || '').replace(/^_+/, '').trim();
-    const cleanLower = rawName.toLowerCase();
-
-    // 1. If item has valid renderUrl already
-    if (item.renderUrl && !item.renderUrl.endsWith('/render-mini.webp') && item.renderUrl !== 'render-mini.webp') {
-      return item.renderUrl;
-    }
-
-    // 2. Search loaded items database (contains full 1,967 Kirka skin renders)
-    const pool = [...(itemsDb || []), ...(allItemData || [])];
-    const match = pool.find((p: any) => (p.name || '').replace(/^_+/, '').trim().toLowerCase() === cleanLower);
-    if (match?.renderUrl && !match.renderUrl.endsWith('/render-mini.webp') && match.renderUrl !== 'render-mini.webp') {
-      return match.renderUrl;
-    }
-
-    // 3. Fallback dictionary lookup
-    const fallback = fallbackRenders[cleanLower];
-    if (fallback?.renderurl) {
-      return fallback.renderurl;
-    }
-
-    // 4. Check getItemRenderUrl prop
-    if (getItemRenderUrl) {
-      const parentUrl = getItemRenderUrl(item);
-      if (parentUrl && !parentUrl.endsWith('/render-mini.webp')) {
-        return parentUrl;
-      }
-    }
-
-    return null;
-  };
-
-  // 3. Mount skinview3d with exact Kirka in-game character framing and weapon posing
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const width = container.clientWidth || 380;
-    const height = container.clientHeight || 450;
-
-    const canvas = document.createElement('canvas');
-    container.innerHTML = '';
-    container.appendChild(canvas);
-
-    const skinSource = charTextureUrl ? getProxiedTextureUrl(charTextureUrl) : getStarterSkinDataUrl();
-
-    const viewer = new SkinViewer({
-      canvas,
-      width,
-      height,
-      model: 'slim',
-      skin: skinSource,
-    });
-
-    viewer.playerObject.visible = true;
-    viewer.playerObject.skin.visible = true;
-    viewer.autoRotate = false;
-
-    // CAMERA FRAMING:
-    // Positioning playerObject down at y=-7.5 and targeting y=-7.5 ensures:
-    // 1. Head has ample clean headroom beneath the [99] #carson title
-    // 2. Feet sit naturally planted on the floor shadow right above the bottom border
-    viewer.camera.position.set(0, -3.5, 52.0);
-    viewer.controls.target.set(0, -7.5, 0);
-    viewer.controls.update();
-
-    viewer.playerObject.position.set(0, -7.5, 0);
-
-    // 3D Floor Shadow Mesh placed directly at y = -16.02 (under soles of player's shoes)
-    // This makes it physically impossible for the feet to float in the air
-    const shadowCanvas = document.createElement('canvas');
-    shadowCanvas.width = 128;
-    shadowCanvas.height = 128;
-    const shadowCtx = shadowCanvas.getContext('2d');
-    if (shadowCtx) {
-      const grad = shadowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
-      grad.addColorStop(0, 'rgba(0, 0, 0, 0.75)');
-      grad.addColorStop(0.45, 'rgba(0, 0, 0, 0.38)');
-      grad.addColorStop(0.8, 'rgba(0, 0, 0, 0.08)');
-      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      shadowCtx.fillStyle = grad;
-      shadowCtx.fillRect(0, 0, 128, 128);
-    }
-    const shadowTex = new THREE.CanvasTexture(shadowCanvas);
-    const shadowGeo = new THREE.PlaneGeometry(20, 12);
-    const shadowMat = new THREE.MeshBasicMaterial({
-      map: shadowTex,
-      transparent: true,
-      depthWrite: false,
-    });
-    const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-    shadowMesh.rotation.x = -Math.PI / 2;
-    shadowMesh.position.set(0, -16.02, 0);
-    (viewer.playerObject as any).add(shadowMesh);
-
-    // Kirka Studio Directional + Ambient Lighting
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.8);
-    keyLight.position.set(12, 20, 25);
-    (viewer.scene as any).add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.4);
-    fillLight.position.set(-15, 2, -8);
-    (viewer.scene as any).add(fillLight);
-
-    const frontLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    frontLight.position.set(0, 0, 20);
-    (viewer.scene as any).add(frontLight);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-    (viewer.scene as any).add(ambientLight);
-
-    const skin = viewer.playerObject.skin;
-
-    // Character Stance matching Kirka (subtle 7-degree body angle)
-    viewer.playerObject.rotation.y = -0.12;
-
-    // Head faces camera with slight natural angle
-    skin.head.rotation.set(0.02, 0.08, 0);
-
-    // Legs standing upright directly on the shadow plane
-    skin.rightLeg.rotation.set(0.04, 0, 0.02);
-    skin.leftLeg.rotation.set(-0.04, 0, -0.02);
-
-    // Kirka Dual-Hand Combat Holding Pose:
-    // Right arm grips rear handle/trigger
-    skin.rightArm.rotation.set(-0.65, -0.42, 0.32);
-
-    // Left arm reaches across to support front under-barrel/handguard
-    skin.leftArm.rotation.set(-0.85, 0.28, -0.42);
-
-    // 4. Load 3D Weapon Model
-    const primaryWeapon = loadout.primary;
-    const parentName = (primaryWeapon?.parent?.name || 'SCAR').toUpperCase();
-    const modelFileName = WEAPON_MODEL_MAP[parentName] || 'SCAR.glb';
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const modelUrl = `${origin}/models/${modelFileName}`;
-
-    console.log('[FitViewer] Loading 3D weapon model from:', modelUrl);
-
-    const weaponPivot = new THREE.Group();
-    (viewer.playerObject as any).add(weaponPivot);
-
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.load(
-      modelUrl,
-      (gltf) => {
-        const weaponMesh = gltf.scene;
-
-        // Default gunmetal material so weapon is ALWAYS immediately visible
-        weaponMesh.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh;
-            mesh.material = new THREE.MeshStandardMaterial({
-              color: 0x3b4252,
-              roughness: 0.35,
-              metalness: 0.25,
-              side: THREE.DoubleSide
-            });
-          }
-        });
-
-        // Resolve weapon skin texture
-        let skinTexUrl: string | null = primaryWeapon?.textureUrl || null;
-        const cleanSkinName = (primaryWeapon?.name || '').replace(/^_+/, '').trim().toLowerCase();
-
-        if (!skinTexUrl && cleanSkinName) {
-          const pool = [...(itemsDb || []), ...(allItemData || [])];
-          const match = pool.find(
-            (i) => i.name && i.name.replace(/^_+/, '').trim().toLowerCase() === cleanSkinName
-          );
-          if (match?.textureUrl) skinTexUrl = match.textureUrl;
-        }
-
-        if (skinTexUrl) {
-          const texLoader = new THREE.TextureLoader();
-          texLoader.crossOrigin = 'anonymous';
-          const targetTex = getProxiedTextureUrl(skinTexUrl);
-
-          texLoader.load(
-            targetTex,
-            (tex) => {
-              tex.flipY = false;
-              tex.colorSpace = THREE.SRGBColorSpace;
-              tex.magFilter = THREE.NearestFilter;
-              tex.minFilter = THREE.NearestFilter;
-
-              weaponMesh.traverse((child) => {
-                if ((child as THREE.Mesh).isMesh) {
-                  const mesh = child as THREE.Mesh;
-                  mesh.material = new THREE.MeshStandardMaterial({
-                    map: tex,
-                    roughness: 0.35,
-                    metalness: 0.15,
-                    side: THREE.DoubleSide
-                  });
-                }
-              });
-              console.log('[FitViewer] Weapon skin texture applied:', targetTex);
-            },
-            undefined,
-            () => {
-              console.warn('[FitViewer] Texture failed to load, retaining gunmetal material');
-            }
-          );
-        }
-
-        // Center weapon mesh at origin so rotation and scaling happen about its geometric center
-        const box = new THREE.Box3().setFromObject(weaponMesh);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const targetScale = 20.0 / (maxDim || 1);
-
-        weaponMesh.position.x = -center.x;
-        weaponMesh.position.y = -center.y;
-        weaponMesh.position.z = -center.z;
-
-        const weaponHolder = new THREE.Group();
-        weaponHolder.add(weaponMesh);
-        weaponHolder.scale.setScalar(targetScale);
-
-        // Weapon Orientation matching Kirka Reference (CrackedYOU):
-        // - Barrel points to the viewer's RIGHT across chest (dx = +14.7)
-        // - Slants slightly downward across the chest (dy = -2.9)
-        // - Scope & sights are strictly on TOP (localUp.y = 0.97)
-        // - Buttstock rests at player's right chest (viewer's left, x = -5.11)
-        weaponHolder.rotation.set(0.01, 3.06, 0.26);
-
-        // Position directly at the dual-hand contact point in player space
-        weaponPivot.position.set(-0.2, 0.5, 5.5);
-        weaponPivot.add(weaponHolder);
-
-        console.log('[FitViewer] 3D weapon centered and mounted successfully in hands!');
+function loadCharacterTexture(url: string): Promise<THREE.Texture | null> {
+  return new Promise((resolve) => {
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.load(
+      getProxiedTextureUrl(url),
+      (tex) => {
+        tex.flipY = false;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.magFilter = THREE.NearestFilter;
+        tex.minFilter = THREE.NearestFilter;
+        tex.generateMipmaps = false;
+        resolve(tex);
       },
       undefined,
-      (err) => {
-        console.error('[FitViewer] Failed to load 3D weapon model:', err);
-      }
+      () => resolve(null)
+    );
+  });
+}
+
+export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, inventory, catalog = [], overrides = {}, onInspectItem }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pose, setPose] = useState<FitPose>('pose1');
+  const [loading, setLoading] = useState(true);
+  const sceneApiRef = useRef<{ setPose: (pose: FitPose) => void } | null>(null);
+
+  // 1. Equipped character skin texture
+  const charTextureUrl = useMemo(() => {
+    const selectedBody = inventory.find((inv) => inv.isSelected && inv.item.type === 'BODY_SKIN')?.item;
+    const body = overrides.character || profile.activeBodySkin || selectedBody;
+    if (!body?.name) return null;
+    const match = findCatalogItem(catalog, body.name, (c) => c.type === 'BODY_SKIN' || c.type === 'CHARACTER');
+    const tex = cleanTextureUrl(body.textureUrl || match?.textureUrl || selectedBody?.textureUrl);
+    if (tex && !isPlaceholderUrl(tex)) return tex;
+    return `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanName(body.name))}`;
+  }, [overrides.character, profile.activeBodySkin, inventory, catalog]);
+
+  // 2. Loadout: WEAPON_1 primary, WEAPON_2 secondary, WEAPON_3 melee (falls back to base weapon names)
+  const loadout = useMemo(() => {
+    const selected = inventory.filter((i) => i.isSelected && i.item.type === 'WEAPON_SKIN').map((i) => i.item as LoadoutItem);
+    const bySlot = (slotType: string, names: string[]) =>
+      selected.find((item) => (item.parent?.type || '').toUpperCase() === slotType) ||
+      selected.find((item) => names.includes(cleanName(item.parent?.name).toUpperCase())) ||
+      null;
+
+    return {
+      primary: overrides.primary || (profile.activeWeapon1Skin as LoadoutItem) || bySlot('WEAPON_1', PRIMARY_WEAPONS),
+      secondary: overrides.secondary || bySlot('WEAPON_2', SECONDARY_WEAPONS),
+      melee: overrides.melee || bySlot('WEAPON_3', MELEE_WEAPONS),
+    };
+  }, [overrides.primary, overrides.secondary, overrides.melee, profile.activeWeapon1Skin, inventory]);
+
+  const primaryKey = `${loadout.primary?.parent?.name || ''}|${loadout.primary?.name || ''}|${loadout.primary?.textureUrl || ''}`;
+
+  // 3. Scene: Kirka character playing a lobby pose, holding the primary weapon
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let disposed = false;
+    setLoading(true);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio * 2, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.innerHTML = '';
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.add(new THREE.AmbientLight(0xffffff, 1.9));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
+    keyLight.position.set(1.5, 3, 4);
+    scene.add(keyLight);
+
+    // Orthographic camera like the kirka.io lobby
+    const frustumHeight = 4.1;
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -20, 100);
+    camera.position.set(0, 1.78, 10);
+    camera.lookAt(0, 1.78, 0);
+
+    const resize = () => {
+      const w = container.clientWidth || 600;
+      const h = container.clientHeight || 560;
+      const aspect = w / h;
+      camera.left = (-frustumHeight * aspect) / 2;
+      camera.right = (frustumHeight * aspect) / 2;
+      camera.top = frustumHeight / 2;
+      camera.bottom = -frustumHeight / 2;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    resize();
+
+    // Floor shadow
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = shadowCanvas.height = 128;
+    const sctx = shadowCanvas.getContext('2d');
+    if (sctx) {
+      const grad = sctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(10, 14, 26, 0.8)');
+      grad.addColorStop(0.6, 'rgba(10, 14, 26, 0.5)');
+      grad.addColorStop(1, 'rgba(10, 14, 26, 0)');
+      sctx.fillStyle = grad;
+      sctx.fillRect(0, 0, 128, 128);
+    }
+    const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+    const shadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.6, 1.1),
+      new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.28;
+
+    // Turntable: drag to spin the character
+    const turntable = new THREE.Group();
+    turntable.add(shadow);
+    scene.add(turntable);
+    let dragging = false;
+    let lastX = 0;
+    const onPointerDown = (e: PointerEvent) => {
+      dragging = true;
+      lastX = e.clientX;
+      renderer.domElement.setPointerCapture(e.pointerId);
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      turntable.rotation.y += (e.clientX - lastX) * 0.012;
+      lastX = e.clientX;
+    };
+    const onPointerUp = () => {
+      dragging = false;
+    };
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.style.touchAction = 'pan-y';
+
+    let mixer: THREE.AnimationMixer | null = null;
+    let character: THREE.Object3D | null = null;
+    let weapon: THREE.Object3D | null = null;
+    const actions: Partial<Record<FitPose, THREE.AnimationAction>> = {};
+    let currentPose: FitPose = pose;
+
+    const attachWeapon = (target: FitPose) => {
+      if (!character || !weapon) return;
+      character.getObjectByName(target)?.add(weapon);
+    };
+
+    const applyPose = (target: FitPose) => {
+      const next = actions[target];
+      if (!next) return;
+      const prev = actions[currentPose];
+      next.reset().play();
+      if (prev && prev !== next) next.crossFadeFrom(prev, 0.25, false);
+      currentPose = target;
+      attachWeapon(target);
+    };
+    sceneApiRef.current = { setPose: applyPose };
+
+    const primary = loadout.primary;
+    const weaponName = cleanName(primary?.parent?.name) || 'SCAR';
+    const modelFile = getModelFileName(weaponName) || 'SCAR.glb';
+    const weaponTextureUrl = primary
+      ? primary.textureUrl || findCatalogItem(catalog, primary.name, (c) => cleanName(c.parent?.name).toUpperCase() === cleanName(primary.parent?.name).toUpperCase())?.textureUrl
+      : null;
+
+    const characterPromise = new Promise<{ scene: THREE.Group; animations: THREE.AnimationClip[] }>((resolve, reject) =>
+      new GLTFLoader().load(getModelUrl(CHARACTER_MODEL), resolve, undefined, reject)
     );
 
-    // Subtle synchronized breathing animation
-    let animFrameId: number;
-    let time = 0;
-    const animatePose = () => {
-      time += 0.035;
-      const breath = Math.sin(time) * 0.012;
+    Promise.all([
+      characterPromise,
+      charTextureUrl ? loadCharacterTexture(charTextureUrl) : Promise.resolve(null),
+      loadWeaponModel(modelFile),
+      primary ? loadSkinTexture(weaponTextureUrl, primary.name) : Promise.resolve(null),
+    ])
+      .then(([gltf, charTexture, weaponModel, weaponTexture]) => {
+        if (disposed) return;
 
-      skin.head.rotation.x = 0.02 + breath * 0.4;
-      skin.rightArm.rotation.x = -0.65 + breath;
-      skin.leftArm.rotation.x = -0.85 + breath;
-      weaponPivot.position.y = 0.4 + breath * 1.2;
+        // Character
+        character = gltf.scene;
+        character.traverse((child) => {
+          const mesh = child as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          mesh.frustumCulled = false;
+          mesh.material = new THREE.MeshStandardMaterial({
+            map: charTexture,
+            color: charTexture ? 0xffffff : 0x2a3148,
+            alphaTest: 0.05,
+            roughness: 1,
+            metalness: 0,
+            side: THREE.DoubleSide,
+          });
+        });
+        character.scale.setScalar(CHARACTER_SCALE);
+        character.rotation.y = Math.PI;
+        turntable.add(character);
 
-      animFrameId = requestAnimationFrame(animatePose);
-    };
-    animFrameId = requestAnimationFrame(animatePose);
+        mixer = new THREE.AnimationMixer(character);
+        for (const clip of gltf.animations) {
+          if (clip.name === 'pose1' || clip.name === 'pose2' || clip.name === 'pose3') {
+            actions[clip.name] = mixer.clipAction(clip);
+          }
+        }
 
-    skinViewerRef.current = viewer;
+        // Weapon: grip ("Lever") sits on the pose empty
+        weaponModel.traverse((child) => {
+          const mesh = child as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          mesh.material = new THREE.MeshStandardMaterial({
+            map: weaponTexture,
+            color: weaponTexture ? 0xffffff : 0x4b5468,
+            roughness: 1,
+            metalness: 0,
+            side: THREE.DoubleSide,
+          });
+        });
+        const scale = WEAPON_SCALE[modelFile] ?? 3;
+        const lever = weaponModel.getObjectByName('Lever');
+        weaponModel.scale.setScalar(scale);
+        if (lever) weaponModel.position.copy(lever.position).multiplyScalar(-scale);
+        weapon = weaponModel;
 
-    const resizeObserver = new ResizeObserver(() => {
-      if (!container) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      if (w > 0 && h > 0) {
-        viewer.setSize(w, h);
-      }
+        const initial = actions[currentPose];
+        initial?.play();
+        attachWeapon(currentPose);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('[FitViewer] Failed to load fit scene:', err);
+        if (!disposed) setLoading(false);
+      });
+
+    const clock = new THREE.Clock();
+    renderer.setAnimationLoop(() => {
+      mixer?.update(clock.getDelta() * ANIMATION_SPEED);
+      renderer.render(scene, camera);
     });
+
+    const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
 
     return () => {
-      cancelAnimationFrame(animFrameId);
+      disposed = true;
+      sceneApiRef.current = null;
       resizeObserver.disconnect();
-      skinViewerRef.current = null;
-      viewer.dispose();
+      renderer.setAnimationLoop(null);
+      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+      renderer.domElement.removeEventListener('pointermove', onPointerMove);
+      renderer.domElement.removeEventListener('pointerup', onPointerUp);
+      shadowTex.dispose();
+      renderer.dispose();
     };
-  }, [charTextureUrl, loadout.primary, itemsDb]);
+    // pose changes are applied through sceneApiRef without rebuilding the scene
+  }, [charTextureUrl, primaryKey, catalog.length]);
 
-  const primaryImg = resolveWeaponImage(loadout.primary);
-  const secondaryImg = resolveWeaponImage(loadout.secondary);
-  const meleeImg = resolveWeaponImage(loadout.melee);
+  const changePose = (next: FitPose) => {
+    setPose(next);
+    sceneApiRef.current?.setPose(next);
+  };
 
-  const cleanSansStyle = { fontFamily: 'Outfit, Inter, system-ui, -apple-system, sans-serif' };
+  const slots: { label: string; item: LoadoutItem | null }[] = [
+    { label: 'Primary', item: loadout.primary },
+    { label: 'Secondary', item: loadout.secondary },
+    { label: 'Melee', item: loadout.melee },
+  ];
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-[#1c2438] border border-[#2b3554] rounded-xl shadow-2xl overflow-hidden select-none" style={cleanSansStyle}>
-      {/* Main 3D Character Canvas Area */}
-      <div className="relative w-full h-[450px] sm:h-[480px] bg-[#1a2238] flex flex-col items-center justify-between overflow-hidden">
-        {/* Top Level + Player Name Banner (Identical to Official Kirka In-Game Showcase) */}
-        <div className="absolute top-4 left-5 z-10 flex items-center space-x-3 pointer-events-none" style={cleanSansStyle}>
-          <span 
-            className="bg-[#fbbf24] text-slate-950 font-black text-sm px-2.5 py-0.5 rounded shadow-sm"
-            style={cleanSansStyle}
-          >
+    <div className="w-full max-w-[690px] mx-auto rounded-xl overflow-hidden select-none shadow-2xl border border-[#2c3653]" style={{ fontFamily: '"Exo 2", Outfit, Inter, system-ui, sans-serif' }}>
+      <div
+        className="relative w-full h-[440px] sm:h-[620px]"
+        style={{ background: 'radial-gradient(ellipse at 50% 45%, #2a3450 0%, #222a42 55%, #1c2338 100%)' }}
+      >
+        {/* Level + name banner */}
+        <div className="absolute top-8 sm:top-[78px] inset-x-0 z-10 flex items-center justify-center gap-2 pointer-events-none px-4">
+          <span className="bg-[#1a2031]/90 text-[#f5a623] font-extrabold text-2xl sm:text-[34px] leading-none px-2 py-1 rounded-[3px]">
             {profile.level || 1}
           </span>
-          <span 
-            className="text-white font-extrabold text-2xl tracking-wide drop-shadow-md"
-            style={cleanSansStyle}
-          >
+          <span className="text-white font-extrabold text-2xl sm:text-[34px] leading-none tracking-tight truncate drop-shadow">
             {profile.name}
           </span>
         </div>
 
-        {/* 3D Skinview3d Canvas Container */}
-        <div 
-          ref={containerRef} 
-          className="w-full h-full absolute inset-0 z-0 cursor-grab active:cursor-grabbing"
-        />
+        <div ref={containerRef} className="absolute inset-0 cursor-grab active:cursor-grabbing" />
+
+        {/* Pose switcher */}
+        <div className="absolute top-3 right-3 z-10 flex gap-1" data-html2canvas-ignore>
+          {(['pose1', 'pose2', 'pose3'] as FitPose[]).map((p, i) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => changePose(p)}
+              className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                pose === p ? 'bg-[#f5a623] text-[#1a2031]' : 'bg-black/30 text-slate-300 hover:text-white'
+              }`}
+            >
+              Pose {i + 1}
+            </button>
+          ))}
+        </div>
+
+        {loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-wider text-slate-400 pointer-events-none">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Loading fit</span>
+          </div>
+        )}
       </div>
 
-      {/* Bottom 3-Weapon Loadout Slots (Exact Kirka In-Game 3-Slot Bar) */}
-      <div className="grid grid-cols-3 divide-x divide-[#2b3554] border-t border-[#2b3554] bg-[#161d2f]" style={cleanSansStyle}>
-        {/* 1. Primary Weapon */}
-        <div 
-          onClick={() => loadout.primary && onInspectItem?.(loadout.primary.name, loadout.primary.parent?.name || 'weapon_skin', 1)}
-          className="p-3 flex flex-col justify-between h-28 hover:bg-white/[0.04] transition-colors cursor-pointer group relative"
-        >
-          <span 
-            className="text-sm font-bold text-white tracking-wide truncate"
-            style={cleanSansStyle}
-          >
-            {loadout.primary?.name || 'Primary'}
-          </span>
-
-          <div className="flex-1 flex items-center justify-center py-1">
-            {primaryImg ? (
-              <img
-                src={primaryImg}
-                alt={loadout.primary?.name || 'Primary'}
-                className="max-h-14 max-w-[90%] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <Crosshair className="w-6 h-6 text-slate-600 opacity-40" />
-            )}
-          </div>
-        </div>
-
-        {/* 2. Secondary Weapon */}
-        <div 
-          onClick={() => loadout.secondary && onInspectItem?.(loadout.secondary.name, loadout.secondary.parent?.name || 'weapon_skin', 1)}
-          className="p-3 flex flex-col justify-between h-28 hover:bg-white/[0.04] transition-colors cursor-pointer group relative"
-        >
-          <span 
-            className="text-sm font-bold text-white tracking-wide truncate"
-            style={cleanSansStyle}
-          >
-            {loadout.secondary?.name || 'Secondary'}
-          </span>
-
-          <div className="flex-1 flex items-center justify-center py-1">
-            {secondaryImg ? (
-              <img
-                src={secondaryImg}
-                alt={loadout.secondary?.name || 'Secondary'}
-                className="max-h-14 max-w-[90%] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <Crosshair className="w-6 h-6 text-slate-600 opacity-40" />
-            )}
-          </div>
-        </div>
-
-        {/* 3. Melee Weapon */}
-        <div 
-          onClick={() => loadout.melee && onInspectItem?.(loadout.melee.name, loadout.melee.parent?.name || 'weapon_skin', 1)}
-          className="p-3 flex flex-col justify-between h-28 hover:bg-white/[0.04] transition-colors cursor-pointer group relative"
-        >
-          <span 
-            className="text-sm font-bold text-white tracking-wide truncate"
-            style={cleanSansStyle}
-          >
-            {loadout.melee?.name || 'Melee'}
-          </span>
-
-          <div className="flex-1 flex items-center justify-center py-1">
-            {meleeImg ? (
-              <img
-                src={meleeImg}
-                alt={loadout.melee?.name || 'Melee'}
-                className="max-h-14 max-w-[90%] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <Crosshair className="w-6 h-6 text-slate-600 opacity-40" />
-            )}
-          </div>
-        </div>
+      {/* Loadout slots */}
+      <div className="grid grid-cols-3 gap-[3px] bg-[#1a2033] pt-[3px]">
+        {slots.map(({ label, item }) => {
+          const img = slotRenderUrl(item, catalog);
+          return (
+            <button
+              key={label}
+              type="button"
+              onClick={() => item && onInspectItem?.(item.name, item.parent?.name || 'weapon_skin', 1, item.textureUrl)}
+              className="bg-[#252d45] hover:bg-[#2c3552] transition-colors h-24 sm:h-[150px] p-2.5 sm:p-4 flex flex-col text-left cursor-pointer group"
+            >
+              <span className="text-white font-semibold text-sm sm:text-lg leading-none truncate">
+                {item ? cleanName(item.name) : label}
+              </span>
+              <div className="flex-1 flex items-center justify-center min-h-0">
+                {img ? (
+                  <img
+                    src={img}
+                    alt={item ? cleanName(item.name) : label}
+                    className="max-h-full max-w-[85%] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.45)] group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => ((e.currentTarget as HTMLImageElement).style.visibility = 'hidden')}
+                  />
+                ) : (
+                  <Crosshair className="w-6 h-6 text-slate-600 opacity-50" />
+                )}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

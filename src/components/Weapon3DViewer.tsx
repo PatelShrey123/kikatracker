@@ -83,13 +83,82 @@ export function getProxiedTextureUrl(url: string | null | undefined): string {
   return `https://images.weserv.nl/?url=${encodeURIComponent(cleaned)}`;
 }
 
+export function getModelUrl(modelFile: string): string {
+  const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+  return `${prefix}/models/${modelFile}`;
+}
+
+// Load and cache a parsed GLB scene; callers receive their own clone
+export function loadWeaponModel(modelFile: string): Promise<THREE.Group> {
+  const modelUrl = getModelUrl(modelFile);
+  if (glbCache.has(modelUrl)) {
+    return Promise.resolve(glbCache.get(modelUrl)!.clone(true));
+  }
+  const loader = new GLTFLoader();
+  return new Promise((resolve, reject) => {
+    loader.load(
+      modelUrl,
+      (gltf) => {
+        glbCache.set(modelUrl, gltf.scene);
+        resolve(gltf.scene.clone(true));
+      },
+      undefined,
+      reject
+    );
+  });
+}
+
+function prepareSkinTexture(tex: THREE.Texture): THREE.Texture {
+  tex.flipY = false;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  return tex;
+}
+
+// Cached weapon skin texture loader: proxied URL -> direct URL -> api2 skin-texture by name
+export function loadSkinTexture(url: string | null | undefined, skinName?: string): Promise<THREE.Texture | null> {
+  let targetUrl = cleanTextureUrl(url);
+
+  // If url is invalid or a placeholder, fallback to api2 skin texture if skinName is available
+  if (!targetUrl || isPlaceholderUrl(targetUrl)) {
+    if (!skinName) return Promise.resolve(null);
+    const cleanSkin = skinName.replace(/^_+/, '').trim();
+    targetUrl = `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanSkin)}`;
+  }
+  const cacheKey = targetUrl;
+
+  if (textureCache.has(cacheKey)) {
+    return Promise.resolve(textureCache.get(cacheKey)!);
+  }
+
+  const texLoader = new THREE.TextureLoader();
+  texLoader.crossOrigin = 'anonymous';
+  const tryLoad = (src: string) =>
+    new Promise<THREE.Texture | null>((resolve) => {
+      texLoader.load(src, (tex) => resolve(prepareSkinTexture(tex)), undefined, () => resolve(null));
+    });
+
+  return (async () => {
+    let tex = await tryLoad(getProxiedTextureUrl(cacheKey));
+    if (!tex) tex = await tryLoad(cacheKey);
+    // Secondary fallback to api2 skin-texture if url was different
+    if (!tex && skinName && !cacheKey.includes('api2.kirka.io')) {
+      const cleanSkin = skinName.replace(/^_+/, '').trim();
+      tex = await tryLoad(getProxiedTextureUrl(`https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanSkin)}`));
+    }
+    if (tex) textureCache.set(cacheKey, tex);
+    return tex;
+  })();
+}
+
 export function isPlaceholderUrl(url: string | null | undefined): boolean {
   if (!url || typeof url !== 'string') return true;
   const t = url.trim();
   if (t === '' || t === 'https://kirka.io' || t === 'https://kirka.io/' || t === '/render') return true;
   if (t.endsWith('/render-mini.webp') || t === 'render-mini.webp') return true;
-  if (t.includes('render.0e1d4800') || t.includes('render.d8456ef7')) return true;
-  if (t.includes('__questions__')) return true;
+  if (t.includes('render.0e1d4800') || t.includes('render.d8456ef7')) return true;  if (t.includes('__questions__')) return true;
   return false;
 }
 
@@ -300,108 +369,8 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
 
     let isDisposed = false;
 
-    // High-speed cached texture loader with multiple fallbacks
-    const loadTexturePromise = (url: string | null): Promise<THREE.Texture | null> => {
-      let targetUrl = cleanTextureUrl(url);
-
-      // If url is invalid or a placeholder, fallback to api2 skin texture if skinName is available
-      if (!targetUrl || isPlaceholderUrl(targetUrl)) {
-        if (skinName) {
-          const cleanSkin = skinName.replace(/^_+/, '').trim();
-          targetUrl = `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanSkin)}`;
-        } else {
-          return Promise.resolve(null);
-        }
-      }
-
-      if (textureCache.has(targetUrl)) {
-        return Promise.resolve(textureCache.get(targetUrl)!);
-      }
-
-      return new Promise((resolve) => {
-        const texLoader = new THREE.TextureLoader();
-        texLoader.crossOrigin = 'anonymous';
-
-        const proxied = getProxiedTextureUrl(targetUrl);
-
-        texLoader.load(
-          proxied,
-          (tex) => {
-            tex.flipY = false;
-            tex.colorSpace = THREE.SRGBColorSpace;
-            tex.magFilter = THREE.NearestFilter;
-            tex.minFilter = THREE.NearestFilter;
-            tex.generateMipmaps = false;
-            textureCache.set(targetUrl, tex);
-            resolve(tex);
-          },
-          undefined,
-          () => {
-            // Direct fallback
-            texLoader.load(
-              targetUrl,
-              (directTex) => {
-                directTex.flipY = false;
-                directTex.colorSpace = THREE.SRGBColorSpace;
-                directTex.magFilter = THREE.NearestFilter;
-                directTex.minFilter = THREE.NearestFilter;
-                directTex.generateMipmaps = false;
-                textureCache.set(targetUrl, directTex);
-                resolve(directTex);
-              },
-              undefined,
-              () => {
-                // Secondary fallback to api2 skin-texture if url was different
-                if (skinName && !targetUrl.includes('api2.kirka.io')) {
-                  const cleanSkin = skinName.replace(/^_+/, '').trim();
-                  const api2Url = `https://api2.kirka.io/api/skin-texture/${encodeURIComponent(cleanSkin)}`;
-                  texLoader.load(
-                    getProxiedTextureUrl(api2Url),
-                    (api2Tex) => {
-                      api2Tex.flipY = false;
-                      api2Tex.colorSpace = THREE.SRGBColorSpace;
-                      api2Tex.magFilter = THREE.NearestFilter;
-                      api2Tex.minFilter = THREE.NearestFilter;
-                      api2Tex.generateMipmaps = false;
-                      textureCache.set(targetUrl, api2Tex);
-                      resolve(api2Tex);
-                    },
-                    undefined,
-                    () => resolve(null)
-                  );
-                } else {
-                  resolve(null);
-                }
-              }
-            );
-          }
-        );
-      });
-    };
-
     if (modelFile) {
-      const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
-      const modelUrl = `${prefix}/models/${modelFile}`;
-
-      const loadModelPromise = (): Promise<THREE.Group> => {
-        if (glbCache.has(modelUrl)) {
-          return Promise.resolve(glbCache.get(modelUrl)!.clone(true));
-        }
-        const loader = new GLTFLoader();
-        return new Promise((resolve, reject) => {
-          loader.load(
-            modelUrl,
-            (gltf) => {
-              glbCache.set(modelUrl, gltf.scene);
-              resolve(gltf.scene.clone(true));
-            },
-            undefined,
-            reject
-          );
-        });
-      };
-
-      Promise.all([loadModelPromise(), loadTexturePromise(textureUrl)])
+      Promise.all([loadWeaponModel(modelFile), loadSkinTexture(textureUrl, skinName)])
         .then(([model, loadedTexture]) => {
           if (isDisposed) return;
 

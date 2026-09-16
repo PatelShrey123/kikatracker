@@ -18,6 +18,7 @@ import { BotSection } from './components/BotSection';
 import { ClanTrackerSection } from './components/ClanTrackerSection';
 import { SkinEditor } from './components/SkinEditor';
 import { RendersSection } from './components/RendersSection';
+import { FitSection } from './components/FitSection';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -35,7 +36,11 @@ function App() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [activeClanName, setActiveClanName] = useState<string | null>(null);
-  
+  const [fitPlayerId, setFitPlayerId] = useState<string | null>(() => {
+    const match = window.location.pathname.match(/\/(?:3d)?fit\/([^/]+)/);
+    return match ? decodeURIComponent(match[1]).replace('#', '') : null;
+  });
+
   // Inspect item modal state
   const [inspectItem, setInspectItem] = useState<{
     name: string;
@@ -100,6 +105,9 @@ function App() {
     if (cleanPath.startsWith('/skin/')) {
       const skinName = cleanPath.split('/skin/')[1];
       return { tab: 'prices', player: null, clan: null, skin: decodeURIComponent(skinName) };
+    }
+    if (/^\/(3d)?fit(\/|$)/.test(cleanPath)) {
+      return { tab: 'fit', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/renders' || cleanPath === '/3drenders') {
       return { tab: 'renders', player: null, clan: null, skin: null };
@@ -271,6 +279,9 @@ function App() {
       case 'compare':
         document.title = 'Compare Kirka Player Profiles & Inventories | Kirka Hub';
         break;
+      case 'fit':
+        document.title = 'Kirka 3D Fit Viewer — Flex Your Loadout | Kirka Hub';
+        break;
       case 'renders':
         document.title = 'Kirka 3D Weapon Skins & Character Renders | Kirka Hub';
         break;
@@ -434,6 +445,13 @@ function App() {
                             window.history.pushState(null, '', `${prefix}/compare?p1=${id}&type=${type}`);
                             setActiveTab('compare');
                           }}
+                          onOpenFit={(shortId) => {
+                            const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+                            window.history.pushState(null, '', `${prefix}/fit/${shortId}`);
+                            setFitPlayerId(shortId);
+                            setActiveUserProfile(null);
+                            setActiveTab('fit');
+                          }}
                         />
                       ) : (
                         <SearchSection
@@ -519,6 +537,21 @@ function App() {
                   {activeTab === 'skineditor' && (
                     <SkinEditor />
                   )}
+                  {activeTab === 'fit' && (
+                    <FitSection
+                      key={fitPlayerId ?? 'empty'}
+                      initialPlayerId={fitPlayerId}
+                      catalog={allItemData}
+                      onPlayerLoaded={(shortId) => {
+                        const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+                        window.history.replaceState(null, '', `${prefix}/fit/${shortId}${window.location.search}`);
+                      }}
+                      onInspectItem={(name, type, amount, textureUrl) => {
+                        setInspectItem({ name, type, amount, textureUrl });
+                      }}
+                    />
+                  )}
+
                   {activeTab === 'renders' && (
                     <RendersSection
                       publicItems={publicItems}

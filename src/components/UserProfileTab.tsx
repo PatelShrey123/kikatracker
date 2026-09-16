@@ -10,7 +10,6 @@ import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
 import { getSkinRenderUrl, isPlaceholderUrl } from './Weapon3DViewer';
 import { getCachedCatalog } from '../utils/catalogCache';
-import { InGameFitShowcase } from './InGameFitShowcase';
 import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass, getVipBackground } from '../utils/vip';
 interface UserProfileTabProps {
   profile: UserProfile;
@@ -21,6 +20,7 @@ interface UserProfileTabProps {
   onInspectItem: (name: string, type?: string, amount?: number, textureUrl?: string | null) => void;
   allItemData: any[];
   onCompare: (id: string, type: 'stats' | 'inventory') => void;
+  onOpenFit: (shortId: string) => void;
 }
 
 export const UserProfileTab: React.FC<UserProfileTabProps> = ({ 
@@ -31,17 +31,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   fallbackRenders,
   onInspectItem,
   allItemData,
-  onCompare
+  onCompare,
+  onOpenFit
 }) => {
   const isInventoryRoute = typeof window !== 'undefined' && window.location.pathname.includes('/inventory');
-  const isLocalhost = typeof window !== 'undefined' && (
-    window.location.hostname === 'localhost' || 
-    window.location.hostname === '127.0.0.1'
-  );
-  const initialTab = (isLocalhost && typeof window !== 'undefined' && (window.location.search.includes('tab=fit') || window.location.hash.includes('fit'))) 
-    ? 'fit' 
-    : (isInventoryRoute ? 'inventory' : 'stats');
-  const [profileTab, setProfileTab] = useState<'stats' | 'fit' | 'inventory' | 'matches'>(initialTab);
+  const [profileTab, setProfileTab] = useState<'stats' | 'inventory' | 'matches'>(isInventoryRoute ? 'inventory' : 'stats');
   const [inventory, setInventory] = useState<UserInventoryItem[]>([]);
   const [publicItems, setPublicItems] = useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
@@ -354,22 +348,16 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
             <Target className="w-4 h-4" />
             <span>Player Stats</span>
           </button>
-          {isLocalhost && (
-            <button
-              onClick={() => setProfileTab('fit')}
-              className={`flex items-center space-x-2 px-5 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
-                profileTab === 'fit'
-                  ? 'border-gold-primary text-gold-bright bg-gold-primary/5'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20'
-              }`}
-            >
-              <Shield className="w-4 h-4 text-cyan-400" />
-              <span className="flex items-center space-x-1.5">
-                <span>3D Inventory</span>
-                <span className="text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-1.5 py-0.2 rounded uppercase">FIT</span>
-              </span>
-            </button>
-          )}
+          <button
+            onClick={() => onOpenFit(profile.shortId)}
+            className="flex items-center space-x-2 px-5 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-obsidian-card/20 transition-all duration-300"
+          >
+            <Shield className="w-4 h-4 text-cyan-400" />
+            <span className="flex items-center space-x-1.5">
+              <span>3D Fit</span>
+              <span className="text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-1.5 py-0.2 rounded uppercase">3D</span>
+            </span>
+          </button>
           <button
             onClick={() => setProfileTab('inventory')}
             className={`flex items-center space-x-2 px-5 py-3.5 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all duration-300 ${
@@ -418,20 +406,6 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
       {/* Tab Contents */}
       <div>
-        {isLocalhost && profileTab === 'fit' && (
-          <div className="py-6 flex flex-col items-center">
-            <InGameFitShowcase 
-              profile={profile}
-              inventory={inventory}
-              allItemData={allItemData}
-              publicItems={publicItems}
-              fallbackRenders={fallbackRenders}
-              getItemRenderUrl={getItemRenderUrl}
-              onInspectItem={onInspectItem}
-            />
-          </div>
-        )}
-
         {profileTab === 'stats' && (
           <div className="space-y-10">
             {/* 1. Equipped Loadout Cards */}
@@ -441,15 +415,13 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                   <Shield className="w-4 h-4 text-gold-primary" />
                   <span>Equipped Skin Cards & Market Valuation</span>
                 </h2>
-                {isLocalhost && (
-                  <button
-                    onClick={() => setProfileTab('fit')}
-                    className="text-xs font-mono font-bold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 cursor-pointer transition-colors"
-                  >
-                    <span>Open 3D Inventory Fit</span>
-                    <span>→</span>
-                  </button>
-                )}
+                <button
+                  onClick={() => onOpenFit(profile.shortId)}
+                  className="text-xs font-mono font-bold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 cursor-pointer transition-colors"
+                >
+                  <span>Open 3D Fit</span>
+                  <span>→</span>
+                </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
