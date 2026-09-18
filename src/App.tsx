@@ -19,6 +19,7 @@ import { ClanTrackerSection } from './components/ClanTrackerSection';
 import { SkinEditor } from './components/SkinEditor';
 import { RendersSection } from './components/RendersSection';
 import { FitSection } from './components/FitSection';
+import { AdSlot, AD_SLOTS } from './components/AdSlot';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -388,7 +389,11 @@ function App() {
       {/* 2. Full-screen custom loader */}
       <LoadingScreen isLoading={isLoading} />
 
-      {!isLoading && (
+      {!isLoading && (() => {
+        // No ads in full-screen editing tools
+        const showAds = !['gunstudio', 'skineditor'].includes(activeTab);
+        const adRouteKey = activeTab + (activeTab === 'search' ? (activeUserProfile ? '-profile' : '-input') : '') + (activeTab === 'fit' ? fitPlayerId ?? '' : '');
+        return (
         <>
           {/* 3. Left Sidebar (Desktop) & Floating Navbar (Mobile) */}
           <Navbar activeTab={activeTab} setActiveTab={handleTabChange} />
@@ -411,6 +416,9 @@ function App() {
                 <span>Node Sync Online</span>
               </div>
             </header>
+
+            {/* Ad: top banner, above page content (never inside profiles, skins or tools) */}
+            {showAds && <AdSlot key={`top-${adRouteKey}`} slot={AD_SLOTS.topBanner} className="pt-4 px-4" />}
 
             <main className="flex-grow">
               <AnimatePresence mode="wait">
@@ -564,10 +572,13 @@ function App() {
               </AnimatePresence>
             </main>
 
+            {/* Ad: bottom banner, after all page content */}
+            {showAds && <AdSlot key={`bottom-${adRouteKey}`} slot={AD_SLOTS.bottomBanner} className="py-4 px-4" />}
+
             {/* 5. Sleek footer */}
             <footer className="py-6 border-t border-obsidian-border/50 text-center text-xs text-slate-600 font-mono flex-shrink-0">
               <div className="max-w-7xl mx-auto px-4">
-                <span>© 2026 XPERT TRACKER • Kirka.io Community Tool • Valuation Index: Bolt Pricing</span>
+                <span>© 2026 XPERT TRACKER • Kirka.io Community Tool • Valuation Index: Bolt Pricing • <a href="/privacy.html" className="hover:text-slate-400 underline">Privacy Policy</a></span>
               </div>
             </footer>
           </div>
@@ -585,7 +596,8 @@ function App() {
             fallbackRenders={fallbackRenders}
           />
         </>
-      )}
+        );
+      })()}
     </div>
   );
 }
