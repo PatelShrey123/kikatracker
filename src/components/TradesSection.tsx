@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
-import { formatValue } from '../utils/csv';
+import { formatValue, estimateValue } from '../utils/csv';
 import { getSkinRenderUrl } from './Weapon3DViewer';
 import { isVip } from '../utils/vip';
 
@@ -164,23 +164,31 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return getSkinRenderUrl({ name, renderUrl: candidate });
   };
 
-  // Helper to look up skin price in Bolt database map
-  const getItemPrice = (name: string) => {
+  // Look up a skin's value. Anything the community has not priced yet ("TBD" in the sheet) and any
+  // brand new skin missing from the sheet falls back to an estimate from its rarity and weapon, so
+  // the card shows a figure and the margin can still be worked out.
+  const getItemValue = (name: string): { value: number; estimated: boolean } => {
     const nameKey = name.toLowerCase();
-    const matched = marketPrices.get(nameKey);
-    if (matched) return matched.baseValue;
-
-    // Try finding type details in metadata list for composite key lookup
     const matchedMeta = allItemData.find((i) => i.name.toLowerCase() === nameKey);
-    if (matchedMeta) {
-      const typeKey = matchedMeta.type === 'BODY_SKIN' ? 'character' : (matchedMeta.parent?.name || '');
-      const compositeKey = `${nameKey}_${typeKey.toLowerCase()}`;
-      const matchedComposite = marketPrices.get(compositeKey);
-      if (matchedComposite) return matchedComposite.baseValue;
-      return matchedMeta.salePrice || 0;
+    const typeKey = matchedMeta
+      ? (matchedMeta.type === 'BODY_SKIN' ? 'character' : (matchedMeta.parent?.name || ''))
+      : '';
+
+    const matched = marketPrices.get(`${nameKey}_${typeKey.toLowerCase()}`) || marketPrices.get(nameKey);
+    if (matched && matched.baseValue > 0) {
+      return { value: matched.baseValue, estimated: !!matched.estimated };
     }
-    return 0;
+
+    if (matchedMeta) {
+      const guess = estimateValue(matchedMeta.rarity, typeKey);
+      if (guess > 0) return { value: guess, estimated: true };
+      if (matchedMeta.salePrice) return { value: matchedMeta.salePrice, estimated: false };
+    }
+    return { value: 0, estimated: false };
   };
+
+  const getItemPrice = (name: string) => getItemValue(name).value;
+  const isItemEstimated = (name: string) => getItemValue(name).estimated;
 
   // Calculate profit margin gives vs gets details
   const getProfitMargin = (givesItems: Array<{ name: string; quantity: number }>, getsItems: Array<{ name: string; quantity: number }>) => {
@@ -189,16 +197,20 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     let hasGivesPrice = false;
     let hasGetsPrice = false;
 
+    let anyEstimated = false;
+
     givesItems.forEach((item) => {
-      const price = getItemPrice(item.name);
-      if (price > 0) hasGivesPrice = true;
-      totalGives += price * item.quantity;
+      const { value, estimated } = getItemValue(item.name);
+      if (value > 0) hasGivesPrice = true;
+      if (estimated) anyEstimated = true;
+      totalGives += value * item.quantity;
     });
 
     getsItems.forEach((item) => {
-      const price = getItemPrice(item.name);
-      if (price > 0) hasGetsPrice = true;
-      totalGets += price * item.quantity;
+      const { value, estimated } = getItemValue(item.name);
+      if (value > 0) hasGetsPrice = true;
+      if (estimated) anyEstimated = true;
+      totalGets += value * item.quantity;
     });
 
     if (totalGives === 0 && totalGets === 0) {
@@ -215,8 +227,9 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return {
       diff,
       pct,
+      estimated: anyEstimated,
       status: diff > 0 ? 'profit' : diff < 0 ? 'loss' : 'fair',
-      label: `${sign}${formatValue(diff)} (${sign}${pct.toFixed(1)}%)`
+      label: `${sign}${formatValue(diff)} (${sign}${pct.toFixed(1)}%)${anyEstimated ? ' est' : ''}`
     };
   };
 
@@ -297,8 +310,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                         <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
                         <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
                           <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className="text-[9px] font-mono font-bold text-gold-bright">
-                            {price > 0 ? formatValue(price) : 'no price'}
+                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
+                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
                           </span>
                         </div>
                       </div>
@@ -363,8 +376,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                         <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
                         <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
                           <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className="text-[9px] font-mono font-bold text-gold-bright">
-                            {price > 0 ? formatValue(price) : 'no price'}
+                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
+                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
                           </span>
                         </div>
                       </div>
@@ -465,8 +478,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                         <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
                         <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
                           <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className="text-[9px] font-mono font-bold text-gold-bright">
-                            {price > 0 ? formatValue(price) : 'no price'}
+                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
+                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
                           </span>
                         </div>
                       </div>
@@ -531,8 +544,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                         <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
                         <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
                           <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className="text-[9px] font-mono font-bold text-gold-bright">
-                            {price > 0 ? formatValue(price) : 'no price'}
+                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
+                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
                           </span>
                         </div>
                       </div>

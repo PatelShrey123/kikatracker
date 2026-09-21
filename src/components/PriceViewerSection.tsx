@@ -301,9 +301,15 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                         alt="Coins"
                         className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]"
                       />
-                      <span className="text-xs font-mono font-bold text-gold-bright">
-                        {formatWithSpaces(item.baseValue)}
+                      <span
+                        className={`text-xs font-mono font-bold ${item.estimated ? 'text-gold-bright/60' : 'text-gold-bright'}`}
+                        title={item.estimated ? 'Estimate from this rarity and weapon — Bolt Pricing has not valued this skin yet' : undefined}
+                      >
+                        {item.estimated ? '~' : ''}{formatWithSpaces(item.baseValue)}
                       </span>
+                      {item.estimated && (
+                        <span className="text-[8px] font-mono font-bold text-slate-500 tracking-wider">EST</span>
+                      )}
                     </div>
                   </div>
                 </div>
