@@ -162,6 +162,31 @@ export function isPlaceholderUrl(url: string | null | undefined): boolean {
   return false;
 }
 
+// Kirka's catalog sometimes points a skin at another weapon's base render as a stand-in: 48 skins
+// across Bayonet, VITA, MAC-10, character and more are served the base Shark image
+// (render-mini.0ec8ea84.webp). Showing a Shark for a Bayonet skin is worse than showing that
+// skin's own weapon, so treat "this is some other weapon's base render" as no art at all.
+function borrowedFromAnotherWeapon(url: string, weapon: string | null): boolean {
+  if (!url || !weapon) return false;
+  try {
+    const cached = getCachedCatalog();
+    if (!cached || !Array.isArray(cached)) return false;
+    const file = url.split('/').pop();
+    if (!file) return false;
+    const owner = cached.find(
+      (c) =>
+        c.name &&
+        /^(WEAPON_\d+|CHARACTER)$/.test(String(c.type || '')) &&
+        typeof c.renderUrl === 'string' &&
+        c.renderUrl.endsWith(file)
+    );
+    if (!owner?.name) return false;
+    return owner.name.trim().toLowerCase() !== weapon.trim().toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
 // Universal skin render image resolver:
 // 1. Prioritize official CDN renderUrl directly for <img> tags (no proxy needed!)
 // 2. Look up skin name in client-cached catalog if renderUrl is missing or placeholder
@@ -173,8 +198,24 @@ export function getSkinRenderUrl(itemOrName: any): string {
   const rawUrl = typeof itemOrName === 'object' ? (itemOrName.renderUrl || itemOrName.renderurl) : null;
   const cleaned = cleanTextureUrl(rawUrl);
 
+  // Which weapon this skin belongs to, so a stand-in image from a different weapon can be spotted.
+  // Callers often pass just a name and a url, so fall back to looking the skin up in the catalog.
+  const weaponFrom = (it: any): string | null => {
+    if (!it) return null;
+    if (it.type === 'BODY_SKIN' || it.type === 'CHARACTER') return 'CHARACTER';
+    return it.parent?.name || null;
+  };
+  let ownWeapon = typeof itemOrName === 'object' ? weaponFrom(itemOrName) : null;
+  if (!ownWeapon && cleanName) {
+    try {
+      const cached = getCachedCatalog();
+      const lower = cleanName.toLowerCase();
+      ownWeapon = weaponFrom(cached?.find((c) => c.name && c.name.toLowerCase() === lower));
+    } catch {}
+  }
+
   // 1. If valid renderUrl is provided, return direct CDN URL (<img> tags do not need CORS proxy)
-  if (cleaned && !isPlaceholderUrl(cleaned)) {
+  if (cleaned && !isPlaceholderUrl(cleaned) && !borrowedFromAnotherWeapon(cleaned, ownWeapon)) {
     return cleaned;
   }
 
@@ -185,8 +226,12 @@ export function getSkinRenderUrl(itemOrName: any): string {
       if (cached && Array.isArray(cached)) {
         const lower = cleanName.toLowerCase();
         const found = cached.find((c) => c.name && c.name.toLowerCase() === lower);
-        if (found?.renderUrl && !isPlaceholderUrl(found.renderUrl)) {
-          return cleanTextureUrl(found.renderUrl)!;
+        const foundClean = cleanTextureUrl(found?.renderUrl);
+        const foundWeapon = found
+          ? (found.type === 'BODY_SKIN' || found.type === 'CHARACTER' ? 'CHARACTER' : found.parent?.name || ownWeapon)
+          : ownWeapon;
+        if (foundClean && !isPlaceholderUrl(foundClean) && !borrowedFromAnotherWeapon(foundClean, foundWeapon)) {
+          return foundClean;
         }
       }
     } catch {}
