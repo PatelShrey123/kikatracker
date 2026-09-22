@@ -32,3 +32,6 @@ public/downloads/
 public/kirka_xpert_client.png
 scratch/
 
+
+# Reload Lab arm rigs: the public page ships the gun-only clips
+public/models/reload/*-arms.glb

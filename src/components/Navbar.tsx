@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Tag, GitCompare, Bot, TrendingUp, Palette, Menu, X, Box, Shirt, MousePointer2, Crosshair } from 'lucide-react';
+import { MessageSquare, Tag, GitCompare, Bot, TrendingUp, Palette, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supportsCustomCursor } from '../hooks/useCursorMode';
 
@@ -49,6 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
     { id: 'search', label: 'Search Portal', imgUrl: 'search_portal.png' },
     { id: 'fit', label: '3D Fit', icon: Shirt, badge: 'NEW' },
     { id: 'renders', label: '3D Renders', icon: Box, badge: '3D' },
+    { id: 'reloadlab', label: 'Reload Lab', icon: Repeat, badge: 'NEW' },
     { id: 'skineditor', label: 'Skin Studio', icon: Palette, badge: '3D/2D' },
     { id: 'daily', label: 'Daily Leaderboard', imgUrl: 'daily_leaderboard.png' },
     { id: 'ranked', label: 'Ranked Arena', imgUrl: 'ranked_arena.png' },

@@ -19,6 +19,7 @@ import { ClanTrackerSection } from './components/ClanTrackerSection';
 import { SkinEditor } from './components/SkinEditor';
 import { RendersSection } from './components/RendersSection';
 import { FitSection } from './components/FitSection';
+import { ReloadLab } from './components/ReloadLab';
 import { AdSlot, AD_SLOTS } from './components/AdSlot';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
@@ -111,6 +112,9 @@ function App() {
     }
     if (/^\/(3d)?fit(\/|$)/.test(cleanPath)) {
       return { tab: 'fit', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/reloadlab') {
+      return { tab: 'reloadlab', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/renders' || cleanPath === '/3drenders') {
       return { tab: 'renders', player: null, clan: null, skin: null };
@@ -567,6 +571,10 @@ function App() {
                         setInspectItem({ name, type, amount, textureUrl });
                       }}
                     />
+                  )}
+
+                  {activeTab === 'reloadlab' && (
+                    <ReloadLab catalog={allItemData} />
                   )}
 
                   {activeTab === 'renders' && (
