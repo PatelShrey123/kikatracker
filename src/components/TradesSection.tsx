@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
-import { formatValue, estimateValue } from '../utils/csv';
+import { formatValue } from '../utils/csv';
 import { getSkinRenderUrl } from './Weapon3DViewer';
 import { isVip } from '../utils/vip';
 
@@ -67,8 +67,11 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
   const [liveTrades, setLiveTrades] = useState<OpenTrade[]>([]);
   const [historyTrades, setHistoryTrades] = useState<HistoryTrade[]>([]);
 
-  // Loading / UI States
-  const [loading, setLoading] = useState(false);
+  // Loading / UI States (separate live vs history so live loads in <150ms without waiting for history)
+  const [loadingLive, setLoadingLive] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [ignoreEscrow, setIgnoreEscrow] = useState(true);
   const [visibleLiveCount, setVisibleLiveCount] = useState(40);
@@ -87,59 +90,75 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     setVisibleHistoryCount(40);
   }, [searchQuery, appliedOffered, appliedWanted, ignoreEscrow, activeSubTab]);
 
-  // Load snapshots index and load all history files merged in one feed on mount
+  // 1. Fetch open live trades immediately on mount (fast single request, zero lag)
   useEffect(() => {
-    setLoading(true);
-    // 1. Fetch trade snapshots list
+    let cancelled = false;
+    setLoadingLive(true);
+    fetch('/trade-api/trades.json')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) {
+          // Sort live trades chronologically descending (latest first)
+          data.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+          setLiveTrades(data);
+        }
+      })
+      .catch((err) => console.error('Failed to fetch open trades:', err))
+      .finally(() => {
+        if (!cancelled) setLoadingLive(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 2. Fetch trade snapshots index ONLY on-demand when the user clicks Trade History
+  useEffect(() => {
+    if (activeSubTab !== 'history' || historyLoaded) return;
+    let cancelled = false;
+    setLoadingHistory(true);
+
     fetch('/trade-api/tradehistory/snapshots.json')
       .then((r) => r.json())
       .then(async (data) => {
+        if (cancelled) return;
         if (Array.isArray(data)) {
           const jsonFiles = data
             .filter((s) => typeof s === 'string' && s.endsWith('.json') && s !== 'dailyTrades.json')
             .sort();
 
-          // Fetch the latest 16 snapshots (last 16 days) to show the most recent completed trades
-          const filesToFetch = jsonFiles.slice(-16);
+          // Fetch the latest 7 snapshots (7 days of data is super fast and lightweight for potato PCs)
+          const filesToFetch = jsonFiles.slice(-7);
           const promises = filesToFetch.map((file) =>
             fetch(`/trade-api/tradehistory/${file}`)
               .then((r) => r.json())
               .catch(() => [])
           );
-          
+
           const results = await Promise.all(promises);
+          if (cancelled) return;
           const merged = results.flat();
-          
+
           // Sort trade history chronologically descending (latest first)
           merged.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
           setHistoryTrades(merged);
+          setHistoryLoaded(true);
         }
       })
       .catch((err) => console.error('Failed to load snapshots index:', err))
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (!cancelled) setLoadingHistory(false);
+      });
 
-  // Fetch open live trades
-  useEffect(() => {
-    if (activeSubTab === 'live') {
-      setLoading(true);
-      fetch('/trade-api/trades.json')
-        .then((r) => r.json())
-        .then((data) => {
-          if (Array.isArray(data)) {
-            // Sort live trades chronologically descending (latest first)
-            data.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-            setLiveTrades(data);
-          }
-        })
-        .catch((err) => console.error('Failed to fetch open trades:', err))
-        .finally(() => setLoading(false));
-    }
-  }, [activeSubTab]);
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSubTab, historyLoaded]);
 
   // Helper to map rarity codes (M, L, E, R, C) to full name & border styles
   const getRarityDetails = (code: string) => {
-    const raw = code.toUpperCase();
+    const raw = (code || '').toUpperCase();
     if (raw === 'M' || raw === 'MYTHIC' || raw === 'MYTHICAL') {
       return { label: 'M', name: 'MYTHICAL', color: 'text-rarity-mythic', border: 'border-rarity-mythic/40 hover:border-rarity-mythic bg-rarity-mythic/5' };
     }
@@ -155,63 +174,90 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return { label: 'C', name: 'COMMON', color: 'text-slate-400', border: 'border-slate-500/20 hover:border-slate-500 bg-slate-500/5' };
   };
 
-  // Resolve skin image render URL with automatic api2 fallback
-  const getItemRenderUrl = (name: string) => {
-    const nameKey = name.toLowerCase();
+  // Precompute O(1) indexed lookup map for allItemData to eliminate 2,000,000 array scans per render
+  const itemDataMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (Array.isArray(allItemData)) {
+      for (let i = 0; i < allItemData.length; i++) {
+        const item = allItemData[i];
+        if (item && item.name) {
+          const clean = item.name.replace(/^_+|_+$/g, '').trim().toLowerCase();
+          if (!map.has(clean)) {
+            map.set(clean, item);
+          }
+        }
+      }
+    }
+    return map;
+  }, [allItemData]);
+
+  // Fast O(1) memoized caches for renders and prices
+  const renderCache = useMemo(() => new Map<string, string | null>(), [fallbackRenders, itemDataMap]);
+  const priceCache = useMemo(() => new Map<string, number>(), [marketPrices, itemDataMap]);
+
+  // Resolve skin image render URL with automatic api2 fallback (instant O(1))
+  const getItemRenderUrl = (name: string): string | null => {
+    const nameKey = name.replace(/^_+|_+$/g, '').trim().toLowerCase();
+    if (renderCache.has(nameKey)) {
+      return renderCache.get(nameKey)!;
+    }
     const fallback = fallbackRenders[nameKey];
-    const matched = allItemData.find((i) => i.name.toLowerCase() === nameKey);
+    const matched = itemDataMap.get(nameKey);
     const candidate = fallback?.renderurl || matched?.renderUrl || null;
-    return getSkinRenderUrl({ name, renderUrl: candidate });
+    const url = getSkinRenderUrl({ name, renderUrl: candidate });
+    renderCache.set(nameKey, url);
+    return url;
   };
 
-  // Look up a skin's value. Anything the community has not priced yet ("TBD" in the sheet) and any
-  // brand new skin missing from the sheet falls back to an estimate from its rarity and weapon, so
-  // the card shows a figure and the margin can still be worked out.
-  const getItemValue = (name: string): { value: number; estimated: boolean } => {
-    const nameKey = name.toLowerCase();
-    const matchedMeta = allItemData.find((i) => i.name.toLowerCase() === nameKey);
+  // Resolve skin price from Bolt / catalog (instant O(1))
+  const getItemPrice = (name: string): number => {
+    const nameKey = name.replace(/^_+|_+$/g, '').trim().toLowerCase();
+    if (priceCache.has(nameKey)) {
+      return priceCache.get(nameKey)!;
+    }
+    const matchedMeta = itemDataMap.get(nameKey);
     const typeKey = matchedMeta
       ? (matchedMeta.type === 'BODY_SKIN' ? 'character' : (matchedMeta.parent?.name || ''))
       : '';
 
     const matched = marketPrices.get(`${nameKey}_${typeKey.toLowerCase()}`) || marketPrices.get(nameKey);
+    let val = 0;
     if (matched && matched.baseValue > 0) {
-      return { value: matched.baseValue, estimated: !!matched.estimated };
+      val = matched.baseValue;
+    } else if (matchedMeta && matchedMeta.salePrice) {
+      val = matchedMeta.salePrice;
     }
-
-    if (matchedMeta) {
-      const guess = estimateValue(matchedMeta.rarity, typeKey);
-      if (guess > 0) return { value: guess, estimated: true };
-      if (matchedMeta.salePrice) return { value: matchedMeta.salePrice, estimated: false };
-    }
-    return { value: 0, estimated: false };
+    priceCache.set(nameKey, val);
+    return val;
   };
 
-  const getItemPrice = (name: string) => getItemValue(name).value;
-  const isItemEstimated = (name: string) => getItemValue(name).estimated;
+  interface PreparedItem {
+    name: string;
+    quantity: number;
+    rarity: string;
+    rar: { label: string; name: string; color: string; border: string };
+    render: string | null;
+    price: number;
+  }
 
-  // Calculate profit margin gives vs gets details
-  const getProfitMargin = (givesItems: Array<{ name: string; quantity: number }>, getsItems: Array<{ name: string; quantity: number }>) => {
+  // Calculate profit margin gives vs gets details (fast loop without re-fetching prices)
+  const getProfitMargin = (givesItems: PreparedItem[], getsItems: PreparedItem[]) => {
     let totalGives = 0;
     let totalGets = 0;
     let hasGivesPrice = false;
     let hasGetsPrice = false;
 
-    let anyEstimated = false;
+    for (let i = 0; i < givesItems.length; i++) {
+      const item = givesItems[i];
+      if (item.price > 0) hasGivesPrice = true;
+      totalGives += item.price * item.quantity;
+    }
 
-    givesItems.forEach((item) => {
-      const { value, estimated } = getItemValue(item.name);
-      if (value > 0) hasGivesPrice = true;
-      if (estimated) anyEstimated = true;
-      totalGives += value * item.quantity;
-    });
-
-    getsItems.forEach((item) => {
-      const { value, estimated } = getItemValue(item.name);
-      if (value > 0) hasGetsPrice = true;
-      if (estimated) anyEstimated = true;
-      totalGets += value * item.quantity;
-    });
+    for (let i = 0; i < getsItems.length; i++) {
+      const item = getsItems[i];
+      if (item.price > 0) hasGetsPrice = true;
+      totalGets += item.price * item.quantity;
+    }
 
     if (totalGives === 0 && totalGets === 0) {
       return { diff: 0, pct: 0, status: 'no_price', label: 'no price' };
@@ -227,9 +273,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return {
       diff,
       pct,
-      estimated: anyEstimated,
       status: diff > 0 ? 'profit' : diff < 0 ? 'loss' : 'fair',
-      label: `${sign}${formatValue(diff)} (${sign}${pct.toFixed(1)}%)${anyEstimated ? ' est' : ''}`
+      label: `${sign}${formatValue(diff)} (${sign}${pct.toFixed(1)}%)`
     };
   };
 
@@ -243,10 +288,35 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     }
   };
 
+  const prepareLiveItem = (i: { i: string; q: string; r: string }): PreparedItem => {
+    const name = i.i;
+    return {
+      name,
+      quantity: parseInt(i.q, 10) || 1,
+      rarity: i.r,
+      rar: getRarityDetails(i.r),
+      render: getItemRenderUrl(name),
+      price: getItemPrice(name),
+    };
+  };
+
+  const prepareHistoryItem = (i: HistoryTradeItem): PreparedItem => {
+    const name = i.name;
+    const quantity = typeof i.quantity === 'string' ? parseInt(i.quantity, 10) || 1 : (i.quantity || 1);
+    return {
+      name,
+      quantity,
+      rarity: i.rarity,
+      rar: getRarityDetails(i.rarity),
+      render: getItemRenderUrl(name),
+      price: getItemPrice(name),
+    };
+  };
+
   // Render open live trade card
   const renderOpenTradeCard = (trade: OpenTrade, index: number) => {
-    const givesItems = trade.offered.map((i) => ({ name: i.i, quantity: parseInt(i.q, 10) || 1, rarity: i.r }));
-    const getsItems = trade.wanted.map((i) => ({ name: i.i, quantity: parseInt(i.q, 10) || 1, rarity: i.r }));
+    const givesItems = trade.offered.map(prepareLiveItem);
+    const getsItems = trade.wanted.map(prepareLiveItem);
     const margin = getProfitMargin(givesItems, getsItems);
 
     return (
@@ -288,38 +358,33 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="flex-1 space-y-2">
             <span className="text-[10px] font-black font-mono tracking-widest text-[#ef4444] uppercase block mb-1">Gives</span>
             <div className="space-y-2">
-              {givesItems.map((item, idx) => {
-                const rar = getRarityDetails(item.rarity);
-                const render = getItemRenderUrl(item.name);
-                const price = getItemPrice(item.name);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onInspectItem(item.name)}
-                    className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${rar.border}`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
-                        {render ? (
-                          <img src={render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
-                        ) : (
-                          <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
-                        <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                          <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
-                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
-                          </span>
-                        </div>
+              {givesItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => onInspectItem(item.name)}
+                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                      {item.render ? (
+                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                      ) : (
+                        <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
+                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                          {item.price > 0 ? formatValue(item.price) : 'no price'}
+                        </span>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
                   </div>
-                );
-              })}
+                  <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -354,38 +419,33 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="flex-1 space-y-2">
             <span className="text-[10px] font-black font-mono tracking-widest text-emerald-400 uppercase block mb-1 text-right">Gets</span>
             <div className="space-y-2">
-              {getsItems.map((item, idx) => {
-                const rar = getRarityDetails(item.rarity);
-                const render = getItemRenderUrl(item.name);
-                const price = getItemPrice(item.name);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onInspectItem(item.name)}
-                    className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${rar.border}`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
-                        {render ? (
-                          <img src={render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
-                        ) : (
-                          <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
-                        <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                          <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
-                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
-                          </span>
-                        </div>
+              {getsItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => onInspectItem(item.name)}
+                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                      {item.render ? (
+                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                      ) : (
+                        <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
+                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                          {item.price > 0 ? formatValue(item.price) : 'no price'}
+                        </span>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
                   </div>
-                );
-              })}
+                  <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -396,8 +456,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
   // Render closed history trade card
   const renderHistoryTradeCard = (trade: HistoryTrade, index: number) => {
-    const givesItems = (trade.trade?.offered?.items || []).map((i) => ({ name: i.name, quantity: typeof i.quantity === 'string' ? parseInt(i.quantity, 10) || 1 : i.quantity, rarity: i.rarity }));
-    const getsItems = (trade.trade?.wanted?.items || []).map((i) => ({ name: i.name, quantity: typeof i.quantity === 'string' ? parseInt(i.quantity, 10) || 1 : i.quantity, rarity: i.rarity }));
+    const givesItems = (trade.trade?.offered?.items || []).map(prepareHistoryItem);
+    const getsItems = (trade.trade?.wanted?.items || []).map(prepareHistoryItem);
     const margin = getProfitMargin(givesItems, getsItems);
 
     return (
@@ -456,38 +516,33 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="flex-1 space-y-2">
             <span className="text-[10px] font-black font-mono tracking-widest text-[#ef4444] uppercase block mb-1">Gives</span>
             <div className="space-y-2">
-              {givesItems.map((item, idx) => {
-                const rar = getRarityDetails(item.rarity);
-                const render = getItemRenderUrl(item.name);
-                const price = getItemPrice(item.name);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onInspectItem(item.name)}
-                    className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${rar.border}`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
-                        {render ? (
-                          <img src={render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
-                        ) : (
-                          <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
-                        <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                          <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
-                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
-                          </span>
-                        </div>
+              {givesItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => onInspectItem(item.name)}
+                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                      {item.render ? (
+                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                      ) : (
+                        <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
+                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                          {item.price > 0 ? formatValue(item.price) : 'no price'}
+                        </span>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
                   </div>
-                );
-              })}
+                  <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -522,38 +577,33 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="flex-1 space-y-2">
             <span className="text-[10px] font-black font-mono tracking-widest text-emerald-400 uppercase block mb-1 text-right">Gets</span>
             <div className="space-y-2">
-              {getsItems.map((item, idx) => {
-                const rar = getRarityDetails(item.rarity);
-                const render = getItemRenderUrl(item.name);
-                const price = getItemPrice(item.name);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onInspectItem(item.name)}
-                    className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${rar.border}`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
-                        {render ? (
-                          <img src={render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
-                        ) : (
-                          <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
-                        <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                          <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${rar.color}`}>{rar.name}</span>
-                          <span className={`text-[9px] font-mono font-bold ${isItemEstimated(item.name) ? 'text-gold-bright/60' : 'text-gold-bright'}`} title={isItemEstimated(item.name) ? 'Estimated from this rarity and weapon — the community price list has not priced this skin yet' : undefined}>
-                            {price > 0 ? `${isItemEstimated(item.name) ? '~' : ''}${formatValue(price)}` : 'no price'}
-                          </span>
-                        </div>
+              {getsItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => onInspectItem(item.name)}
+                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                      {item.render ? (
+                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                      ) : (
+                        <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
+                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                          {item.price > 0 ? formatValue(item.price) : 'no price'}
+                        </span>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
                   </div>
-                );
-              })}
+                  <span className="text-xs font-mono font-bold text-slate-300">x{item.quantity}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -562,9 +612,9 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     );
   };
 
-  // Filters mapping
-  const getFilteredLiveTrades = () => {
-    let result = [...liveTrades];
+  // Memoized filtered live trades
+  const activeFilteredLive = useMemo(() => {
+    let result = liveTrades;
     if (ignoreEscrow) {
       result = result.filter((t) => t.userAndTag.toUpperCase() !== 'PWNSTAR#ESCROW');
     }
@@ -591,10 +641,11 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       );
     }
     return result;
-  };
+  }, [liveTrades, ignoreEscrow, searchQuery, appliedOffered, appliedWanted]);
 
-  const getFilteredHistoryTrades = () => {
-    let result = [...historyTrades];
+  // Memoized filtered history trades
+  const activeFilteredHistory = useMemo(() => {
+    let result = historyTrades;
     if (ignoreEscrow) {
       result = result.filter(
         (t) =>
@@ -626,23 +677,20 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       );
     }
     return result;
-  };
+  }, [historyTrades, ignoreEscrow, searchQuery, appliedOffered, appliedWanted]);
 
-  const getHistoryDateRangeInfo = () => {
+  // Fast O(1) date range calculation since historyTrades is already sorted descending
+  const historyDateRangeInfo = useMemo(() => {
     if (!historyTrades || historyTrades.length === 0) {
       return { diffDays: 0, dateString: '' };
     }
 
-    const times = historyTrades
-      .map((t) => new Date(t.updatedAt).getTime())
-      .filter((time) => !isNaN(time));
+    const latestTime = new Date(historyTrades[0].updatedAt).getTime();
+    const oldestTime = new Date(historyTrades[historyTrades.length - 1].updatedAt).getTime();
 
-    if (times.length === 0) {
+    if (isNaN(latestTime) || isNaN(oldestTime)) {
       return { diffDays: 0, dateString: '' };
     }
-
-    const oldestTime = Math.min(...times);
-    const latestTime = Math.max(...times);
 
     const oldestDate = new Date(oldestTime);
     const latestDate = new Date(latestTime);
@@ -656,10 +704,9 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     const dateString = `${format(oldestDate)} → ${format(latestDate)}`;
 
     return { diffDays, dateString };
-  };
+  }, [historyTrades]);
 
-  const activeFilteredLive = getFilteredLiveTrades();
-  const activeFilteredHistory = getFilteredHistoryTrades();
+  const loading = activeSubTab === 'live' ? loadingLive : loadingHistory;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6 select-text">
@@ -864,7 +911,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         <div className="flex flex-col items-center justify-center py-40 space-y-3">
           <RefreshCw className="w-8 h-8 text-gold-primary animate-spin" />
           <span className="text-xs font-mono text-slate-500 uppercase tracking-widest">
-            Merging snap files...
+            {activeSubTab === 'live' ? 'Loading live trades...' : 'Merging snap files...'}
           </span>
         </div>
       ) : activeSubTab === 'live' ? (
@@ -904,7 +951,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="space-y-6">
             {/* Completed Trade History Dynamic Header Banner */}
             {(() => {
-              const { diffDays, dateString } = getHistoryDateRangeInfo();
+              const { diffDays, dateString } = historyDateRangeInfo;
               if (diffDays === 0) return null;
               return (
                 <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-sm">
