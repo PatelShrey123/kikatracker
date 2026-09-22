@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Tag, Sparkles, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
+import { cleanTextureUrl } from './Weapon3DViewer';
 
 interface PriceViewerSectionProps {
   marketPrices: Map<string, MarketItem>;
@@ -114,25 +115,27 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
 
     for (const p of itemList) {
       if (!p || !p.renderUrl) continue;
+      const cleanUrl = cleanTextureUrl(p.renderUrl);
+      if (!cleanUrl) continue;
       const cleanName = (p.name || '').replace(/^_+|_+$/g, '').trim().toLowerCase();
       const parentName = (p.parent?.name || '').trim().toLowerCase();
       const isBodySkin = p.type === 'BODY_SKIN';
 
       // 1. Precise composite keys: "rub1x_ar-9" and "rub1x ar-9"
       if (parentName) {
-        map.set(`${cleanName}_${parentName}`, p.renderUrl);
-        map.set(`${cleanName} ${parentName}`, p.renderUrl);
+        map.set(`${cleanName}_${parentName}`, cleanUrl);
+        map.set(`${cleanName} ${parentName}`, cleanUrl);
       }
       // 2. Character body skin keys
       if (isBodySkin) {
-        map.set(`${cleanName}_character`, p.renderUrl);
-        map.set(`${cleanName} character`, p.renderUrl);
-        map.set(`${cleanName}_body_skin`, p.renderUrl);
+        map.set(`${cleanName}_character`, cleanUrl);
+        map.set(`${cleanName} character`, cleanUrl);
+        map.set(`${cleanName}_body_skin`, cleanUrl);
       }
 
       // 3. Clean skin name alone (fallback)
       if (!map.has(cleanName)) {
-        map.set(cleanName, p.renderUrl);
+        map.set(cleanName, cleanUrl);
       }
     }
     return map;
@@ -147,18 +150,26 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
     // 1. Try fallback renders map first
     if (cleanType) {
       const comboKey = `${cleanSkin} ${cleanType}`;
-      if (fallbackRenders[comboKey]?.renderurl) return fallbackRenders[comboKey].renderurl;
+      if (fallbackRenders[comboKey]?.renderurl) return cleanTextureUrl(fallbackRenders[comboKey].renderurl);
       const comboKeyUnderscore = `${cleanSkin}_${cleanType}`;
-      if (fallbackRenders[comboKeyUnderscore]?.renderurl) return fallbackRenders[comboKeyUnderscore].renderurl;
+      if (fallbackRenders[comboKeyUnderscore]?.renderurl) return cleanTextureUrl(fallbackRenders[comboKeyUnderscore].renderurl);
     }
-    if (fallbackRenders[cleanSkin]?.renderurl) return fallbackRenders[cleanSkin].renderurl;
+    if (fallbackRenders[cleanSkin]?.renderurl) return cleanTextureUrl(fallbackRenders[cleanSkin].renderurl);
 
     // 2. Fast O(1) lookup in renderMap
     if (cleanType) {
       const comboUrl = renderMap.get(`${cleanSkin}_${cleanType}`) || renderMap.get(`${cleanSkin} ${cleanType}`);
-      if (comboUrl) return comboUrl;
+      if (comboUrl) return cleanTextureUrl(comboUrl);
     }
-    return renderMap.get(cleanSkin) || null;
+    const directUrl = renderMap.get(cleanSkin);
+    if (directUrl) return cleanTextureUrl(directUrl);
+
+    // 3. Dynamic API2 render fallback for character body skins without pre-baked static PNGs
+    if (cleanType === 'character' || cleanType === 'body_skin' || cleanType === 'body skin') {
+      return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanSkin)}`;
+    }
+
+    return null;
   };
 
   return (
@@ -268,9 +279,19 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                         className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)] hover:rotate-6 transition-transform duration-300"
                         onError={(e) => {
                           const target = e.currentTarget;
+                          const cleanName = item.skinName.replace(/^_+|_+$/g, '').trim();
+                          const isChar = (item.type || '').toLowerCase() === 'character';
+
+                          // If character skin or first attempt, try api2 dynamic render endpoint
+                          if (!target.dataset.triedApi2 && (isChar || !target.dataset.triedFallback)) {
+                            target.dataset.triedApi2 = 'true';
+                            target.src = `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
+                            return;
+                          }
+                          // Otherwise route through weserv image proxy
                           if (!target.dataset.triedFallback) {
                             target.dataset.triedFallback = 'true';
-                            target.src = `https://images.weserv.nl/?url=${encodeURIComponent(renderUrl)}`;
+                            target.src = `https://images.weserv.nl/?url=${encodeURIComponent(target.src || renderUrl)}`;
                           }
                         }}
                       />
@@ -296,19 +317,21 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
 
                     {/* Valuation badge */}
                     <div className="bg-[#04050a]/90 border border-white/5 rounded-xl px-2 py-2 flex items-center justify-center space-x-1.5">
-                      <img
-                        src={`${import.meta.env.BASE_URL}kirka_coin.png`}
-                        alt="Coins"
-                        className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]"
-                      />
-                      <span
-                        className={`text-xs font-mono font-bold ${item.estimated ? 'text-gold-bright/60' : 'text-gold-bright'}`}
-                        title={item.estimated ? 'Estimate from this rarity and weapon — Bolt Pricing has not valued this skin yet' : undefined}
-                      >
-                        {item.estimated ? '~' : ''}{formatWithSpaces(item.baseValue)}
-                      </span>
-                      {item.estimated && (
-                        <span className="text-[8px] font-mono font-bold text-slate-500 tracking-wider">EST</span>
+                      {item.baseValue > 0 ? (
+                        <>
+                          <img
+                            src={`${import.meta.env.BASE_URL}kirka_coin.png`}
+                            alt="Coins"
+                            className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]"
+                          />
+                          <span className="text-xs font-mono font-bold text-gold-bright">
+                            {formatWithSpaces(item.baseValue)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-xs font-mono font-bold text-amber-400/90 tracking-wider">
+                          TBD
+                        </span>
                       )}
                     </div>
                   </div>

@@ -140,15 +140,33 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
       list = list.filter((i) => i.rarity?.toUpperCase() === selectedRarity.toUpperCase());
     }
 
-    // Filter by search term
+    // Filter by search term (supports skin name, weapon category, rarity, and creator name/shortId)
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase().trim();
-      list = list.filter(
-        (i) =>
-          i.name?.toLowerCase().includes(q) ||
-          i.parent?.name?.toLowerCase().includes(q) ||
-          i.rarity?.toLowerCase().includes(q)
-      );
+      list = list.filter((i) => {
+        const nameMatch = i.name?.toLowerCase().includes(q);
+        const parentMatch = i.parent?.name?.toLowerCase().includes(q);
+        const rarityMatch = i.rarity?.toLowerCase().includes(q);
+        const typeMatch = i.type?.toLowerCase().includes(q);
+
+        const creatorStr = resolveItemCreator(i).toLowerCase();
+        const creatorMatch = creatorStr.includes(q);
+
+        const creatorsArrayMatch = Array.isArray(i.creators) && i.creators.some((c: any) => {
+          if (typeof c === 'string') return c.toLowerCase().includes(q);
+          const cName = (c?.name || '').toLowerCase();
+          const cShort = (c?.shortId || '').toLowerCase();
+          return cName.includes(q) || cShort.includes(q);
+        });
+
+        const singleCreatorMatch = i.creator && (
+          typeof i.creator === 'string'
+            ? i.creator.toLowerCase().includes(q)
+            : ((i.creator.name || '').toLowerCase().includes(q) || (i.creator.shortId || '').toLowerCase().includes(q))
+        );
+
+        return nameMatch || parentMatch || rarityMatch || typeMatch || creatorMatch || creatorsArrayMatch || singleCreatorMatch;
+      });
     }
 
     return list;
@@ -296,7 +314,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
             <Search className="w-4 h-4 text-slate-400 mr-2.5" />
             <input
               type="text"
-              placeholder="Search skins by name (e.g. Neo2, Sterling)..."
+              placeholder="Search skins by name or creator (e.g. ytdaniel, ramen)..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -388,6 +406,12 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                       loading="lazy"
                       onError={(e) => {
                         const target = e.currentTarget;
+                        const cleanName = item.name ? item.name.replace(/^_+/, '').trim() : '';
+                        if (!target.dataset.triedApi2 && cleanName) {
+                          target.dataset.triedApi2 = 'true';
+                          target.src = `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
+                          return;
+                        }
                         if (!target.dataset.fallback) {
                           target.dataset.fallback = 'true';
                           if (isChar) {

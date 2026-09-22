@@ -237,7 +237,12 @@ export function getSkinRenderUrl(itemOrName: any): string {
     } catch {}
   }
 
-  // 3. If item is a character skin, return official Kirka default character render (NOT a pistol!)
+  // 3. Query live official 3D render from api2.kirka.io if skin name is present
+  if (cleanName) {
+    return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
+  }
+
+  // 4. If item is a character skin without a name, return official Kirka default character render
   const isChar = typeof itemOrName === 'object' && (
     itemOrName.type === 'BODY_SKIN' ||
     itemOrName.type === 'CHARACTER' ||
@@ -248,7 +253,7 @@ export function getSkinRenderUrl(itemOrName: any): string {
     return 'https://kirka.io/assets/img/render.b8016858.png';
   }
 
-  // 4. If item is a weapon skin with a known parent, try finding the base weapon render
+  // 5. If item is a weapon skin with a known parent, try finding the base weapon render
   if (typeof itemOrName === 'object' && itemOrName.parent?.name) {
     const baseName = itemOrName.parent.name.trim();
     try {
@@ -263,11 +268,6 @@ export function getSkinRenderUrl(itemOrName: any): string {
         }
       }
     } catch {}
-  }
-
-  // 5. Query live official 3D render from api2.kirka.io if skin name is present
-  if (cleanName) {
-    return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
   }
 
   return `${import.meta.env.BASE_URL}render-mini.webp`;

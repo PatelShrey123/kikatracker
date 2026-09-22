@@ -80,7 +80,31 @@ export default async function handler(req, res) {
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
-      res.status(response.status).json(data);
+
+      // Clean corrupted Kirka API double prefixes (e.g. 'https://kirka.iohttps://api2.kirka.io/...')
+      const cleanUrl = (u) => {
+        if (!u || typeof u !== 'string') return u;
+        let t = u.trim();
+        const secondHttp = t.indexOf('http', 8);
+        if (secondHttp !== -1) t = t.substring(secondHttp);
+        const dataIdx = t.indexOf('data:image');
+        if (dataIdx !== -1) return t.substring(dataIdx);
+        return t;
+      };
+
+      const sanitize = (val) => {
+        if (Array.isArray(val)) {
+          return val.map(sanitize);
+        } else if (val && typeof val === 'object') {
+          const res = { ...val };
+          if (res.renderUrl) res.renderUrl = cleanUrl(res.renderUrl);
+          if (res.textureUrl) res.textureUrl = cleanUrl(res.textureUrl);
+          return res;
+        }
+        return val;
+      };
+
+      res.status(response.status).json(sanitize(data));
     } else {
       const text = await response.text();
       res.status(response.status).send(text);

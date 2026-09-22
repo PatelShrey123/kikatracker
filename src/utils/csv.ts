@@ -27,23 +27,9 @@ const FALLBACK_PRICES: Record<string, number> = {
   "marage_character": 150000000,
 };
 
-// Median value per rarity+type and per rarity, built from the priced rows of the sheet.
-// Used to estimate skins the community has not priced yet ("TBD") and brand new skins that
-// are not in the sheet at all, so they still show a figure everywhere instead of "no price".
-const estimates = { byRarityType: new Map<string, number>(), byRarity: new Map<string, number>() };
-
-function median(values: number[]): number {
-  if (!values.length) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
-}
-
-/** Estimated value for a skin we have no community price for. Returns 0 when we cannot guess. */
-export function estimateValue(rarity?: string | null, type?: string | null): number {
-  const r = (rarity || '').toLowerCase();
-  const t = (type || '').toLowerCase();
-  return estimates.byRarityType.get(`${r}|${t}`) ?? estimates.byRarity.get(r) ?? 0;
+/** Estimated value stub for unpriced skins. Returns 0 as fake estimates are removed. */
+export function estimateValue(_rarity?: string | null, _type?: string | null): number {
+  return 0;
 }
 
 export function formatValue(value: number): string {
@@ -87,7 +73,7 @@ export async function fetchAndParsePrices(): Promise<Map<string, MarketItem>> {
           skinName,
           rarity,
           baseValue,
-          baseValueFormatted: formatValue(baseValue),
+          baseValueFormatted: pending || baseValue === 0 ? 'TBD' : formatValue(baseValue),
           obtainableBy,
           type,
           pending
@@ -100,33 +86,8 @@ export async function fetchAndParsePrices(): Promise<Map<string, MarketItem>> {
         // Also save by name only in case type isn't matched exactly
         priceMap.set(skinName.toLowerCase(), item);
       });
-      // Build the estimate tables from everything that does have a price...
-      const unique = Array.from(new Set(priceMap.values()));
-      const byRarityType = new Map<string, number[]>();
-      const byRarity = new Map<string, number[]>();
-      unique.forEach((it) => {
-        if (it.baseValue <= 0) return;
-        const r = it.rarity.toLowerCase();
-        const key = `${r}|${it.type.toLowerCase()}`;
-        (byRarityType.get(key) ?? byRarityType.set(key, []).get(key)!).push(it.baseValue);
-        (byRarity.get(r) ?? byRarity.set(r, []).get(r)!).push(it.baseValue);
-      });
-      byRarityType.forEach((vals, k) => estimates.byRarityType.set(k, median(vals)));
-      byRarity.forEach((vals, k) => estimates.byRarity.set(k, median(vals)));
 
-      // ...then fill in the unpriced ones so they stop showing as "no price"
-      let filled = 0;
-      unique.forEach((it) => {
-        if (it.baseValue > 0) return;
-        const guess = estimateValue(it.rarity, it.type);
-        if (guess <= 0) return;
-        it.baseValue = guess;
-        it.estimated = true;
-        it.baseValueFormatted = `~${formatValue(guess)}`;
-        filled++;
-      });
-
-      console.log(`Parsed ${priceMap.size} market valuation items from OpenSheet JSON (${filled} estimated).`);
+      console.log(`Parsed ${priceMap.size} market valuation items from OpenSheet JSON.`);
     } else {
       throw new Error('Data is not a JSON array');
     }

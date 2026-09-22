@@ -1,4 +1,4 @@
-﻿// Client-side browser storage caching for Kirka skin catalog
+// Client-side browser storage caching for Kirka skin catalog
 // Stores renderUrl and textureUrl locally in user's browser (localStorage / IndexedDB)
 // Avoids repeated API hits and never stores private data in the GitHub repo!
 
@@ -29,6 +29,27 @@ interface CachePayload {
 }
 
 /**
+ * Sanitize URLs from Kirka API corrupted with double prefixes
+ * e.g. "https://kirka.iohttps://api2.kirka.io/..." or "https://kirka.iodata:image/..."
+ */
+export function cleanSkinUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  let trimmed = url.trim();
+
+  // Fix malformed double prefix (e.g. 'https://kirka.iohttps://api2.kirka.io/...')
+  const secondHttp = trimmed.indexOf('http', 8);
+  if (secondHttp !== -1) {
+    trimmed = trimmed.substring(secondHttp);
+  }
+
+  const dataIdx = trimmed.indexOf('data:image');
+  if (dataIdx !== -1) {
+    return trimmed.substring(dataIdx);
+  }
+  return trimmed;
+}
+
+/**
  * Retrieve cached catalog items from browser storage.
  * Returns null if cache doesn't exist or has expired.
  */
@@ -47,7 +68,11 @@ export function getCachedCatalog(): CachedItem[] | null {
     }
 
     if (Array.isArray(parsed.items) && parsed.items.length > 0) {
-      return parsed.items;
+      return parsed.items.map((i) => ({
+        ...i,
+        renderUrl: cleanSkinUrl(i.renderUrl),
+        textureUrl: cleanSkinUrl(i.textureUrl),
+      }));
     }
   } catch (err) {
     console.warn('[CatalogCache] Failed to read from browser storage:', err);
@@ -68,8 +93,8 @@ export function setCachedCatalog(items: CachedItem[]): void {
       name: i.name,
       type: i.type,
       rarity: i.rarity,
-      renderUrl: i.renderUrl || null,
-      textureUrl: i.textureUrl || null,
+      renderUrl: cleanSkinUrl(i.renderUrl),
+      textureUrl: cleanSkinUrl(i.textureUrl),
       creators: i.creators || null,
       parent: i.parent ? { name: i.parent.name, type: i.parent.type } : null,
       salePrice: i.salePrice || 0,
@@ -120,6 +145,9 @@ export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; n
   liveItems.forEach((live) => {
     if (live && live.name) {
       const key = `${live.name.toLowerCase()}_${(live.parent?.name || live.type || '').toLowerCase()}`;
+      const cleanRender = cleanSkinUrl(live.renderUrl);
+      const cleanTexture = cleanSkinUrl(live.textureUrl);
+
       if (!existingMap.has(key)) {
         newCount++;
         existingMap.set(key, {
@@ -127,8 +155,8 @@ export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; n
           name: live.name,
           type: live.type,
           rarity: live.rarity,
-          renderUrl: live.renderUrl || null,
-          textureUrl: live.textureUrl || null,
+          renderUrl: cleanRender,
+          textureUrl: cleanTexture,
           creators: live.creators || null,
           parent: live.parent ? { name: live.parent.name, type: live.parent.type } : null,
           salePrice: live.salePrice || 0,
@@ -138,8 +166,8 @@ export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; n
         // Live data wins: skins move from api2 placeholders to official renders (and get re-rendered),
         // so cached URLs must be refreshed rather than only filled in when missing
         const cached = existingMap.get(key)!;
-        if (live.renderUrl) cached.renderUrl = live.renderUrl;
-        if (live.textureUrl) cached.textureUrl = live.textureUrl;
+        if (cleanRender) cached.renderUrl = cleanRender;
+        if (cleanTexture) cached.textureUrl = cleanTexture;
         if (live.rarity) cached.rarity = live.rarity;
         if (typeof live.published === 'boolean') cached.published = live.published;
         if (live.creators && live.creators.length > 0) cached.creators = live.creators;
