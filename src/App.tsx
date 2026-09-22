@@ -25,8 +25,10 @@ import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
 import type { MarketItem } from './utils/csv';
 import { getCachedCatalog, syncAndStoreCatalog } from './utils/catalogCache';
+import { useCursorMode } from './hooks/useCursorMode';
 
 function App() {
+  const { isCustomCursor, toggleCursorMode } = useCursorMode();
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('search');
   const [activeUserProfile, setActiveUserProfile] = useState<UserProfile | null>(null);
@@ -367,15 +369,17 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-obsidian-deep text-slate-100 flex flex-col md:flex-row selection:bg-gold-primary/30 selection:text-gold-bright">
-      {/* React Bits TargetCursor */}
-      <TargetCursor 
-        targetSelector="button, a, input, select, textarea, [role='button'], .cursor-pointer, .card-interactive, .btn-interactive"
-        spinDuration={2}
-        hideDefaultCursor={true}
-        parallaxOn={true}
-        cursorColor="#d4af37"
-        cursorColorOnTarget="#ffd700"
-      />
+      {/* React Bits TargetCursor — visitors can swap back to their system pointer from the sidebar */}
+      {isCustomCursor && (
+        <TargetCursor
+          targetSelector="button, a, input, select, textarea, [role='button'], .cursor-pointer, .card-interactive, .btn-interactive"
+          spinDuration={2}
+          hideDefaultCursor={true}
+          parallaxOn={true}
+          cursorColor="#d4af37"
+          cursorColorOnTarget="#ffd700"
+        />
+      )}
 
       {/* React Bits ClickSpark click effect */}
       <ClickSpark
@@ -396,7 +400,12 @@ function App() {
         return (
         <>
           {/* 3. Left Sidebar (Desktop) & Floating Navbar (Mobile) */}
-          <Navbar activeTab={activeTab} setActiveTab={handleTabChange} />
+          <Navbar
+            activeTab={activeTab}
+            setActiveTab={handleTabChange}
+            isCustomCursor={isCustomCursor}
+            toggleCursorMode={toggleCursorMode}
+          />
 
           {/* 4. Core Content Area with Left Padding on Desktop */}
           <div className="flex-grow flex flex-col min-h-screen md:pl-64 pb-24 md:pb-0">
