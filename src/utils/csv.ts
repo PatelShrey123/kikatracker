@@ -64,7 +64,7 @@ export async function fetchAndParsePrices(): Promise<Map<string, MarketItem>> {
   rows.forEach((row: any) => {
     const skinName = row['Skin Name'] || '';
     const rarity = row['Skin Rarity'] || '';
-    const rawValue = String(row['Base Value'] || '').trim();
+    const rawValue = String(row['Hub Value'] || row['Base Value'] || '').trim();
     const baseValueStr = rawValue.replace(/,/g, '');
     const baseValue = parseInt(baseValueStr, 10) || 0;
     // rows carrying "TBD": listed, but pending community valuation

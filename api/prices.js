@@ -41,6 +41,9 @@ function parseCsv(csvText) {
       headers.forEach((h, idx) => {
         item[h] = values[idx] || '';
       });
+      const val = item['Hub Value'] || item['Base Value'] || '0';
+      item['Hub Value'] = val;
+      item['Base Value'] = val;
       rows.push(item);
     }
   }
