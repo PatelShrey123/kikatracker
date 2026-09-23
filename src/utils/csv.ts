@@ -35,15 +35,26 @@ export function formatValue(value: number): string {
 
 export async function fetchAndParsePrices(): Promise<Map<string, MarketItem>> {
   const priceMap = new Map<string, MarketItem>();
-  const jsonUrl = `${import.meta.env.BASE_URL}data/hub_prices.json`;
+  const apiEndpoint = '/api/prices';
+  const staticFallbackUrl = `${import.meta.env.BASE_URL}data/hub_prices.json`;
 
   let rows: any[] = hubPricesFallback as any[];
   try {
-    const response = await fetch(jsonUrl);
+    // 1. Try secure backend endpoint (proxies private sheet in production)
+    const response = await fetch(apiEndpoint);
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
         rows = data;
+      }
+    } else {
+      // 2. Fallback to static local hub_prices.json
+      const staticRes = await fetch(staticFallbackUrl);
+      if (staticRes.ok) {
+        const staticData = await staticRes.json();
+        if (Array.isArray(staticData) && staticData.length > 0) {
+          rows = staticData;
+        }
       }
     }
   } catch (error) {
