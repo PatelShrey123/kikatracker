@@ -24,7 +24,7 @@ interface FeaturedProfile {
 const FEATURED_PROFILES: FeaturedProfile[] = [
   { name: 'shadow', shortId: 'HESHPY', role: 'LEADER', level: 98, desc: 'Clan Leader (kiss) • Mythic active loadout', isShortId: true },
   { name: 'Hisoka', shortId: 'S2WVOK', role: 'USER', level: 99, desc: 'Top S&D Leaderboard #1 • 5.7K KLO score', isShortId: true },
-  { name: 'Bot#0', shortId: '9VECSU', role: 'USER', level: 85, desc: 'Active member • Bolt valuation inventory', isShortId: true },
+  { name: 'Bot#0', shortId: '9VECSU', role: 'USER', level: 85, desc: 'Active member • Hub valuation inventory', isShortId: true },
 ];
 
 export const SearchSection: React.FC<SearchSectionProps> = ({
@@ -271,9 +271,9 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
           <div className="bg-gradient-to-r from-[#0d0f17] to-obsidian-card/40 border border-indigo-500/10 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-1">
               <span className="text-[9px] font-mono text-indigo-400 font-bold uppercase tracking-widest block">Valuation Sync Info</span>
-              <h4 className="text-sm font-bold text-white uppercase">BOLT PRICING INTEGRATION ACTIVE</h4>
+              <h4 className="text-sm font-bold text-white uppercase">KIRKA HUB VALUATION ACTIVE</h4>
               <p className="text-xs text-slate-500 max-w-lg">
-                Calculations are mapped instantly to market valuation updates fetched directly from public sheets via OpenSheet JSON networks.
+                Calculations are mapped directly to the official Kirka Hub market valuation index with verified trade valuations.
               </p>
             </div>
             <button
@@ -313,7 +313,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
               </div>
               <div className="space-y-0.5">
                 <span className="text-xs font-bold text-white block uppercase">Net Worth sums</span>
-                <p className="text-[11px] text-slate-500">Auto valuations of user player inventory boxes via Bolt index.</p>
+                <p className="text-[11px] text-slate-500">Auto valuations of player inventories via Kirka Hub market index.</p>
               </div>
             </div>
 

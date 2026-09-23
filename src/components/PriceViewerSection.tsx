@@ -182,7 +182,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
             <span className="text-[10px] font-mono font-bold tracking-widest uppercase">Pricing Database</span>
           </div>
           <h2 className="text-2xl font-black text-white uppercase tracking-wider">Item Price Viewer</h2>
-          <p className="text-xs text-slate-400 font-medium">Search and browse current market valuations synchronized from Bolt Pricing.</p>
+          <p className="text-xs text-slate-400 font-medium">Search and browse current market valuations synchronized from Kirka Hub Index.</p>
         </div>
         <div className="flex items-center space-x-2 bg-obsidian-card/60 border border-obsidian-border/80 px-4 py-2.5 rounded-xl text-xs text-slate-400 font-mono self-start md:self-auto">
           <RefreshCw className="w-3.5 h-3.5 text-gold-primary animate-pulse" />

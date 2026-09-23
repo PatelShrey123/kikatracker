@@ -448,7 +448,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                     {boltValue > 0 ? (
                       <>
                         <span className="text-amber-400">⚡</span>
-                        <span>{boltValue.toLocaleString()} Bolts</span>
+                        <span>{boltValue.toLocaleString()} Hub Value</span>
                       </>
                     ) : (
                       <span className="text-slate-500 text-[10px]">Market Valuation Index</span>

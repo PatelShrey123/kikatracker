@@ -205,7 +205,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
           </span>
 
           <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/5 font-mono text-[10px]">
-            <span className="text-slate-500">Bolt Price:</span>
+            <span className="text-slate-500">Hub Value:</span>
             <div className="flex items-center space-x-1 text-gold-bright font-black">
               <Coins className="w-3 h-3 text-gold-primary" />
               <span>{price > 0 ? formatValue(price) : '—'}</span>

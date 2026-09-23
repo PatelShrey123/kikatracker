@@ -924,7 +924,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           <div className="space-y-6">
             <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
               <span>Showing {Math.min(visibleLiveCount, activeFilteredLive.length)} of {activeFilteredLive.length} open offers (Latest first)</span>
-              <span>Valuation: Bolt Pricing</span>
+              <span>Valuation: Kirka Hub Pricing</span>
             </div>
             <div className="grid grid-cols-1 gap-5">
               {activeFilteredLive.slice(0, visibleLiveCount).map((trade, idx) => renderOpenTradeCard(trade, idx))}

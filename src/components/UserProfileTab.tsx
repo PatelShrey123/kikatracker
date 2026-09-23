@@ -731,14 +731,14 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
                 <div className="bg-obsidian-deep/80 border border-obsidian-border px-4 py-2.5 rounded-lg flex items-center space-x-2 text-xs font-mono text-slate-400">
                   <Database className="w-3.5 h-3.5 text-gold-primary" />
-                  <span>Price Index: <strong className="text-slate-200">Bolt Pricing</strong></span>
+                  <span>Price Index: <strong className="text-slate-200">Kirka Hub Valuation</strong></span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center space-x-2 bg-obsidian-card/40 border border-obsidian-border/50 px-4 py-3 rounded-lg text-xs text-slate-400 font-mono">
               <Award className="w-4 h-4 text-gold-primary" />
-              <span>Note: All prices shown in the inventory valuations are synchronized directly from the official **Bolt Pricing** database. Unpriced items are sorted to the bottom of the list.</span>
+              <span>Note: All prices shown in the inventory valuations are synchronized directly from the official **Kirka Hub Valuation** index. Unpriced items are sorted to the bottom of the list.</span>
             </div>
 
             {loadingInventory ? (

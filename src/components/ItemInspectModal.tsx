@@ -357,9 +357,9 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </h4>
             
             <div className="bg-[#090A0F] border border-obsidian-border/60 rounded-xl p-4.5 space-y-3 font-mono text-xs text-slate-400">
-              {/* Bolt Value Row */}
+              {/* Hub Value Row */}
               <div className="flex justify-between items-center">
-                <span>BOLT VALUE:</span>
+                <span>HUB VALUE:</span>
                 <div className="flex items-center space-x-1.5 text-gold-bright font-black text-sm">
                   <Coins className="w-4 h-4 text-gold-primary" />
                   <span>{boltValue !== null ? formatValue(boltValue) : '—'}</span>

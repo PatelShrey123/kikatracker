@@ -154,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
           <span className="text-[9px] text-slate-600 font-mono block leading-relaxed">
             © 2026 XPERT TRACKER.
             <br />
-            Powered by Bolt Valuation.
+            Powered by Kirka Hub Valuation.
           </span>
         </div>
       </aside>
@@ -259,7 +259,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
               <div className="pt-6 border-t border-white/5 px-2 space-y-3">
                 {showCursorToggle && <CursorToggle />}
                 <span className="text-[10px] text-slate-500 font-mono block text-center">
-                  © 2026 XPERT TRACKER • Powered by Bolt Valuation
+                  © 2026 XPERT TRACKER • Powered by Kirka Hub Valuation
                 </span>
               </div>
             </motion.div>

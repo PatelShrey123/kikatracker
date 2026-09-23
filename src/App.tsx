@@ -595,7 +595,7 @@ function App() {
             {/* 5. Sleek footer */}
             <footer className="py-6 border-t border-obsidian-border/50 text-center text-xs text-slate-600 font-mono flex-shrink-0">
               <div className="max-w-7xl mx-auto px-4">
-                <span>© 2026 XPERT TRACKER • Kirka.io Community Tool • Valuation Index: Bolt Pricing • <a href="/privacy.html" className="hover:text-slate-400 underline">Privacy Policy</a></span>
+                <span>© 2026 XPERT TRACKER • Kirka.io Community Tool • Valuation Index: Hub Valuation • <a href="/privacy.html" className="hover:text-slate-400 underline">Privacy Policy</a></span>
               </div>
             </footer>
           </div>

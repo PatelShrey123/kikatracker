@@ -114,7 +114,7 @@ export const BotSection: React.FC = () => {
     },
     {
       text: 'Clan Wars Rewards Tracker (.cw)',
-      desc: 'Complete Clan Wars prizes for Top 3, Top 8, and Top 39 clans with live community Bolt values and active owner counts.',
+      desc: 'Complete Clan Wars prizes for Top 3, Top 8, and Top 39 clans with live community Hub values and active owner counts.',
       icon: Shield,
       tag: 'Clan Wars'
     },
@@ -125,10 +125,10 @@ export const BotSection: React.FC = () => {
       tag: 'Store Pings'
     },
     {
-      text: 'Exclusive Bolt Pricing Engine',
-      desc: 'Accurate community-standard Bolt valuation indices for all 1,900+ skins instead of inflated generic prices.',
+      text: 'Official Kirka Hub Valuation Engine',
+      desc: 'Accurate community-standard Hub valuation indices for all 1,900+ skins with real trade verification.',
       icon: RefreshCw,
-      tag: 'Bolt Standard'
+      tag: 'Hub Standard'
     },
     {
       text: 'Creator & Artist Attribution',
@@ -212,7 +212,7 @@ export const BotSection: React.FC = () => {
     {
       name: '/events (clanwars)',
       prefix: '.cw [number | skin]',
-      desc: 'View Clan Wars prize skins for Top 3, Top 8, and Top 39 clans with live community Bolt values and player circulation counts.',
+      desc: 'View Clan Wars prize skins for Top 3, Top 8, and Top 39 clans with live community Hub values and player circulation counts.',
       options: 'optional: war number (e.g. 48, 1) | skin name',
       example: '.cw 48',
       category: 'stats',
@@ -222,7 +222,7 @@ export const BotSection: React.FC = () => {
     {
       name: '/events (seasons)',
       prefix: '.seasons [query]',
-      desc: 'Inspect exclusive Ranked Seasons skin sets and limited event shop archives with rarity and Bolt valuation.',
+      desc: 'Inspect exclusive Ranked Seasons skin sets and limited event shop archives with rarity and Hub valuation.',
       options: 'optional: season number | shop name',
       example: '.seasons',
       category: 'stats',
@@ -262,17 +262,17 @@ export const BotSection: React.FC = () => {
     {
       name: '/inventory',
       prefix: '.inv [user | @discord]',
-      desc: 'Browse complete player inventory with full Bolt market valuation, 5x5 HD graphical cards, multi-tier 3D render fallbacks, and page controls. Mention any linked Discord user to inspect their items!',
+      desc: 'Browse complete player inventory with full Hub market valuation, 5x5 HD graphical cards, multi-tier 3D render fallbacks, and page controls. Mention any linked Discord user to inspect their items!',
       options: 'username | #ID | @discord',
       example: '.inv @tooexpert',
       category: 'stats',
-      badge: 'BOLT VALUE',
+      badge: 'HUB VALUE',
       badgeColor: 'from-emerald-500 to-teal-500'
     },
     {
       name: '/trade',
       prefix: '.trade <skin or user>',
-      desc: 'Interactive live Kirka trade browser! Toggle seamlessly between active live marketplace offers and past trade history with real-time Bolt pricing.',
+      desc: 'Interactive live Kirka trade browser! Toggle seamlessly between active live marketplace offers and past trade history with real-time Hub valuation.',
       options: 'skin name | username',
       example: '.trade Hi-Score',
       category: 'trading',
@@ -292,7 +292,7 @@ export const BotSection: React.FC = () => {
     {
       name: '/skin',
       prefix: '.skin <name>',
-      desc: 'Look up any skin or item in the 1,900+ database with official 3D renders, creator/artist attribution credits, rarity classification, and Bolt valuation.',
+      desc: 'Look up any skin or item in the 1,900+ database with official 3D renders, creator/artist attribution credits, rarity classification, and Hub valuation.',
       options: 'skin name',
       example: '.skin Golden Rain',
       category: 'trading',
@@ -455,7 +455,7 @@ export const BotSection: React.FC = () => {
             </h1>
             
             <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-              The ultimate Kirka companion. Track inventories with live <strong className="text-white">Bolt valuations</strong>, browse active <strong className="text-white">live marketplace trades</strong>, run side-by-side <strong className="text-white">weapon stat comparisons</strong>, and customize your profile with <strong className="text-white">custom background cards</strong>.
+              The ultimate Kirka companion. Track inventories with live <strong className="text-white">Hub valuations</strong>, browse active <strong className="text-white">live marketplace trades</strong>, run side-by-side <strong className="text-white">weapon stat comparisons</strong>, and customize your profile with <strong className="text-white">custom background cards</strong>.
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
@@ -469,7 +469,7 @@ export const BotSection: React.FC = () => {
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-gold-primary/10 border border-gold-primary/20 text-[11px] font-mono text-gold-bright font-bold flex items-center space-x-1">
                 <Flame className="w-3 h-3" />
-                <span>Bolt Valuation Index</span>
+                <span>Hub Valuation Index</span>
               </span>
             </div>
           </div>
@@ -552,7 +552,7 @@ export const BotSection: React.FC = () => {
             {catalogCount.toLocaleString()}
           </div>
           <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase font-mono">
-            Skin Catalog & Bolt Prices
+            Skin Catalog & Hub Prices
           </div>
         </div>
       </motion.div>
