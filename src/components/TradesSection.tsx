@@ -54,6 +54,23 @@ interface HistoryTrade {
   };
 }
 
+// Check if a trade side consists exclusively of a single 1x Wood item (friendly transfer / gift)
+function isPureOneWoodOpenSide(items: OpenTradeItem[]): boolean {
+  if (!items || items.length !== 1) return false;
+  const item = items[0];
+  const name = (item.i || '').trim().toLowerCase();
+  const qty = parseInt(String(item.q || '1'), 10);
+  return name === 'wood' && qty === 1;
+}
+
+function isPureOneWoodHistorySide(items: HistoryTradeItem[]): boolean {
+  if (!items || items.length !== 1) return false;
+  const item = items[0];
+  const name = (item.name || '').trim().toLowerCase();
+  const qty = parseInt(String(item.quantity || '1'), 10);
+  return name === 'wood' && qty === 1;
+}
+
 export const TradesSection: React.FC<TradesSectionProps> = ({
   onSelectPlayer,
   marketPrices,
@@ -74,6 +91,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
   const [searchQuery, setSearchQuery] = useState('');
   const [ignoreEscrow, setIgnoreEscrow] = useState(true);
+  const [ignoreWoodTrades, setIgnoreWoodTrades] = useState(true);
   const [visibleLiveCount, setVisibleLiveCount] = useState(40);
   const [visibleHistoryCount, setVisibleHistoryCount] = useState(40);
 
@@ -88,7 +106,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
   useEffect(() => {
     setVisibleLiveCount(40);
     setVisibleHistoryCount(40);
-  }, [searchQuery, appliedOffered, appliedWanted, ignoreEscrow, activeSubTab]);
+  }, [searchQuery, appliedOffered, appliedWanted, ignoreEscrow, ignoreWoodTrades, activeSubTab]);
 
   // 1. Fetch open live trades immediately on mount (fast single request, zero lag)
   useEffect(() => {
@@ -618,6 +636,11 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     if (ignoreEscrow) {
       result = result.filter((t) => t.userAndTag.toUpperCase() !== 'PWNSTAR#ESCROW');
     }
+    if (ignoreWoodTrades) {
+      result = result.filter(
+        (t) => !isPureOneWoodOpenSide(t.offered) && !isPureOneWoodOpenSide(t.wanted)
+      );
+    }
     const query = searchQuery.trim().toLowerCase();
     if (query) {
       result = result.filter(
@@ -641,7 +664,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       );
     }
     return result;
-  }, [liveTrades, ignoreEscrow, searchQuery, appliedOffered, appliedWanted]);
+  }, [liveTrades, ignoreEscrow, ignoreWoodTrades, searchQuery, appliedOffered, appliedWanted]);
 
   // Memoized filtered history trades
   const activeFilteredHistory = useMemo(() => {
@@ -651,6 +674,13 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         (t) =>
           t.offerer.toUpperCase() !== 'PWNSTAR#ESCROW' &&
           t.accepter.toUpperCase() !== 'PWNSTAR#ESCROW'
+      );
+    }
+    if (ignoreWoodTrades) {
+      result = result.filter(
+        (t) =>
+          !isPureOneWoodHistorySide(t.trade?.offered?.items || []) &&
+          !isPureOneWoodHistorySide(t.trade?.wanted?.items || [])
       );
     }
     const query = searchQuery.trim().toLowerCase();
@@ -677,7 +707,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       );
     }
     return result;
-  }, [historyTrades, ignoreEscrow, searchQuery, appliedOffered, appliedWanted]);
+  }, [historyTrades, ignoreEscrow, ignoreWoodTrades, searchQuery, appliedOffered, appliedWanted]);
 
   // Fast O(1) date range calculation since historyTrades is already sorted descending
   const historyDateRangeInfo = useMemo(() => {
@@ -872,28 +902,54 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       </div>
 
       {/* Roster / Ranks filter settings card */}
-      <div className="bg-[#12141D] border border-obsidian-border rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Toggle Escrow Switch */}
-        <div className="flex items-center space-x-3.5">
-          <button
-            onClick={() => setIgnoreEscrow(!ignoreEscrow)}
-            className={`relative w-11 h-6 rounded-full transition-all duration-300 outline-none cursor-pointer border ${
-              ignoreEscrow
-                ? 'bg-gold-primary/20 border-gold-primary/40'
-                : 'bg-obsidian-deep border-obsidian-border'
-            }`}
-          >
-            <div
-              className={`absolute top-0.5 w-4.5 h-4.5 rounded-full transition-all duration-300 ${
+      <div className="bg-[#12141D] border border-obsidian-border rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          {/* Toggle Escrow Switch */}
+          <div className="flex items-center space-x-3.5">
+            <button
+              onClick={() => setIgnoreEscrow(!ignoreEscrow)}
+              className={`relative w-11 h-6 rounded-full transition-all duration-300 outline-none cursor-pointer border ${
                 ignoreEscrow
-                  ? 'right-0.5 bg-gold-bright shadow-gold-glow'
-                  : 'left-0.5 bg-slate-500'
+                  ? 'bg-gold-primary/20 border-gold-primary/40'
+                  : 'bg-obsidian-deep border-obsidian-border'
               }`}
-            />
-          </button>
-          <div className="text-xs font-mono">
-            <span className="text-white font-bold block">Ignore Escrow Bot Trades</span>
-            <span className="text-slate-500 block">Hides all automated listings from PWNSTAR#ESCROW</span>
+            >
+              <div
+                className={`absolute top-0.5 w-4.5 h-4.5 rounded-full transition-all duration-300 ${
+                  ignoreEscrow
+                    ? 'right-0.5 bg-gold-bright shadow-gold-glow'
+                    : 'left-0.5 bg-slate-500'
+                }`}
+              />
+            </button>
+            <div className="text-xs font-mono">
+              <span className="text-white font-bold block">Ignore Escrow Bot Trades</span>
+              <span className="text-slate-500 block text-[11px]">Hides PWNSTAR#ESCROW listings</span>
+            </div>
+          </div>
+
+          {/* Toggle 1x Wood Friendly Trades Switch */}
+          <div className="flex items-center space-x-3.5">
+            <button
+              onClick={() => setIgnoreWoodTrades(!ignoreWoodTrades)}
+              className={`relative w-11 h-6 rounded-full transition-all duration-300 outline-none cursor-pointer border ${
+                ignoreWoodTrades
+                  ? 'bg-gold-primary/20 border-gold-primary/40'
+                  : 'bg-obsidian-deep border-obsidian-border'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-4.5 h-4.5 rounded-full transition-all duration-300 ${
+                  ignoreWoodTrades
+                    ? 'right-0.5 bg-gold-bright shadow-gold-glow'
+                    : 'left-0.5 bg-slate-500'
+                }`}
+              />
+            </button>
+            <div className="text-xs font-mono">
+              <span className="text-white font-bold block">Ignore 1x Wood Trades</span>
+              <span className="text-slate-500 block text-[11px]">Hides purely 1x Wood friendly transfers</span>
+            </div>
           </div>
         </div>
 
