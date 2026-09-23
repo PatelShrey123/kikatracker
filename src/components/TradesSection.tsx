@@ -71,6 +71,15 @@ function isPureOneWoodHistorySide(items: HistoryTradeItem[]): boolean {
   return name === 'wood' && qty === 1;
 }
 
+function formatTradeDateTime(dateStr: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return `${datePart}, ${timePart}`;
+}
+
 export const TradesSection: React.FC<TradesSectionProps> = ({
   onSelectPlayer,
   marketPrices,
@@ -364,8 +373,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               );
             })()}
           </div>
-          <span className="text-slate-500 font-mono">
-            {new Date(trade.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          <span className="text-slate-500 font-mono text-[11px] whitespace-nowrap" title={new Date(trade.updatedAt).toLocaleString()}>
+            {formatTradeDateTime(trade.updatedAt)}
           </span>
         </div>
 
@@ -522,8 +531,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               );
             })()}
           </div>
-          <span className="text-slate-500 font-mono text-[10px]">
-            {new Date(trade.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          <span className="text-slate-500 font-mono text-[11px] whitespace-nowrap" title={new Date(trade.updatedAt).toLocaleString()}>
+            {formatTradeDateTime(trade.updatedAt)}
           </span>
         </div>
 
