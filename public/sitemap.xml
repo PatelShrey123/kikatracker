@@ -51,11 +51,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://kirkahub.online/skineditor</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://kirkahub.online/chat</loc>
     <changefreq>always</changefreq>
     <priority>0.6</priority>

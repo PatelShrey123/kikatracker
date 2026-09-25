@@ -16,7 +16,6 @@ import { PriceViewerSection } from './components/PriceViewerSection';
 import { CompareSection } from './components/CompareSection';
 import { BotSection } from './components/BotSection';
 import { ClanTrackerSection } from './components/ClanTrackerSection';
-import { SkinEditor } from './components/SkinEditor';
 import { RendersSection } from './components/RendersSection';
 import { FitSection } from './components/FitSection';
 import { ReloadLab } from './components/ReloadLab';
@@ -123,9 +122,6 @@ function App() {
     }
     if (cleanPath === '/renders' || cleanPath === '/3drenders') {
       return { tab: 'renders', player: null, clan: null, skin: null };
-    }
-    if (cleanPath === '/skineditor') {
-      return { tab: 'skineditor', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/trades') {
       return { tab: 'trades', player: null, clan: null, skin: null };
@@ -297,9 +293,6 @@ function App() {
       case 'renders':
         document.title = 'Kirka 3D Weapon Skins & Character Renders | Kirka Hub';
         break;
-      case 'skineditor':
-        document.title = 'Kirka Minecraft Skin Editor & Custom Texture Studio | Kirka Hub';
-        break;
       case 'chat':
         document.title = 'Kirka Live Global Chat & Player Lobby | Kirka Hub';
         break;
@@ -404,7 +397,7 @@ function App() {
 
       {!isLoading && (() => {
         // No ads in full-screen editing tools
-        const showAds = !['gunstudio', 'skineditor'].includes(activeTab);
+        const showAds = !['reloadlab'].includes(activeTab);
         const adRouteKey = activeTab + (activeTab === 'search' ? (activeUserProfile ? '-profile' : '-input') : '') + (activeTab === 'fit' ? fitPlayerId ?? '' : '');
         return (
         <>
@@ -559,9 +552,6 @@ function App() {
                   )}
                   {activeTab === 'bot' && (
                     <BotSection />
-                  )}
-                  {activeTab === 'skineditor' && (
-                    <SkinEditor />
                   )}
                   {activeTab === 'fit' && (
                     <FitSection
