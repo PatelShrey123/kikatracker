@@ -20,6 +20,7 @@ import { SkinEditor } from './components/SkinEditor';
 import { RendersSection } from './components/RendersSection';
 import { FitSection } from './components/FitSection';
 import { ReloadLab } from './components/ReloadLab';
+import { ChangelogsSection } from './components/ChangelogsSection';
 import { AdSlot, AD_SLOTS } from './components/AdSlot';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
@@ -115,6 +116,10 @@ function App() {
     }
     if (cleanPath === '/reloadlab') {
       return { tab: 'reloadlab', player: null, clan: null, skin: null };
+    }
+    // unlisted: reachable by URL, deliberately absent from the navbar and the sitemap
+    if (cleanPath === '/changelogs') {
+      return { tab: 'changelogs', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/renders' || cleanPath === '/3drenders') {
       return { tab: 'renders', player: null, clan: null, skin: null };
@@ -576,6 +581,8 @@ function App() {
                   {activeTab === 'reloadlab' && (
                     <ReloadLab catalog={allItemData} />
                   )}
+
+                  {activeTab === 'changelogs' && <ChangelogsSection />}
 
                   {activeTab === 'renders' && (
                     <RendersSection

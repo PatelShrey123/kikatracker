@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Pause, Play, RotateCcw, Loader2 } from 'lucide-react';
+import { Pause, Play, RotateCcw, Loader2, Upload } from 'lucide-react';
 import { SkinPicker } from './SkinPicker';
 import type { PickerOption } from './SkinPicker';
 import { getModelUrl, loadSkinTexture } from './Weapon3DViewer';
@@ -29,6 +29,8 @@ type WeaponName = keyof typeof WEAPONS;
 
 const DEFAULT = '__default__';
 const PLAIN = '__plain__';
+const MINE = '__mine__';          // a PNG the visitor dropped in themselves
+const MAX_UPLOAD = 12 * 1024 * 1024;
 const SPEEDS = [1, 0.5, 0.25];
 type View = 'hands' | 'side';
 
@@ -46,6 +48,10 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
   // side view first: without the arm rig the first-person view is a lot harder to read
   const [view, setView] = useState<View>('side');
   const restBox = useRef<THREE.Box3 | null>(null);
+  // a skin the visitor loaded from their own machine; the blob URL is revoked when it is replaced
+  const [ownSkin, setOwnSkin] = useState<{ url: string; name: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [time, setTime] = useState({ t: 0, d: 0 });
@@ -76,9 +82,10 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
     () => [
       { key: DEFAULT, label: `Default ${weapon}` },
       { key: PLAIN, label: 'Plain grey (no skin)' },
+      ...(ownSkin ? [{ key: MINE, label: ownSkin.name, sublabel: 'your upload', badge: 'YOURS' }] : []),
       ...skins.map((s) => ({ key: s.name, label: s.name, sublabel: s.rarity ? String(s.rarity).toLowerCase() : undefined })),
     ],
-    [skins, weapon]
+    [skins, weapon, ownSkin]
   );
 
   // Scene setup once
@@ -236,6 +243,16 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
       });
     };
     if (skin === PLAIN) { apply(null); setStatus(null); return; }
+    if (skin === MINE) {
+      if (!ownSkin) { apply(null); return; }
+      setStatus('Loading your skin...');
+      loadSkinTexture(ownSkin.url).then((tex) => {
+        if (cancelled) return;
+        apply(tex);
+        setStatus(tex ? null : 'That image could not be read as a texture.');
+      });
+      return () => { cancelled = true; };
+    }
     const item = skin === DEFAULT
       ? catalog.find((c) => String(c.type || '').startsWith('WEAPON_') && sameName(c.name, weapon))
       : skins.find((c) => c.name === skin);
@@ -246,7 +263,21 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
       setStatus(tex ? null : 'This skin has no texture available, showing plain grey.');
     });
     return () => { cancelled = true; };
-  }, [skin, weapon, loading, catalog, skins]);
+  }, [skin, weapon, loading, catalog, skins, ownSkin]);
+
+  // Load a texture straight off the visitor's machine. It never leaves the browser: the file is
+  // turned into a blob URL and handed to the same loader the catalog skins use.
+  const pickFile = (file: File | null | undefined) => {
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { setStatus('That file is not an image. Export your skin as a PNG.'); return; }
+    if (file.size > MAX_UPLOAD) { setStatus('That image is over 12 MB — export it at 1024 or 2048 wide.'); return; }
+    setOwnSkin({ url: URL.createObjectURL(file), name: file.name.replace(/\.[^.]+$/, '') });
+    setSkin(MINE);
+    setStatus(null);
+  };
+
+  // release each blob once it has been replaced, and the last one when the page goes away
+  useEffect(() => () => { if (ownSkin) URL.revokeObjectURL(ownSkin.url); }, [ownSkin]);
 
   const restart = () => {
     const a = three.current?.action;
@@ -278,7 +309,12 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
-        <div className="relative rounded-2xl border border-white/10 bg-gradient-to-b from-[#1b1e27] to-[#0d0f14] overflow-hidden aspect-[16/10]">
+        <div
+          className={`relative rounded-2xl border bg-gradient-to-b from-[#1b1e27] to-[#0d0f14] overflow-hidden aspect-[16/10] transition-colors ${dragging ? 'border-indigo-400' : 'border-white/10'}`}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); pickFile(e.dataTransfer.files?.[0]); }}
+        >
           <div ref={mountRef} className="absolute inset-0" />
           {loading && (
             <div className="absolute inset-0 grid place-items-center text-slate-300">
@@ -316,6 +352,44 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
           <SkinPicker label={`${weapon} skin`} options={options} value={skin} onChange={setSkin} />
           <p className="text-xs text-slate-400">{catalog.length === 0 ? `Loading the skin catalog from Kirka... the list fills in when it arrives.` : `${skins.length} ${weapon} skins in the catalog. Drag to orbit, scroll to zoom.`}</p>
           {status && <p className="text-xs text-amber-300">{status}</p>}
+
+          {/* Try your own texture. Nothing is uploaded anywhere — it is read straight off the disk. */}
+          <div className="rounded-xl border border-dashed border-indigo-500/30 bg-indigo-500/5 p-3 space-y-2">
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-indigo-300">
+              <Upload className="w-3.5 h-3.5" />Test your own skin
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/webp,image/jpeg"
+              className="hidden"
+              onChange={(e) => { pickFile(e.target.files?.[0]); e.target.value = ''; }}
+            />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="w-full px-3 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-bold transition cursor-pointer"
+            >
+              {ownSkin ? 'Choose another PNG' : 'Choose a PNG'}
+            </button>
+            {ownSkin ? (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-slate-300 truncate" title={ownSkin.name}>{ownSkin.name}</span>
+                <button
+                  type="button"
+                  onClick={() => { setOwnSkin(null); if (skin === MINE) setSkin(DEFAULT); }}
+                  className="text-xs text-slate-400 hover:text-white shrink-0 cursor-pointer"
+                >
+                  remove
+                </button>
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Or drop a file on the viewer. Paint on the {weapon} template at 1024 or 2048, export a PNG, and watch it
+                reload. Your file stays in your browser.
+              </p>
+            )}
+          </div>
         </aside>
       </div>
     </section>

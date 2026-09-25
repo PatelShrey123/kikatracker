@@ -1,0 +1,53 @@
+{
+  "generatedAt": "2026-09-25T09:38:22.972Z",
+  "entries": [
+    {
+      "commit": "655885e",
+      "date": "2026-09-23T16:29:30+05:30",
+      "subject": "fix: normalize Hub Value header support and update prices snapshot",
+      "kind": "update",
+      "skinCount": 1068,
+      "added": [],
+      "removed": [],
+      "changed": [
+        {
+          "name": "Shinji",
+          "type": "Character",
+          "rarity": "Mythical",
+          "from": 50000000,
+          "to": 70000000,
+          "pct": 40
+        }
+      ]
+    },
+    {
+      "commit": "6cf0d2b",
+      "date": "2026-09-23T15:23:38+05:30",
+      "subject": "feat(pricing): update TTV Hub Valuation to 650,000",
+      "kind": "update",
+      "skinCount": 1068,
+      "added": [],
+      "removed": [],
+      "changed": [
+        {
+          "name": "TTV",
+          "type": "Character",
+          "rarity": "Mythical",
+          "from": 550000,
+          "to": 650000,
+          "pct": 18.2
+        }
+      ]
+    },
+    {
+      "commit": "61f45d1",
+      "date": "2026-09-23T14:41:22+05:30",
+      "subject": "feat(pricing): migrate to standalone Kirka Hub Valuation engine and local hub_prices database",
+      "kind": "baseline",
+      "skinCount": 1068,
+      "added": [],
+      "removed": [],
+      "changed": []
+    }
+  ]
+}
