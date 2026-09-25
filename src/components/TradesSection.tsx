@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
@@ -26,6 +26,11 @@ interface OpenTrade {
   wanted: OpenTradeItem[];
   updatedAt: string;
 }
+
+const ALL_TIME = '__all__';
+// 880 snapshots is roughly 300,000 trades and several hundred megabytes; all-time stops well short
+// of that, at more than anyone can scroll but little enough that a phone survives it.
+const ALL_TIME_CAP = 30000;
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
@@ -143,7 +148,9 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
   // month means fetching that month's snapshots and streaming them in as they land.
   const [snapshotIndex, setSnapshotIndex] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [monthProgress, setMonthProgress] = useState<{ done: number; total: number } | null>(null);
+  const [monthProgress, setMonthProgress] = useState<{ done: number; total: number; failed: number; capped: boolean } | null>(null);
+  // identifies the in-flight history load, so a superseded one cannot write stale results
+  const historyRunRef = useRef(0);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [ignoreEscrow, setIgnoreEscrow] = useState(true);
@@ -212,55 +219,100 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return () => { cancelled = true; };
   }, [activeSubTab, historyLoaded]);
 
-  // 3. Load the selected month. A snapshot dated D holds trades updated over the previous few days,
-  //    so trades from the end of a month only appear in the first snapshots of the next one; the
-  //    window reaches four days past the month end and the results are filtered back to the month.
+  // 3. Load the selected month (or everything, for "All time").
+  //
+  //    A snapshot dated D holds trades updated over the previous few days, so trades from the end of
+  //    a month only appear in the first snapshots of the next one; the window reaches four days past
+  //    the month end and the results are filtered back to the month actually asked for.
   useEffect(() => {
     if (!selectedMonth || !snapshotIndex.length) return;
-    let cancelled = false;
 
-    const files = snapshotsForMonth(snapshotIndex, selectedMonth);
-    if (!files.length) { setHistoryTrades([]); return; }
+    // Switching months must not let the previous load write into the new one. A token identifies
+    // this run, and the controller aborts the requests it left in flight - without that, two months'
+    // worth of requests compete and results arrive against the wrong month.
+    const runId = ++historyRunRef.current;
+    const controller = new AbortController();
+    const isStale = () => runId !== historyRunRef.current;
+
+    const allTime = selectedMonth === ALL_TIME;
+    const files = allTime
+      ? [...snapshotIndex].reverse()                       // newest first, so useful data lands early
+      : snapshotsForMonth(snapshotIndex, selectedMonth);
 
     setHistoryTrades([]);
     setVisibleHistoryCount(40);
+    setMonthProgress({ done: 0, total: files.length, failed: 0, capped: false });
+
+    if (!files.length) {
+      setLoadingHistory(false);
+      setMonthProgress(null);
+      return;
+    }
     setLoadingHistory(true);
-    setMonthProgress({ done: 0, total: files.length });
 
     const seen = new Set<number>();
     const collected: HistoryTrade[] = [];
     let done = 0;
+    let failed = 0;
+    let capped = false;
 
-    // A handful at a time: the whole month at once stalls slower machines and the browser caps
-    // parallel requests anyway. Results are flushed as each batch lands so the list fills in.
+    // One retry, because a failed day used to be swallowed as an empty array - which is what made
+    // months look randomly empty when several requests were throttled at once.
+    const loadFile = async (file: string): Promise<any[] | null> => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const res = await fetch(`/trade-api/tradehistory/${file}`, { signal: controller.signal });
+          if (!res.ok) throw new Error(String(res.status));
+          const rows = await res.json();
+          if (Array.isArray(rows)) return rows;
+          return null;
+        } catch (err: any) {
+          if (err?.name === 'AbortError') return null;
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 400));
+        }
+      }
+      return null;
+    };
+
     const BATCH = 5;
     (async () => {
-      for (let i = 0; i < files.length && !cancelled; i += BATCH) {
-        const batch = files.slice(i, i + BATCH);
-        const results = await Promise.all(
-          batch.map((f) => fetch(`/trade-api/tradehistory/${f}`).then((r) => r.json()).catch(() => []))
-        );
-        if (cancelled) return;
+      try {
+        for (let i = 0; i < files.length; i += BATCH) {
+          if (isStale()) return;
+          const batch = files.slice(i, i + BATCH);
+          const results = await Promise.all(batch.map(loadFile));
+          if (isStale()) return;
 
-        for (const rows of results) {
-          if (!Array.isArray(rows)) continue;
-          for (const t of rows) {
-            // snapshots overlap slightly, and only trades actually updated in this month belong here
-            if (!t || seen.has(t.tradeId)) continue;
-            if (monthKeyOf(t.updatedAt) !== selectedMonth) continue;
-            seen.add(t.tradeId);
-            collected.push(t);
+          for (const rows of results) {
+            if (rows === null) { failed++; continue; }
+            for (const t of rows) {
+              if (!t || seen.has(t.tradeId)) continue;
+              if (!allTime && monthKeyOf(t.updatedAt) !== selectedMonth) continue;
+              seen.add(t.tradeId);
+              collected.push(t);
+            }
           }
+          done += batch.length;
+
+          // All time spans 880 days; holding every trade would run a phone out of memory, so it
+          // stops once there is more than any device can usefully scroll.
+          if (allTime && collected.length >= ALL_TIME_CAP) capped = true;
+
+          collected.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+          setMonthProgress({ done, total: files.length, failed, capped });
+          setHistoryTrades([...collected]);
+          if (capped) break;
         }
-        done += batch.length;
-        setMonthProgress({ done, total: files.length });
-        collected.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        setHistoryTrades([...collected]);
+      } finally {
+        // always clears, even if a fetch throws or the month is switched mid-flight
+        if (!isStale()) {
+          setLoadingHistory(false);
+          setMonthProgress(failed || capped ? { done, total: files.length, failed, capped } : null);
+        }
       }
-      if (!cancelled) { setLoadingHistory(false); setMonthProgress(null); }
     })();
 
-    return () => { cancelled = true; };
+    return () => { controller.abort(); };
   }, [selectedMonth, snapshotIndex]);
 
   // Helper to map rarity codes (M, L, E, R, C) to full name & border styles
@@ -1111,6 +1163,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                     onChange={(e) => setSelectedMonth(e.target.value)}
                     className="bg-obsidian-card border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white font-semibold cursor-pointer hover:border-purple-400/40 focus:outline-none focus:border-purple-400/60"
                   >
+                    <option value={ALL_TIME}>All time (newest first)</option>
                     {availableMonths.map((m) => (
                       <option key={m.key} value={m.key}>{m.label}</option>
                     ))}
@@ -1120,15 +1173,24 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   </span>
                 </div>
 
-                <div className="text-xs font-mono">
-                  {monthProgress ? (
+                <div className="text-xs font-mono flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {loadingHistory && monthProgress ? (
                     <span className="text-purple-300">
-                      Loading day {monthProgress.done} of {monthProgress.total} ·{' '}
+                      Loading day {Math.min(monthProgress.done, monthProgress.total)} of {monthProgress.total} ·{' '}
                       <strong className="text-white">{historyTrades.length.toLocaleString()}</strong> trades so far
                     </span>
                   ) : (
                     <span className="text-slate-500">
-                      <strong className="text-purple-400 font-bold">{historyTrades.length.toLocaleString()}</strong> completed trades this month
+                      <strong className="text-purple-400 font-bold">{historyTrades.length.toLocaleString()}</strong>{' '}
+                      completed trades {selectedMonth === ALL_TIME ? 'loaded' : 'this month'}
+                    </span>
+                  )}
+                  {monthProgress?.capped && (
+                    <span className="text-amber-300">stopped at {ALL_TIME_CAP.toLocaleString()} — pick a month for older trades</span>
+                  )}
+                  {!loadingHistory && !!monthProgress?.failed && (
+                    <span className="text-red-300">
+                      {monthProgress.failed} {monthProgress.failed === 1 ? 'day' : 'days'} failed to load
                     </span>
                   )}
                 </div>
