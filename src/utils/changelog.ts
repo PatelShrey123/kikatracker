@@ -2,6 +2,15 @@
 // scripts/build-price-changelog.mjs. Every entry is a real commit to hub_prices.json, so the
 // numbers are exact rather than hand-written notes.
 
+export interface FieldChange {
+  field: string;
+  from: string;
+  to: string;
+  changed: boolean;
+  /** A column added to or dropped from the whole sheet at once, not a repricing. */
+  schema?: boolean;
+}
+
 export interface PriceMove {
   name: string;
   type: string;
@@ -9,6 +18,8 @@ export interface PriceMove {
   from: number | null;
   to: number | null;
   pct: number | null;
+  fields: FieldChange[];
+  changeCount: number;
 }
 
 export interface SkinRef {
@@ -16,6 +27,7 @@ export interface SkinRef {
   type: string;
   rarity: string;
   value: number | null;
+  fields: FieldChange[];
 }
 
 export interface ChangelogEntry {
@@ -23,6 +35,8 @@ export interface ChangelogEntry {
   date: string;
   subject: string;
   kind: 'baseline' | 'update';
+  /** Date of the commit this one is compared against. */
+  previousDate: string | null;
   skinCount: number;
   added: SkinRef[];
   removed: SkinRef[];

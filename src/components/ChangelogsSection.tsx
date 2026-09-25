@@ -1,147 +1,112 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Loader2, ScrollText, AlertTriangle, TrendingUp, TrendingDown, Plus, Minus, GitCommit, Radio } from 'lucide-react';
-import { fetchChangelog, fetchPending, cleanSubject } from '../utils/changelog';
-import type { Changelog, ChangelogEntry, PriceMove, PendingChanges } from '../utils/changelog';
-import { formatValue } from '../utils/csv';
+import { Loader2, AlertTriangle } from 'lucide-react';
+import { fetchChangelog, fetchPending } from '../utils/changelog';
+import type { Changelog, PendingChanges, FieldChange } from '../utils/changelog';
 
-// Unlisted page at /changelogs: every edit to the Kirka Hub Valuation list, taken from this repo's
-// own history of hub_prices.json. Deliberately not in the navbar — it is for people we hand the link to.
+// Unlisted page at /changelogs: every edit to the Kirka Hub Valuation list, as a field-by-field
+// record per skin. Reachable by URL only — absent from the navbar and the sitemap.
 
-const RARITY_COLOUR: Record<string, string> = {
-  mythical: 'text-red-300',
-  legendary: 'text-gold-bright',
-  epic: 'text-fuchsia-300',
-  rare: 'text-sky-300',
-  uncommon: 'text-emerald-300',
-  common: 'text-slate-400',
+const PER_PAGE = 12;
+
+type Kind = 'modified' | 'added' | 'removed';
+
+/** One skin's worth of change, flattened out of the entry it came from. */
+interface Record_ {
+  key: string;
+  name: string;
+  kind: Kind;
+  fields: FieldChange[];
+  changeCount: number;
+  detected: string;
+  previous: string | null;
+  source: string;
+  live: boolean;
+}
+
+const stamp = (iso: string | null) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true,
+  });
 };
 
-const dateLabel = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+const KIND_STYLE: Record<Kind, string> = {
+  modified: 'text-amber-300',
+  added: 'text-emerald-300',
+  removed: 'text-red-300',
+};
 
-const Move: React.FC<{ m: PriceMove }> = ({ m }) => {
-  const up = (m.pct ?? 0) > 0;
-  const Icon = up ? TrendingUp : TrendingDown;
-  return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm py-1.5 border-b border-white/5 last:border-0">
-      <span className={`font-bold ${RARITY_COLOUR[m.rarity.toLowerCase()] || 'text-slate-200'}`}>{m.name}</span>
-      <span className="text-[10px] font-mono uppercase text-slate-500">{m.type}</span>
-      <span className="ml-auto flex items-center gap-2 font-mono text-xs">
-        <span className="text-slate-500 line-through">{m.from === null ? 'unpriced' : formatValue(m.from)}</span>
-        <span className="text-slate-600">&rarr;</span>
-        <span className="text-white font-bold">{m.to === null ? 'unpriced' : formatValue(m.to)}</span>
-        {m.pct !== null && (
-          <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded font-bold ${up ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-300'}`}>
-            <Icon className="w-3 h-3" />{up ? '+' : ''}{m.pct}%
-          </span>
-        )}
+const FieldRow: React.FC<{ f: FieldChange }> = ({ f }) => (
+  <tr className={f.changed ? 'bg-emerald-500/[0.05]' : ''}>
+    <td className="py-1.5 pr-4 align-top whitespace-nowrap">
+      <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300/90 border border-emerald-500/20">
+        {f.field}
       </span>
-    </div>
-  );
-};
-
-const SkinList: React.FC<{ rows: { name: string; type: string; rarity: string; value: number | null }[]; label: string; tone: 'add' | 'remove' }> = ({ rows, label, tone }) => (
-  <div className="mt-2">
-    <div className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest mb-1 ${tone === 'add' ? 'text-emerald-400' : 'text-red-400'}`}>
-      {tone === 'add' ? <Plus className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
-      {label} ({rows.length})
-    </div>
-    <div className="flex flex-wrap gap-1.5">
-      {rows.map((r) => (
-        <span key={`${r.name}-${r.type}`} className="text-xs px-2 py-1 rounded-lg bg-white/5 border border-white/10">
-          <span className={RARITY_COLOUR[r.rarity.toLowerCase()] || 'text-slate-200'}>{r.name}</span>
-          <span className="text-slate-500 font-mono ml-1.5 text-[10px]">{r.type}</span>
-          {r.value !== null && <span className="text-slate-400 font-mono ml-1.5 text-[10px]">{formatValue(r.value)}</span>}
-        </span>
-      ))}
-    </div>
-  </div>
+    </td>
+    <td className="py-1.5 pr-4 align-top text-slate-400 break-all">
+      {f.changed ? <span className="text-red-400 line-through">{f.from || '—'}</span> : (f.from || '—')}
+    </td>
+    <td className="py-1.5 align-top break-all">
+      {f.changed ? (
+        <span className="text-emerald-300 font-bold">{f.to || '—'} <span className="text-emerald-500/70">&rarr;</span></span>
+      ) : (
+        <span className="text-slate-400">{f.to || '—'}</span>
+      )}
+    </td>
+  </tr>
 );
 
-const Entry: React.FC<{ e: ChangelogEntry }> = ({ e }) => {
-  const [open, setOpen] = useState(false);
-  const many = e.changed.length > 8;
-  const shown = open ? e.changed : e.changed.slice(0, 8);
-  const quiet = e.kind === 'update' && !e.changed.length && !e.added.length && !e.removed.length;
-
-  return (
-    <li className="relative">
-      <span className="absolute -left-[23px] top-4 w-2 h-2 rounded-full bg-gold-primary/70 ring-4 ring-obsidian-deep" />
-      <div className="rounded-xl border border-white/10 bg-obsidian-card/40 px-4 py-3.5">
-        <div className="flex flex-wrap items-center gap-2 mb-1">
-          <span className="text-xs font-mono font-bold text-gold-bright">{dateLabel(e.date)}</span>
-          <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-500">
-            <GitCommit className="w-3 h-3" />{e.commit}
-          </span>
-          {e.kind === 'baseline' && (
-            <span className="text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border bg-indigo-500/10 text-indigo-300 border-indigo-500/30">
-              first snapshot
-            </span>
-          )}
-          <span className="ml-auto text-[10px] font-mono text-slate-600">{e.skinCount} skins priced</span>
-        </div>
-        <p className="text-sm text-slate-300 leading-relaxed mb-1">{cleanSubject(e.subject)}</p>
-
-        {e.changed.length > 0 && (
-          <div className="mt-2">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-gold-bright/70 mb-0.5">
-              {e.changed.length} price {e.changed.length === 1 ? 'change' : 'changes'}
-            </div>
-            {shown.map((m) => <Move key={`${m.name}-${m.type}`} m={m} />)}
-            {many && (
-              <button
-                type="button"
-                onClick={() => setOpen((o) => !o)}
-                className="mt-1.5 text-xs text-indigo-300 hover:text-indigo-200 font-semibold cursor-pointer"
-              >
-                {open ? 'Show fewer' : `Show all ${e.changed.length}`}
-              </button>
-            )}
-          </div>
-        )}
-
-        {e.added.length > 0 && <SkinList rows={e.added} label="added" tone="add" />}
-        {e.removed.length > 0 && <SkinList rows={e.removed} label="removed" tone="remove" />}
-        {quiet && <p className="text-xs text-slate-600 mt-1">No values moved — structural change only.</p>}
-      </div>
-    </li>
-  );
-};
-
-/** One detected sheet edit, in the shape of the notification cards these are modelled on. */
-const PendingCard: React.FC<{
-  title: string; name: string; type: string; rarity: string;
-  label: string; from: string | null; to: string | null; pct: number | null;
-}> = ({ title, name, type, rarity, label, from, to, pct }) => (
-  <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.04] px-4 py-3">
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-bold text-white">{title}</span>
-      <span className="text-[10px] font-mono uppercase text-slate-500">{type}</span>
-      {pct !== null && (
-        <span className={`ml-auto text-xs font-mono font-bold px-1.5 py-0.5 rounded ${pct > 0 ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-300'}`}>
-          {pct > 0 ? '+' : ''}{pct}%
+const Card: React.FC<{ r: Record_ }> = ({ r }) => (
+  <div className="rounded-xl border border-white/10 bg-[#11131a] overflow-hidden">
+    <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 border-b border-white/5 bg-white/[0.02]">
+      <span className="text-emerald-300 font-bold">
+        Skin: <span className="text-white">{r.name}</span>
+      </span>
+      {r.kind !== 'modified' && (
+        <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-current/30 ${KIND_STYLE[r.kind]}`}>
+          {r.kind}
         </span>
       )}
+      {r.live && (
+        <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-300">
+          pending
+        </span>
+      )}
+      <span className="ml-auto text-slate-500">Changes: {r.changeCount}</span>
     </div>
-    <p className="text-xs text-slate-400 mt-1">
-      A change has been detected for skin{' '}
-      <span className={`font-bold ${RARITY_COLOUR[rarity.toLowerCase()] || 'text-slate-200'}`}>{name}</span>
-    </p>
-    <div className="mt-2">
-      <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500">{label}</div>
-      <div className="text-sm font-mono text-slate-200">
-        {label}: <span className="text-slate-500">&quot;{from ?? '—'}&quot;</span>
-        <span className="text-slate-600 mx-1.5">&rarr;</span>
-        <span className="text-white font-bold">&quot;{to ?? '—'}&quot;</span>
-      </div>
+
+    <div className="px-4 py-2 overflow-x-auto">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="text-left border-b border-white/5">
+            <th className="py-2 pr-4 font-normal text-slate-400">Field</th>
+            <th className="py-2 pr-4 font-normal text-red-400">Old Value</th>
+            <th className="py-2 font-normal text-emerald-300">New Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {r.fields.map((f) => <FieldRow key={f.field} f={f} />)}
+        </tbody>
+      </table>
+    </div>
+
+    <div className="px-4 py-2 border-t border-white/5 text-[11px] text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
+      <span>Detected: <span className="text-slate-400">{stamp(r.detected)}</span></span>
+      <span>Previous: <span className="text-slate-600">{stamp(r.previous)}</span></span>
+      {!r.live && <span className="text-slate-700">{r.source}</span>}
     </div>
   </div>
 );
 
 export const ChangelogsSection: React.FC = () => {
   const [log, setLog] = useState<Changelog | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState<PendingChanges | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | Kind>('all');
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -152,105 +117,93 @@ export const ChangelogsSection: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
 
-  const pending = live?.pending;
+  // flatten every entry into one record per skin, newest first
+  const records = useMemo<Record_[]>(() => {
+    const out: Record_[] = [];
 
-  const totals = useMemo(() => {
-    const e = log?.entries ?? [];
-    return {
-      updates: e.filter((x) => x.kind === 'update').length,
-      changes: e.reduce((a, x) => a + x.changed.length, 0),
-      added: e.reduce((a, x) => a + x.added.length, 0),
-      skins: e[0]?.skinCount ?? 0,
+    const push = (rows: any[], kind: Kind, detected: string, previous: string | null, source: string, isLive: boolean) => {
+      for (const row of rows ?? []) {
+        if (!row.fields?.length) continue;
+        out.push({
+          key: `${source}-${kind}-${row.name}-${row.type}`,
+          name: row.name,
+          kind,
+          fields: row.fields,
+          changeCount: row.changeCount ?? row.fields.filter((f: FieldChange) => f.changed).length ?? 1,
+          detected, previous, source, live: isLive,
+        });
+      }
     };
-  }, [log]);
 
-  const years = useMemo(() => {
-    const buckets = new Map<string, ChangelogEntry[]>();
-    for (const e of log?.entries ?? []) {
-      const y = String(new Date(e.date).getFullYear());
-      (buckets.get(y) ?? buckets.set(y, []).get(y)!).push(e);
+    if (live?.pending) {
+      const detected = live.generatedAt;
+      const previous = log?.entries?.[0]?.date ?? null;
+      push(live.pending.changed, 'modified', detected, previous, 'live sheet', true);
+      push(live.pending.added, 'added', detected, previous, 'live sheet', true);
+      push(live.pending.removed, 'removed', detected, previous, 'live sheet', true);
     }
-    return [...buckets.entries()].sort((a, b) => Number(b[0]) - Number(a[0])).map(([year, rows]) => ({ year, rows }));
-  }, [log]);
+
+    for (const e of log?.entries ?? []) {
+      const src = e.commit;
+      push(e.changed, 'modified', e.date, e.previousDate ?? null, src, false);
+      push(e.added, 'added', e.date, e.previousDate ?? null, src, false);
+      push(e.removed, 'removed', e.date, e.previousDate ?? null, src, false);
+    }
+    return out;
+  }, [log, live]);
+
+  const totals = useMemo(() => ({
+    all: records.length,
+    added: records.filter((r) => r.kind === 'added').length,
+    removed: records.filter((r) => r.kind === 'removed').length,
+    modified: records.filter((r) => r.kind === 'modified').length,
+    skins: log?.entries?.[0]?.skinCount ?? live?.sheetCount ?? 0,
+    lastCheck: live?.generatedAt ?? log?.generatedAt ?? null,
+  }), [records, log, live]);
+
+  const shown = useMemo(
+    () => (filter === 'all' ? records : records.filter((r) => r.kind === filter)),
+    [records, filter]
+  );
+  const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
+  const current = Math.min(page, pages - 1);
+  const slice = shown.slice(current * PER_PAGE, current * PER_PAGE + PER_PAGE);
+
+  useEffect(() => { setPage(0); }, [filter]);
 
   return (
-    <section className="max-w-4xl mx-auto px-4 py-10 space-y-6">
-      <header className="space-y-2">
-        <div className="flex items-center gap-2.5">
-          <ScrollText className="w-6 h-6 text-gold-bright" />
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Hub Valuation Changelog</h1>
-        </div>
-        <p className="text-sm text-slate-400 leading-relaxed">
-          Every edit to the Kirka Hub Valuation list, with the exact figures before and after. Taken from the
-          version history of the price database itself, so nothing here is written by hand.
-        </p>
-      </header>
+    <section className="max-w-6xl mx-auto px-4 py-8 space-y-4 font-mono">
+      {/* status bar */}
+      <div className="rounded-xl border border-white/10 bg-[#11131a] px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <span className="text-slate-300">Total Changes: <span className="text-white font-bold">{totals.all}</span></span>
+        <span className="text-slate-300">Added: <span className="text-emerald-300 font-bold">{totals.added}</span></span>
+        <span className="text-slate-300">Removed: <span className="text-red-300 font-bold">{totals.removed}</span></span>
+        <span className="text-slate-300">Modified: <span className="text-amber-300 font-bold">{totals.modified}</span></span>
+        <span className="ml-auto text-slate-300">Total Skins: <span className="text-white font-bold">{totals.skins}</span></span>
+        <span className="text-slate-400">Last Check: <span className="text-slate-300">{stamp(totals.lastCheck)}</span></span>
+        <span className="text-slate-400">Page {current + 1} of {pages}</span>
+      </div>
 
-      {log && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {[
-            { label: 'Updates', value: totals.updates },
-            { label: 'Price changes', value: totals.changes },
-            { label: 'Skins added', value: totals.added },
-            { label: 'Skins priced', value: totals.skins },
-          ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-white/10 bg-obsidian-card/40 px-3 py-2.5">
-              <div className="text-xl font-black text-white tabular-nums">{s.value}</div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {pending && pending.total > 0 && (
-        <div className="space-y-2.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <Radio className="w-4 h-4 text-amber-300" />
-            <h2 className="text-sm font-black tracking-widest uppercase text-amber-300">
-              Detected in the sheet · not yet in a snapshot
-            </h2>
-            <span className="text-[10px] font-mono text-slate-500">{pending.total} change{pending.total === 1 ? '' : 's'}</span>
-          </div>
-          {pending.changed.map((c) => (
-            <PendingCard
-              key={`c-${c.name}-${c.type}`}
-              title={`Price Change Detected (${c.name})`}
-              name={c.name} type={c.type} rarity={c.rarity} label="Hub Value"
-              from={c.fromRaw} to={c.toRaw} pct={c.pct}
-            />
-          ))}
-          {pending.added.map((a) => (
-            <PendingCard
-              key={`a-${a.name}-${a.type}`}
-              title={`New Skin Detected (${a.name})`}
-              name={a.name} type={a.type} rarity={a.rarity} label="Hub Value"
-              from={null} to={a.raw} pct={null}
-            />
-          ))}
-          {pending.removed.map((r) => (
-            <PendingCard
-              key={`r-${r.name}-${r.type}`}
-              title={`Skin Removed (${r.name})`}
-              name={r.name} type={r.type} rarity={r.rarity} label="Hub Value"
-              from={r.raw} to={null} pct={null}
-            />
-          ))}
-          <p className="text-[11px] text-slate-600 leading-relaxed">
-            Live comparison of the price sheet against the last committed snapshot, refreshed every minute.
-            These become permanent entries below once the snapshot is updated.
-          </p>
-        </div>
-      )}
-
-      {live && live.sheetReachable && pending?.total === 0 && (
-        <p className="text-xs text-slate-500 flex items-center gap-2">
-          <Radio className="w-3.5 h-3.5 text-emerald-400" />
-          Sheet matches the last snapshot — {live.sheetCount} skins, nothing pending.
-        </p>
-      )}
+      {/* filters */}
+      <div className="flex flex-wrap gap-2 text-xs">
+        {([['all', 'All'], ['modified', 'Modified'], ['added', 'Added'], ['removed', 'Removed']] as const).map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setFilter(k)}
+            className={`px-3 py-1.5 rounded-lg border transition cursor-pointer ${
+              filter === k
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                : 'bg-white/5 border-white/10 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {label} <span className="opacity-60">{k === 'all' ? totals.all : totals[k as Kind]}</span>
+          </button>
+        ))}
+      </div>
 
       {!log && !error && (
-        <div className="flex items-center gap-2 text-slate-400 py-10">
+        <div className="flex items-center gap-2 text-slate-400 py-10 text-sm">
           <Loader2 className="w-4 h-4 animate-spin" />Loading the changelog...
         </div>
       )}
@@ -258,29 +211,45 @@ export const ChangelogsSection: React.FC = () => {
       {error && (
         <div className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">
           <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>Could not load the changelog ({error}). It is generated by scripts/build-price-changelog.mjs — run that and redeploy.</span>
+          <span>Could not load the changelog ({error}). It is generated by scripts/build-price-changelog.mjs.</span>
         </div>
       )}
 
-      {years.map(({ year, rows }) => (
-        <div key={year} className="space-y-3">
-          <div className="flex items-center gap-3 pt-2">
-            <span className="text-lg font-black tracking-widest text-white">{year}</span>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-600">{rows.length} entries</span>
-            <div className="flex-grow h-px bg-white/5" />
-          </div>
-          <ol className="relative space-y-2.5 pl-5 border-l border-white/10">
-            {rows.map((e) => <Entry key={e.commit} e={e} />)}
-          </ol>
-        </div>
-      ))}
+      <div className="space-y-3">
+        {slice.map((r) => <Card key={r.key} r={r} />)}
+      </div>
 
-      {log && (
-        <p className="text-[11px] text-slate-600 pt-4 border-t border-white/5 leading-relaxed">
-          Generated from the commit history of the Hub Valuation database. Values are what the site prices
-          against; percentages compare each commit with the one before it.
-        </p>
+      {log && shown.length === 0 && (
+        <p className="text-sm text-slate-500 py-8">Nothing recorded under that filter.</p>
       )}
+
+      {pages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2 text-sm">
+          <button
+            type="button"
+            disabled={current === 0}
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-300 disabled:opacity-30 disabled:cursor-default hover:bg-white/10 cursor-pointer"
+          >
+            Prev
+          </button>
+          <span className="text-slate-500 px-2">{current + 1} / {pages}</span>
+          <button
+            type="button"
+            disabled={current >= pages - 1}
+            onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+            className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-300 disabled:opacity-30 disabled:cursor-default hover:bg-white/10 cursor-pointer"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      <p className="text-[11px] text-slate-600 pt-2 leading-relaxed">
+        Pending rows come from comparing the live sheet with the last committed snapshot; the rest are read
+        from the snapshot's own history. A column added to the whole sheet at once is treated as a structural
+        change, not a repricing.
+      </p>
     </section>
   );
 };

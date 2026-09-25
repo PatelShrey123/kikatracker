@@ -35,6 +35,7 @@ const commits = git('log', '--reverse', '--format=%H\t%aI\t%s', '--', PRICES)
 
 const entries = [];
 let prev = null;
+let prevDate = null;
 
 for (const c of commits) {
   const cur = loadAt(c.hash);
@@ -43,9 +44,10 @@ for (const c of commits) {
   if (!prev) {
     entries.push({
       commit: c.hash.slice(0, 7), date: c.iso, subject: c.subject,
-      kind: 'baseline', skinCount: cur.size, added: [], removed: [], changed: [],
+      kind: 'baseline', skinCount: cur.size, added: [], removed: [], changed: [], previousDate: null,
     });
     prev = cur;
+    prevDate = c.iso;
     continue;
   }
 
@@ -54,9 +56,10 @@ for (const c of commits) {
   // a commit that touched the file without moving any price (a header rename, a reformat) still
   // belongs in the log, so it is kept with empty lists rather than dropped
   entries.push({
-    commit: c.hash.slice(0, 7), date: c.iso, subject: c.subject,
+    commit: c.hash.slice(0, 7), date: c.iso, subject: c.subject, previousDate: prevDate,
     kind: 'update', skinCount: cur.size, added, removed, changed,
   });
+  prevDate = c.iso;
   prev = cur;
 }
 

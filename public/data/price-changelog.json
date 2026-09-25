@@ -1,10 +1,11 @@
 {
-  "generatedAt": "2026-09-25T09:47:35.870Z",
+  "generatedAt": "2026-09-25T10:07:52.098Z",
   "entries": [
     {
       "commit": "655885e",
       "date": "2026-09-23T16:29:30+05:30",
       "subject": "fix: normalize Hub Value header support and update prices snapshot",
+      "previousDate": "2026-09-23T15:23:38+05:30",
       "kind": "update",
       "skinCount": 1068,
       "added": [],
@@ -18,7 +19,3797 @@
           "to": 70000000,
           "fromRaw": "50,000,000",
           "toRaw": "70,000,000",
-          "pct": 40
+          "pct": 40,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shinji",
+              "to": "Shinji",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "70,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "50,000,000",
+              "to": "70,000,000",
+              "changed": true
+            },
+            {
+              "field": "Obtainable By",
+              "from": "1000 wins",
+              "to": "1000 wins",
+              "changed": false
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast AR-9",
+          "type": "AR-9",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast AR-9",
+              "to": "Blast AR-9",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "AR-9",
+              "to": "AR-9",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast Bayonet",
+          "type": "Bayonet",
+          "rarity": "Mythical",
+          "from": 1200000,
+          "to": 1200000,
+          "fromRaw": "1,200,000",
+          "toRaw": "1,200,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast Bayonet",
+              "to": "Blast Bayonet",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,200,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,200,000",
+              "to": "1,200,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Bayonet",
+              "to": "Bayonet",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast LAR",
+          "type": "LAR",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast LAR",
+              "to": "Blast LAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "LAR",
+              "to": "LAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast M60",
+          "type": "M60",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast M60",
+              "to": "Blast M60",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "M60",
+              "to": "M60",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast MAC-10",
+          "type": "MAC-10",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast MAC-10",
+              "to": "Blast MAC-10",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "MAC-10",
+              "to": "MAC-10",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast Revolver",
+          "type": "Revolver",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast Revolver",
+              "to": "Blast Revolver",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Revolver",
+              "to": "Revolver",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast SCAR",
+          "type": "SCAR",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast SCAR",
+              "to": "Blast SCAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "SCAR",
+              "to": "SCAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast Shark",
+          "type": "Shark",
+          "rarity": "Mythical",
+          "from": 1200000,
+          "to": 1200000,
+          "fromRaw": "1,200,000",
+          "toRaw": "1,200,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast Shark",
+              "to": "Blast Shark",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,200,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,200,000",
+              "to": "1,200,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Shark",
+              "to": "Shark",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast Tomahawk",
+          "type": "Tomahawk",
+          "rarity": "Mythical",
+          "from": 1700000,
+          "to": 1700000,
+          "fromRaw": "1,700,000",
+          "toRaw": "1,700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast Tomahawk",
+              "to": "Blast Tomahawk",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,700,000",
+              "to": "1,700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Tomahawk",
+              "to": "Tomahawk",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast VITA",
+          "type": "VITA",
+          "rarity": "Mythical",
+          "from": 1200000,
+          "to": 1200000,
+          "fromRaw": "1,200,000",
+          "toRaw": "1,200,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast VITA",
+              "to": "Blast VITA",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,200,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,200,000",
+              "to": "1,200,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "VITA",
+              "to": "VITA",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blast Weatie",
+          "type": "Weatie",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blast Weatie",
+              "to": "Blast Weatie",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Blast\" 850x 💎",
+              "to": "Blast 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Weatie",
+              "to": "Weatie",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Blessed",
+          "type": "Character",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Blessed",
+              "to": "Blessed",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Circuit",
+          "type": "VITA",
+          "rarity": "Common",
+          "from": 2000,
+          "to": 2000,
+          "fromRaw": "2000",
+          "toRaw": "2,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Circuit",
+              "to": "Circuit",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Common",
+              "to": "Common",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2000",
+              "to": "2,000",
+              "changed": true
+            },
+            {
+              "field": "Obtainable By",
+              "from": "All chests / Packs",
+              "to": "All chests / Packs",
+              "changed": false
+            },
+            {
+              "field": "Type",
+              "from": "VITA",
+              "to": "VITA",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber AR-9",
+          "type": "AR-9",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber AR-9",
+              "to": "Cyber AR-9",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "AR-9",
+              "to": "AR-9",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber Bayonet",
+          "type": "Bayonet",
+          "rarity": "Mythical",
+          "from": 1200000,
+          "to": 1200000,
+          "fromRaw": "1,200,000",
+          "toRaw": "1,200,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber Bayonet",
+              "to": "Cyber Bayonet",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,200,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,200,000",
+              "to": "1,200,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Bayonet",
+              "to": "Bayonet",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber LAR",
+          "type": "LAR",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber LAR",
+              "to": "Cyber LAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "LAR",
+              "to": "LAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber M60",
+          "type": "M60",
+          "rarity": "Mythical",
+          "from": 800000,
+          "to": 800000,
+          "fromRaw": "800,000",
+          "toRaw": "800,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber M60",
+              "to": "Cyber M60",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "800,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "800,000",
+              "to": "800,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "M60",
+              "to": "M60",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber MAC-10",
+          "type": "MAC-10",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber MAC-10",
+              "to": "Cyber MAC-10",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "MAC-10",
+              "to": "MAC-10",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber Revolver",
+          "type": "Revolver",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber Revolver",
+              "to": "Cyber Revolver",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Revolver",
+              "to": "Revolver",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber SCAR",
+          "type": "SCAR",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber SCAR",
+              "to": "Cyber SCAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "SCAR",
+              "to": "SCAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber Shark",
+          "type": "Shark",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber Shark",
+              "to": "Cyber Shark",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Shark",
+              "to": "Shark",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber Tomahawk",
+          "type": "Tomahawk",
+          "rarity": "Mythical",
+          "from": 1700000,
+          "to": 1700000,
+          "fromRaw": "1,700,000",
+          "toRaw": "1,700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber Tomahawk",
+              "to": "Cyber Tomahawk",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,700,000",
+              "to": "1,700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Tomahawk",
+              "to": "Tomahawk",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber VITA",
+          "type": "VITA",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber VITA",
+              "to": "Cyber VITA",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "VITA",
+              "to": "VITA",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Cyber Weatie",
+          "type": "Weatie",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Cyber Weatie",
+              "to": "Cyber Weatie",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Weatie",
+              "to": "Weatie",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic AR-9",
+          "type": "AR-9",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic AR-9",
+              "to": "Dragonic AR-9",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "AR-9",
+              "to": "AR-9",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic Bayonet",
+          "type": "Bayonet",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic Bayonet",
+              "to": "Dragonic Bayonet",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Bayonet",
+              "to": "Bayonet",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic LAR",
+          "type": "LAR",
+          "rarity": "Mythical",
+          "from": 500000,
+          "to": 500000,
+          "fromRaw": "500,000",
+          "toRaw": "500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic LAR",
+              "to": "Dragonic LAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "500,000",
+              "to": "500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "LAR",
+              "to": "LAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic M60",
+          "type": "M60",
+          "rarity": "Mythical",
+          "from": 500000,
+          "to": 500000,
+          "fromRaw": "500,000",
+          "toRaw": "500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic M60",
+              "to": "Dragonic M60",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "500,000",
+              "to": "500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "M60",
+              "to": "M60",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic MAC-10",
+          "type": "MAC-10",
+          "rarity": "Mythical",
+          "from": 500000,
+          "to": 500000,
+          "fromRaw": "500,000",
+          "toRaw": "500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic MAC-10",
+              "to": "Dragonic MAC-10",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "500,000",
+              "to": "500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "MAC-10",
+              "to": "MAC-10",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic Revolver",
+          "type": "Revolver",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic Revolver",
+              "to": "Dragonic Revolver",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Revolver",
+              "to": "Revolver",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic SCAR",
+          "type": "SCAR",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic SCAR",
+              "to": "Dragonic SCAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "SCAR",
+              "to": "SCAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic Shark",
+          "type": "Shark",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic Shark",
+              "to": "Dragonic Shark",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Shark",
+              "to": "Shark",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic Tomahawk",
+          "type": "Tomahawk",
+          "rarity": "Mythical",
+          "from": 700000,
+          "to": 700000,
+          "fromRaw": "700,000",
+          "toRaw": "700,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic Tomahawk",
+              "to": "Dragonic Tomahawk",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "700,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "700,000",
+              "to": "700,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Tomahawk",
+              "to": "Tomahawk",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic VITA",
+          "type": "VITA",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic VITA",
+              "to": "Dragonic VITA",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "VITA",
+              "to": "VITA",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Dragonic Weatie",
+          "type": "Weatie",
+          "rarity": "Mythical",
+          "from": 500000,
+          "to": 500000,
+          "fromRaw": "500,000",
+          "toRaw": "500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Dragonic Weatie",
+              "to": "Dragonic Weatie",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "500,000",
+              "to": "500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Dragonic\" 850x 💎",
+              "to": "Dragonic 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Weatie",
+              "to": "Weatie",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Elijah",
+          "type": "Character",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Elijah",
+              "to": "Elijah",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "GGLITCH",
+          "type": "Character",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "GGLITCH",
+              "to": "GGLITCH",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Cyber\" 850x 💎",
+              "to": "Cyber 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod AR-9",
+          "type": "AR-9",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod AR-9",
+              "to": "Hotrod AR-9",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "AR-9",
+              "to": "AR-9",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod Bayonet",
+          "type": "Bayonet",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod Bayonet",
+              "to": "Hotrod Bayonet",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Bayonet",
+              "to": "Bayonet",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod LAR",
+          "type": "LAR",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod LAR",
+              "to": "Hotrod LAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "LAR",
+              "to": "LAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod M60",
+          "type": "M60",
+          "rarity": "Mythical",
+          "from": 800000,
+          "to": 800000,
+          "fromRaw": "800,000",
+          "toRaw": "800,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod M60",
+              "to": "Hotrod M60",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "800,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "800,000",
+              "to": "800,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "M60",
+              "to": "M60",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod MAC-10",
+          "type": "MAC-10",
+          "rarity": "Mythical",
+          "from": 850000,
+          "to": 850000,
+          "fromRaw": "850,000",
+          "toRaw": "850,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod MAC-10",
+              "to": "Hotrod MAC-10",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "850,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "850,000",
+              "to": "850,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "MAC-10",
+              "to": "MAC-10",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod Revolver",
+          "type": "Revolver",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod Revolver",
+              "to": "Hotrod Revolver",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Revolver",
+              "to": "Revolver",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod SCAR",
+          "type": "SCAR",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod SCAR",
+              "to": "Hotrod SCAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "SCAR",
+              "to": "SCAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod Shark",
+          "type": "Shark",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod Shark",
+              "to": "Hotrod Shark",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Shark",
+              "to": "Shark",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod Tomahawk",
+          "type": "Tomahawk",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod Tomahawk",
+              "to": "Hotrod Tomahawk",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Tomahawk",
+              "to": "Tomahawk",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod VITA",
+          "type": "VITA",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod VITA",
+              "to": "Hotrod VITA",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "VITA",
+              "to": "VITA",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Hotrod Weatie",
+          "type": "Weatie",
+          "rarity": "Mythical",
+          "from": 800000,
+          "to": 800000,
+          "fromRaw": "800,000",
+          "toRaw": "800,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Hotrod Weatie",
+              "to": "Hotrod Weatie",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "800,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "800,000",
+              "to": "800,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Weatie",
+              "to": "Weatie",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Lola",
+          "type": "Character",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Lola",
+              "to": "Lola",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Hot Rod\" 850x 💎",
+              "to": "Hot Rod 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "RGB",
+          "type": "Character",
+          "rarity": "Legendary",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "RGB",
+              "to": "RGB",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Legendary",
+              "to": "Legendary",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "RGB Black",
+          "type": "Character",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "RGB Black",
+              "to": "RGB Black",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Scalped",
+          "type": "Tomahawk",
+          "rarity": "Default",
+          "from": 750000000,
+          "to": 750000000,
+          "fromRaw": "750,000,000",
+          "toRaw": "750,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Scalped",
+              "to": "Scalped",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Default",
+              "changed": true
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "750,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "750,000,000",
+              "to": "750,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "Gift for Skywalk",
+              "to": "Gift for Skywalk",
+              "changed": false
+            },
+            {
+              "field": "Type",
+              "from": "Tomahawk",
+              "to": "Tomahawk",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "SCAR",
+          "type": "SCAR",
+          "rarity": "",
+          "from": 0,
+          "to": 0,
+          "fromRaw": "0",
+          "toRaw": "0",
+          "pct": null,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "SCAR",
+              "to": "SCAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Default",
+              "to": "",
+              "changed": true
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "0",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "0",
+              "to": "0",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "Default Item",
+              "to": "Default Item",
+              "changed": false
+            },
+            {
+              "field": "Type",
+              "from": "SCAR",
+              "to": "SCAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Ar-9",
+          "type": "Ar-9",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Ar-9",
+              "to": "Shit Ar-9",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Ar-9",
+              "to": "Ar-9",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Bayonet",
+          "type": "Bayonet",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Bayonet",
+              "to": "Shit Bayonet",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Bayonet",
+              "to": "Bayonet",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit LAR",
+          "type": "LAR",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit LAR",
+              "to": "Shit LAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "LAR",
+              "to": "LAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit M60",
+          "type": "M60",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit M60",
+              "to": "Shit M60",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "M60",
+              "to": "M60",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Mac-10",
+          "type": "Mac-10",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Mac-10",
+              "to": "Shit Mac-10",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Mac-10",
+              "to": "Mac-10",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Revolver",
+          "type": "Revolver",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Revolver",
+              "to": "Shit Revolver",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Revolver",
+              "to": "Revolver",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Scar",
+          "type": "Scar",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Scar",
+              "to": "Shit Scar",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Scar",
+              "to": "Scar",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Shark",
+          "type": "Shark",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Shark",
+              "to": "Shit Shark",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Shark",
+              "to": "Shark",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Tomahawk",
+          "type": "Tomahawk",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Tomahawk",
+              "to": "Shit Tomahawk",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Tomahawk",
+              "to": "Tomahawk",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Vita",
+          "type": "Vita",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Vita",
+              "to": "Shit Vita",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Vita",
+              "to": "Vita",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Shit Weatie",
+          "type": "Weatie",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Shit Weatie",
+              "to": "Shit Weatie",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Shit\" 850x💎",
+              "to": "Shit 850x💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Weatie",
+              "to": "Weatie",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void AR-9",
+          "type": "AR-9",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void AR-9",
+              "to": "Void AR-9",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "AR-9",
+              "to": "AR-9",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void Bayonet",
+          "type": "Bayonet",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void Bayonet",
+              "to": "Void Bayonet",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Bayonet",
+              "to": "Bayonet",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void LAR",
+          "type": "LAR",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void LAR",
+              "to": "Void LAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "LAR",
+              "to": "LAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void M60",
+          "type": "M60",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void M60",
+              "to": "Void M60",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "M60",
+              "to": "M60",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void MAC-10",
+          "type": "MAC-10",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void MAC-10",
+              "to": "Void MAC-10",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "MAC-10",
+              "to": "MAC-10",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void Revolver",
+          "type": "Revolver",
+          "rarity": "Mythical",
+          "from": 1000000,
+          "to": 1000000,
+          "fromRaw": "1,000,000",
+          "toRaw": "1,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void Revolver",
+              "to": "Void Revolver",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,000,000",
+              "to": "1,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Revolver",
+              "to": "Revolver",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void SCAR",
+          "type": "SCAR",
+          "rarity": "Mythical",
+          "from": 2500000,
+          "to": 2500000,
+          "fromRaw": "2,500,000",
+          "toRaw": "2,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void SCAR",
+              "to": "Void SCAR",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,500,000",
+              "to": "2,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "SCAR",
+              "to": "SCAR",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void Shark",
+          "type": "Shark",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void Shark",
+              "to": "Void Shark",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Shark",
+              "to": "Shark",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void Tomahawk",
+          "type": "Tomahawk",
+          "rarity": "Mythical",
+          "from": 2000000,
+          "to": 2000000,
+          "fromRaw": "2,000,000",
+          "toRaw": "2,000,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void Tomahawk",
+              "to": "Void Tomahawk",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "2,000,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "2,000,000",
+              "to": "2,000,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Tomahawk",
+              "to": "Tomahawk",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void VITA",
+          "type": "VITA",
+          "rarity": "Mythical",
+          "from": 1500000,
+          "to": 1500000,
+          "fromRaw": "1,500,000",
+          "toRaw": "1,500,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void VITA",
+              "to": "Void VITA",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "1,500,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "1,500,000",
+              "to": "1,500,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "VITA",
+              "to": "VITA",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
+        },
+        {
+          "name": "Void Weatie",
+          "type": "Weatie",
+          "rarity": "Mythical",
+          "from": 150000,
+          "to": 150000,
+          "fromRaw": "150,000",
+          "toRaw": "150,000",
+          "pct": 0,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "Void Weatie",
+              "to": "Void Weatie",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Hub Value",
+              "from": "",
+              "to": "150,000",
+              "changed": false,
+              "schema": true
+            },
+            {
+              "field": "Base Value",
+              "from": "150,000",
+              "to": "150,000",
+              "changed": false
+            },
+            {
+              "field": "Obtainable By",
+              "from": "\"Void\" 850x 💎",
+              "to": "Void 850x 💎",
+              "changed": true
+            },
+            {
+              "field": "Type",
+              "from": "Weatie",
+              "to": "Weatie",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
         }
       ]
     },
@@ -26,6 +3817,7 @@
       "commit": "6cf0d2b",
       "date": "2026-09-23T15:23:38+05:30",
       "subject": "feat(pricing): update TTV Hub Valuation to 650,000",
+      "previousDate": "2026-09-23T14:41:22+05:30",
       "kind": "update",
       "skinCount": 1068,
       "added": [],
@@ -39,7 +3831,40 @@
           "to": 650000,
           "fromRaw": "550,000",
           "toRaw": "650,000",
-          "pct": 18.2
+          "pct": 18.2,
+          "fields": [
+            {
+              "field": "Skin Name",
+              "from": "TTV",
+              "to": "TTV",
+              "changed": false
+            },
+            {
+              "field": "Skin Rarity",
+              "from": "Mythical",
+              "to": "Mythical",
+              "changed": false
+            },
+            {
+              "field": "Base Value",
+              "from": "550,000",
+              "to": "650,000",
+              "changed": true
+            },
+            {
+              "field": "Obtainable By",
+              "from": "Watch 15 hours Kirka",
+              "to": "Watch 15 hours Kirka",
+              "changed": false
+            },
+            {
+              "field": "Type",
+              "from": "Character",
+              "to": "Character",
+              "changed": false
+            }
+          ],
+          "changeCount": 1
         }
       ]
     },
@@ -51,7 +3876,8 @@
       "skinCount": 1068,
       "added": [],
       "removed": [],
-      "changed": []
+      "changed": [],
+      "previousDate": null
     }
   ]
 }
