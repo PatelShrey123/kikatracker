@@ -34,6 +34,32 @@ export interface Changelog {
   entries: ChangelogEntry[];
 }
 
+/** Live diff between the price sheet and the last committed snapshot. */
+export interface PendingChanges {
+  generatedAt: string;
+  sheetReachable: boolean;
+  snapshotCount: number;
+  sheetCount: number;
+  pending: {
+    added: (SkinRef & { raw: string | null })[];
+    removed: (SkinRef & { raw: string | null })[];
+    changed: (PriceMove & { fromRaw: string | null; toRaw: string | null })[];
+    total: number;
+  };
+}
+
+/** Undeployed sheet edits. Resolves to null when the endpoint is unavailable (e.g. vite dev). */
+export async function fetchPending(): Promise<PendingChanges | null> {
+  try {
+    const res = await fetch('/api/changelog');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.pending ? (data as PendingChanges) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchChangelog(): Promise<Changelog> {
   const res = await fetch(`${import.meta.env.BASE_URL}data/price-changelog.json`);
   if (!res.ok) throw new Error(`changelog returned ${res.status}`);

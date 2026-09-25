@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Loader2, ScrollText, AlertTriangle, TrendingUp, TrendingDown, Plus, Minus, GitCommit } from 'lucide-react';
-import { fetchChangelog, cleanSubject } from '../utils/changelog';
-import type { Changelog, ChangelogEntry, PriceMove } from '../utils/changelog';
+import { Loader2, ScrollText, AlertTriangle, TrendingUp, TrendingDown, Plus, Minus, GitCommit, Radio } from 'lucide-react';
+import { fetchChangelog, fetchPending, cleanSubject } from '../utils/changelog';
+import type { Changelog, ChangelogEntry, PriceMove, PendingChanges } from '../utils/changelog';
 import { formatValue } from '../utils/csv';
 
 // Unlisted page at /changelogs: every edit to the Kirka Hub Valuation list, taken from this repo's
@@ -108,17 +108,51 @@ const Entry: React.FC<{ e: ChangelogEntry }> = ({ e }) => {
   );
 };
 
+/** One detected sheet edit, in the shape of the notification cards these are modelled on. */
+const PendingCard: React.FC<{
+  title: string; name: string; type: string; rarity: string;
+  label: string; from: string | null; to: string | null; pct: number | null;
+}> = ({ title, name, type, rarity, label, from, to, pct }) => (
+  <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.04] px-4 py-3">
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm font-bold text-white">{title}</span>
+      <span className="text-[10px] font-mono uppercase text-slate-500">{type}</span>
+      {pct !== null && (
+        <span className={`ml-auto text-xs font-mono font-bold px-1.5 py-0.5 rounded ${pct > 0 ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-300'}`}>
+          {pct > 0 ? '+' : ''}{pct}%
+        </span>
+      )}
+    </div>
+    <p className="text-xs text-slate-400 mt-1">
+      A change has been detected for skin{' '}
+      <span className={`font-bold ${RARITY_COLOUR[rarity.toLowerCase()] || 'text-slate-200'}`}>{name}</span>
+    </p>
+    <div className="mt-2">
+      <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500">{label}</div>
+      <div className="text-sm font-mono text-slate-200">
+        {label}: <span className="text-slate-500">&quot;{from ?? '—'}&quot;</span>
+        <span className="text-slate-600 mx-1.5">&rarr;</span>
+        <span className="text-white font-bold">&quot;{to ?? '—'}&quot;</span>
+      </div>
+    </div>
+  </div>
+);
+
 export const ChangelogsSection: React.FC = () => {
   const [log, setLog] = useState<Changelog | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [live, setLive] = useState<PendingChanges | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetchChangelog()
       .then((d) => { if (!cancelled) setLog(d); })
       .catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : 'Could not load the changelog'); });
+    fetchPending().then((p) => { if (!cancelled) setLive(p); });
     return () => { cancelled = true; };
   }, []);
+
+  const pending = live?.pending;
 
   const totals = useMemo(() => {
     const e = log?.entries ?? [];
@@ -166,6 +200,53 @@ export const ChangelogsSection: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {pending && pending.total > 0 && (
+        <div className="space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Radio className="w-4 h-4 text-amber-300" />
+            <h2 className="text-sm font-black tracking-widest uppercase text-amber-300">
+              Detected in the sheet · not yet in a snapshot
+            </h2>
+            <span className="text-[10px] font-mono text-slate-500">{pending.total} change{pending.total === 1 ? '' : 's'}</span>
+          </div>
+          {pending.changed.map((c) => (
+            <PendingCard
+              key={`c-${c.name}-${c.type}`}
+              title={`Price Change Detected (${c.name})`}
+              name={c.name} type={c.type} rarity={c.rarity} label="Hub Value"
+              from={c.fromRaw} to={c.toRaw} pct={c.pct}
+            />
+          ))}
+          {pending.added.map((a) => (
+            <PendingCard
+              key={`a-${a.name}-${a.type}`}
+              title={`New Skin Detected (${a.name})`}
+              name={a.name} type={a.type} rarity={a.rarity} label="Hub Value"
+              from={null} to={a.raw} pct={null}
+            />
+          ))}
+          {pending.removed.map((r) => (
+            <PendingCard
+              key={`r-${r.name}-${r.type}`}
+              title={`Skin Removed (${r.name})`}
+              name={r.name} type={r.type} rarity={r.rarity} label="Hub Value"
+              from={r.raw} to={null} pct={null}
+            />
+          ))}
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Live comparison of the price sheet against the last committed snapshot, refreshed every minute.
+            These become permanent entries below once the snapshot is updated.
+          </p>
+        </div>
+      )}
+
+      {live && live.sheetReachable && pending?.total === 0 && (
+        <p className="text-xs text-slate-500 flex items-center gap-2">
+          <Radio className="w-3.5 h-3.5 text-emerald-400" />
+          Sheet matches the last snapshot — {live.sheetCount} skins, nothing pending.
+        </p>
       )}
 
       {!log && !error && (

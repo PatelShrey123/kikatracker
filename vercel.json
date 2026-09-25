@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/api/bot-stats", "destination": "/api/bot-stats" },
     { "source": "/api/prices", "destination": "/api/prices" },
+    { "source": "/api/changelog", "destination": "/api/changelog" },
     { "source": "/api2/:path*", "destination": "/api/proxy?api2=1&endpoint=:path*" },
     { "source": "/api/:path*", "destination": "/api/proxy?endpoint=:path*" },
     { "source": "/trade-api/:path*", "destination": "https://kirka.lukeskywalk.com/:path*" },
