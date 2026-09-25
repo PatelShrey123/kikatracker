@@ -27,6 +27,48 @@ interface OpenTrade {
   updatedAt: string;
 }
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** "2026-09" for a trade timestamp, or '' when it cannot be read. */
+function monthKeyOf(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** Every month the snapshot index covers, newest first. Filenames look like 20260925_025958.json. */
+function monthsFromSnapshots(files: string[]): { key: string; label: string; days: number }[] {
+  const counts = new Map<string, number>();
+  for (const f of files) {
+    const m = f.match(/^(\d{4})(\d{2})\d{2}_/);
+    if (!m) continue;
+    const key = `${m[1]}-${m[2]}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([key, days]) => {
+      const [y, mo] = key.split('-');
+      return { key, label: `${MONTH_NAMES[Number(mo) - 1]} ${y}`, days };
+    });
+}
+
+/**
+ * Snapshots needed to cover a month. A snapshot dated D contains trades updated over roughly the
+ * previous four days, so trades from the last days of a month only show up in the first snapshots
+ * of the next one - the window runs to the 4th of the following month.
+ */
+function snapshotsForMonth(files: string[], monthKey: string): string[] {
+  const [y, mo] = monthKey.split('-').map(Number);
+  const start = y * 10000 + mo * 100 + 1;
+  const next = mo === 12 ? (y + 1) * 10000 + 104 : y * 10000 + (mo + 1) * 100 + 4;
+  return files.filter((f) => {
+    const n = Number(f.slice(0, 8));
+    return Number.isFinite(n) && n >= start && n <= next;
+  });
+}
+
 interface HistoryTradeItem {
   name: string;
   rarity: string;
@@ -97,6 +139,11 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
   const [loadingLive, setLoadingLive] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  // Month browsing. The API has no range endpoint - trade history is one static file per day - so a
+  // month means fetching that month's snapshots and streaming them in as they land.
+  const [snapshotIndex, setSnapshotIndex] = useState<string[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [monthProgress, setMonthProgress] = useState<{ done: number; total: number } | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [ignoreEscrow, setIgnoreEscrow] = useState(true);
@@ -140,7 +187,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     };
   }, []);
 
-  // 2. Fetch trade snapshots index ONLY on-demand when the user clicks Trade History
+  // 2. Fetch the snapshot index on-demand when the user opens Trade History, then load the newest
+  //    month. The index is just a list of filenames like 20260925_025958.json.
   useEffect(() => {
     if (activeSubTab !== 'history' || historyLoaded) return;
     let cancelled = false;
@@ -148,40 +196,72 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
     fetch('/trade-api/tradehistory/snapshots.json')
       .then((r) => r.json())
-      .then(async (data) => {
-        if (cancelled) return;
-        if (Array.isArray(data)) {
-          const jsonFiles = data
-            .filter((s) => typeof s === 'string' && s.endsWith('.json') && s !== 'dailyTrades.json')
-            .sort();
-
-          // Fetch the latest 7 snapshots (7 days of data is super fast and lightweight for potato PCs)
-          const filesToFetch = jsonFiles.slice(-7);
-          const promises = filesToFetch.map((file) =>
-            fetch(`/trade-api/tradehistory/${file}`)
-              .then((r) => r.json())
-              .catch(() => [])
-          );
-
-          const results = await Promise.all(promises);
-          if (cancelled) return;
-          const merged = results.flat();
-
-          // Sort trade history chronologically descending (latest first)
-          merged.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-          setHistoryTrades(merged);
-          setHistoryLoaded(true);
-        }
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) return;
+        const files = data
+          .filter((s) => typeof s === 'string' && /^\d{8}_\d+\.json$/.test(s))
+          .sort();
+        setSnapshotIndex(files);
+        setHistoryLoaded(true);
+        const months = monthsFromSnapshots(files);
+        if (months.length) setSelectedMonth(months[0].key);
       })
       .catch((err) => console.error('Failed to load snapshots index:', err))
-      .finally(() => {
-        if (!cancelled) setLoadingHistory(false);
-      });
+      .finally(() => { if (!cancelled) setLoadingHistory(false); });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [activeSubTab, historyLoaded]);
+
+  // 3. Load the selected month. A snapshot dated D holds trades updated over the previous few days,
+  //    so trades from the end of a month only appear in the first snapshots of the next one; the
+  //    window reaches four days past the month end and the results are filtered back to the month.
+  useEffect(() => {
+    if (!selectedMonth || !snapshotIndex.length) return;
+    let cancelled = false;
+
+    const files = snapshotsForMonth(snapshotIndex, selectedMonth);
+    if (!files.length) { setHistoryTrades([]); return; }
+
+    setHistoryTrades([]);
+    setVisibleHistoryCount(40);
+    setLoadingHistory(true);
+    setMonthProgress({ done: 0, total: files.length });
+
+    const seen = new Set<number>();
+    const collected: HistoryTrade[] = [];
+    let done = 0;
+
+    // A handful at a time: the whole month at once stalls slower machines and the browser caps
+    // parallel requests anyway. Results are flushed as each batch lands so the list fills in.
+    const BATCH = 5;
+    (async () => {
+      for (let i = 0; i < files.length && !cancelled; i += BATCH) {
+        const batch = files.slice(i, i + BATCH);
+        const results = await Promise.all(
+          batch.map((f) => fetch(`/trade-api/tradehistory/${f}`).then((r) => r.json()).catch(() => []))
+        );
+        if (cancelled) return;
+
+        for (const rows of results) {
+          if (!Array.isArray(rows)) continue;
+          for (const t of rows) {
+            // snapshots overlap slightly, and only trades actually updated in this month belong here
+            if (!t || seen.has(t.tradeId)) continue;
+            if (monthKeyOf(t.updatedAt) !== selectedMonth) continue;
+            seen.add(t.tradeId);
+            collected.push(t);
+          }
+        }
+        done += batch.length;
+        setMonthProgress({ done, total: files.length });
+        collected.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        setHistoryTrades([...collected]);
+      }
+      if (!cancelled) { setLoadingHistory(false); setMonthProgress(null); }
+    })();
+
+    return () => { cancelled = true; };
+  }, [selectedMonth, snapshotIndex]);
 
   // Helper to map rarity codes (M, L, E, R, C) to full name & border styles
   const getRarityDetails = (code: string) => {
@@ -718,6 +798,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return result;
   }, [historyTrades, ignoreEscrow, ignoreWoodTrades, searchQuery, appliedOffered, appliedWanted]);
 
+  const availableMonths = useMemo(() => monthsFromSnapshots(snapshotIndex), [snapshotIndex]);
+
   // Fast O(1) date range calculation since historyTrades is already sorted descending
   const historyDateRangeInfo = useMemo(() => {
     if (!historyTrades || historyTrades.length === 0) {
@@ -971,8 +1053,10 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         )}
       </div>
 
-      {/* Main Grid display results */}
-      {loading ? (
+      {/* Main Grid display results. History streams in a batch at a time, so the full-page spinner
+          only stands in until the first trades land - after that the list renders and the month
+          picker reports progress. */}
+      {(activeSubTab === 'history' ? loading && historyTrades.length === 0 : loading) ? (
         <div className="flex flex-col items-center justify-center py-40 space-y-3">
           <RefreshCw className="w-8 h-8 text-gold-primary animate-spin" />
           <span className="text-xs font-mono text-slate-500 uppercase tracking-widest">
@@ -1014,6 +1098,43 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Month picker. The API serves one file per day, so a month is fetched as a batch and
+                streamed in; the progress line below reports how far through it is. */}
+            {availableMonths.length > 0 && (
+              <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-mono font-extrabold tracking-wider uppercase text-slate-300">
+                    Month
+                  </span>
+                  <select
+                    value={selectedMonth ?? ''}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="bg-obsidian-card border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white font-semibold cursor-pointer hover:border-purple-400/40 focus:outline-none focus:border-purple-400/60"
+                  >
+                    {availableMonths.map((m) => (
+                      <option key={m.key} value={m.key}>{m.label}</option>
+                    ))}
+                  </select>
+                  <span className="text-[11px] font-mono text-slate-600 hidden sm:inline">
+                    {availableMonths.length} months available
+                  </span>
+                </div>
+
+                <div className="text-xs font-mono">
+                  {monthProgress ? (
+                    <span className="text-purple-300">
+                      Loading day {monthProgress.done} of {monthProgress.total} ·{' '}
+                      <strong className="text-white">{historyTrades.length.toLocaleString()}</strong> trades so far
+                    </span>
+                  ) : (
+                    <span className="text-slate-500">
+                      <strong className="text-purple-400 font-bold">{historyTrades.length.toLocaleString()}</strong> completed trades this month
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Completed Trade History Dynamic Header Banner */}
             {(() => {
               const { diffDays, dateString } = historyDateRangeInfo;
