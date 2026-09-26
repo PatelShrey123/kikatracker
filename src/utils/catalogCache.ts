@@ -2,7 +2,7 @@
 // Stores renderUrl and textureUrl locally in user's browser (localStorage / IndexedDB)
 // Avoids repeated API hits and never stores private data in the GitHub repo!
 
-const CACHE_KEY = 'kikatracker_catalog_cache_v1';
+const CACHE_KEY = 'kikatracker_catalog_cache_v2';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 Hours
 
 export interface CachedItem {
@@ -21,6 +21,11 @@ export interface CachedItem {
   } | null;
   salePrice?: number;
   published?: boolean;
+  /** Kirka's own release date for the item. */
+  createdAt?: string | null;
+  /** Kirka's own "one of a kind" flag and owner count, shown as-is. */
+  unique?: boolean | null;
+  totalOwned?: number | null;
 }
 
 interface CachePayload {
@@ -99,6 +104,11 @@ export function setCachedCatalog(items: CachedItem[]): void {
       parent: i.parent ? { name: i.parent.name, type: i.parent.type } : null,
       salePrice: i.salePrice || 0,
       published: i.published,
+      // the item modal shows these, and stripping them here made every skin look like it had no
+      // owners, was not unique, and had no release date
+      createdAt: i.createdAt ?? null,
+      unique: i.unique ?? null,
+      totalOwned: i.totalOwned ?? null,
     }));
 
     const payload: CachePayload = {
@@ -160,6 +170,9 @@ export function syncAndStoreCatalog(liveItems: any[]): { merged: CachedItem[]; n
           creators: live.creators || null,
           parent: live.parent ? { name: live.parent.name, type: live.parent.type } : null,
           salePrice: live.salePrice || 0,
+          createdAt: live.createdAt ?? null,
+          unique: live.unique ?? null,
+          totalOwned: live.totalOwned ?? null,
           published: live.published,
         });
       } else {

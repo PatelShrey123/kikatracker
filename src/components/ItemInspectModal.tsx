@@ -123,17 +123,20 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   // Format values safely
   const itemRarity = boltPriceData?.rarity || metadata.rarity || 'Common';
   const itemClassType = isCharacterType ? 'BODY SKIN' : (boltPriceData?.type || metadata.parent?.name || 'WEAPON SKIN');
-  const isUnique = metadata.unique !== undefined ? (metadata.unique ? 'Yes' : 'No') : 'No';
+  // These three come straight from Kirka and are shown as they are. Anything missing reads as a dash
+  // rather than a default: a hardcoded date was being printed for every skin, and absent values were
+  // being shown as "No" and "0", which said the opposite of the truth for unique, owned items.
+  const isUnique = typeof metadata.unique === 'boolean' ? (metadata.unique ? 'Yes' : 'No') : '—';
   const obtainableMethod = boltPriceData?.obtainableBy || 'N/A';
-  const totalOwnedCount = metadata.totalOwned !== undefined ? metadata.totalOwned : 0;
-  
-  const formattedCreatedDate = metadata.createdAt 
+  const totalOwnedCount = typeof metadata.totalOwned === 'number' ? metadata.totalOwned.toLocaleString() : '—';
+
+  const formattedCreatedDate = metadata.createdAt
     ? new Date(metadata.createdAt).toLocaleDateString(undefined, {
         month: 'long',
         day: 'numeric',
         year: 'numeric'
       })
-    : 'May 16, 2025'; // Default fallback date if empty
+    : '—';
 
   // Resolve Creator credits (or dash '-' if not provided)
   const creatorName = resolveItemCreator(metadata);
@@ -322,7 +325,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
               </div>
               <div>
                 <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block leading-none mb-1">TOTAL OWNED</span>
-                <span className="text-xs font-black text-white block leading-none">{totalOwnedCount.toLocaleString()}</span>
+                <span className="text-xs font-black text-white block leading-none">{totalOwnedCount}</span>
               </div>
             </div>
 
