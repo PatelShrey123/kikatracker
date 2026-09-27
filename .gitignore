@@ -35,3 +35,4 @@ scratch/
 
 # Reload Lab arm rigs: the public page ships the gun-only clips
 public/models/reload/*-arms.glb
+missing-skins.tsv
