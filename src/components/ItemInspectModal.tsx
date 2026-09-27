@@ -183,17 +183,17 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
       />
 
       {/* Modal Box */}
-      <div className="relative max-w-xl w-full bg-[#12141D] border border-obsidian-border/80 rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] transition-transform select-text">
+      <div className="relative max-w-xl w-full bg-[#12141D] border border-obsidian-border/80 rounded-md overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] transition-transform select-text">
         
         {/* Top Hero Section with dynamic rarity background gradient */}
         <div className={`relative ${viewMode === '3d' && has3DModel ? 'h-72' : 'h-56'} bg-gradient-to-b ${getHeaderGradient(itemRarity)} flex items-center justify-center p-6 flex-shrink-0 transition-all duration-300`}>
           
           {/* 2D / 3D Mode Switcher if 3D model is supported */}
           {has3DModel && (
-            <div className="absolute top-4 left-4 flex items-center bg-black/60 backdrop-blur-md rounded-xl p-1 border border-white/10 z-20 shadow-lg">
+            <div className="absolute top-4 left-4 flex items-center bg-black/60 backdrop-blur-md rounded-md p-1 border border-white/10 z-20 shadow-lg">
               <button
                 onClick={() => setViewMode('2d')}
-                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-mono font-bold transition-all cursor-pointer ${
                   viewMode === '2d'
                     ? 'bg-white/20 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
@@ -203,9 +203,9 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
               </button>
               <button
                 onClick={() => setViewMode('3d')}
-                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-mono font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
                   viewMode === '3d'
-                    ? 'bg-gold-primary text-black font-black shadow-[0_0_12px_rgba(212,175,55,0.4)]'
+                    ? 'bg-gold-primary text-black font-black'
                     : 'text-gold-bright hover:text-white'
                 }`}
               >
@@ -273,8 +273,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             
             {/* TYPE Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
-              <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+              <div className="p-2 bg-indigo-500/10 rounded-md text-indigo-400">
                 <Layers className="w-4 h-4" />
               </div>
               <div>
@@ -284,8 +284,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* RARITY Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
-              <div className="p-2 bg-gold-primary/10 rounded-lg text-gold-bright">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+              <div className="p-2 bg-gold-primary/10 rounded-md text-gold-bright">
                 <Award className="w-4 h-4" />
               </div>
               <div>
@@ -297,8 +297,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* UNIQUE Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
-              <div className="p-2 bg-[#ff5e00]/10 rounded-lg text-[#ff5e00]">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+              <div className="p-2 bg-[#ff5e00]/10 rounded-md text-[#ff5e00]">
                 <Layers3 className="w-4 h-4" />
               </div>
               <div>
@@ -308,8 +308,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* OBTAINABLE BY Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
-              <div className="p-2 bg-[#00ffcc]/10 rounded-lg text-[#00ffcc]">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+              <div className="p-2 bg-[#00ffcc]/10 rounded-md text-[#00ffcc]">
                 <Eye className="w-4 h-4" />
               </div>
               <div>
@@ -319,8 +319,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* TOTAL OWNED Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
-              <div className="p-2 bg-pink-500/10 rounded-lg text-pink-400">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+              <div className="p-2 bg-pink-500/10 rounded-md text-pink-400">
                 <UserCheck className="w-4 h-4" />
               </div>
               <div>
@@ -330,8 +330,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* CREATOR Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
-              <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+              <div className="p-2 bg-purple-500/10 rounded-md text-purple-400">
                 <Palette className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1">
@@ -341,8 +341,8 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* CREATED Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-xl flex items-center space-x-3.5">
-              <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+              <div className="p-2 bg-emerald-500/10 rounded-md text-emerald-400">
                 <Calendar className="w-4 h-4" />
               </div>
               <div>
@@ -359,19 +359,18 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
               MARKET DATA
             </h4>
             
-            <div className="bg-[#090A0F] border border-obsidian-border/60 rounded-xl p-4.5 space-y-3 font-mono text-xs text-slate-400">
+            <div className="bg-[#090A0F] border border-obsidian-border/60 rounded-md p-4.5 space-y-3 font-mono text-xs text-slate-400">
               {/* Hub Value Row */}
               <div className="flex justify-between items-center">
                 <span>HUB VALUE:</span>
                 <div className="flex items-center space-x-1.5 text-gold-bright font-black text-sm">
                   <Coins className="w-4 h-4 text-gold-primary" />
                   <span>{boltValue !== null ? formatValue(boltValue) : '—'}</span>
-                  {boltValue !== null && <span className="w-1.5 h-1.5 rounded-full bg-gold-primary animate-pulse ml-0.5" />}
                 </div>
               </div>
 
               {/* Units Row */}
-              <div className="flex justify-between items-center pt-2.5 border-t border-white/5">
+              <div className="flex justify-between items-center pt-2.5 border-t border-slate-800">
                 <span>UNITS:</span>
                 <span className="font-bold text-slate-200">{inventoryAmount}</span>
               </div>

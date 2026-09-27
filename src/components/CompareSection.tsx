@@ -474,7 +474,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
     const isEqual = val1 === val2;
 
     return (
-      <div className="space-y-2.5 py-4.5 border-b border-white/5 font-mono">
+      <div className="space-y-2.5 py-4.5 border-b border-slate-800 font-mono">
         <div className="flex justify-between items-center text-xs">
           <span className={`font-bold ${isEqual ? 'text-slate-300' : isVal1Better ? 'text-emerald-400 font-extrabold text-sm' : 'text-rose-500/80'}`}>
             {formatFn(val1)}
@@ -484,7 +484,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
             {formatFn(val2)}
           </span>
         </div>
-        <div className="h-2 rounded-full overflow-hidden bg-obsidian-deep border border-white/5 flex">
+        <div className="h-2 rounded-full overflow-hidden bg-obsidian-deep border border-slate-800 flex">
           <div 
             style={{ width: `${pct1}%` }} 
             className={`h-full transition-all duration-500 ${isEqual ? 'bg-indigo-500/40' : isVal1Better ? 'bg-emerald-500/80' : 'bg-rose-600/50'}`}
@@ -506,9 +506,9 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
       {/* Page Title */}
       <div className="flex justify-between items-center select-none">
         <div className="flex items-center space-x-3">
-          <GitCompare className="w-8 h-8 text-gold-primary filter drop-shadow-[0_0_8px_rgba(212,175,55,0.2)]" />
+          <GitCompare className="w-8 h-8 text-gold-primary filter drop-" />
           <div>
-            <h2 className="text-2xl font-black tracking-wider text-white uppercase">Compare Arena</h2>
+            <h2 className="text-2xl sm:text-3xl text-[#EDEDED]">Compare <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-orange)' }}>Arena</span></h2>
             <p className="text-xs text-slate-400 mt-0.5">Compare Combat statistics and inventory trade valuations side-by-side using full page workspace.</p>
           </div>
         </div>
@@ -516,7 +516,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
 
       {!primaryProfile || !compareProfile ? (
         /* SEARCH CARD WORKSPACE */
-        <div className="bg-[#0b0c13] border border-obsidian-border rounded-3xl p-8 space-y-8">
+        <div className="bg-[#0b0c13] border border-obsidian-border rounded-md p-8 space-y-8">
           <div className="text-center space-y-2.5 max-w-lg mx-auto">
             <Swords className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
             <h3 className="text-lg font-black text-white uppercase tracking-wider">Select Players to compare</h3>
@@ -534,7 +534,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                   value={p1Search}
                   onChange={(e) => setP1Search(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-[#090A0F] border border-obsidian-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/25 transition-all"
+                  className="w-full bg-[#090A0F] border border-obsidian-border rounded-md pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/25 transition-all"
                 />
               </div>
             </div>
@@ -549,14 +549,14 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                   value={p2Search}
                   onChange={(e) => setP2Search(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-[#090A0F] border border-obsidian-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
+                  className="w-full bg-[#090A0F] border border-obsidian-border rounded-md pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
                 />
               </div>
             </div>
           </div>
 
           {error && (
-            <div className="text-[11px] font-mono text-rose-500 bg-rose-950/20 border border-rose-900/30 p-3 rounded-xl text-center max-w-lg mx-auto">
+            <div className="text-[11px] font-mono text-rose-500 bg-rose-950/20 border border-rose-900/30 p-3 rounded-md text-center max-w-lg mx-auto">
               {error}
             </div>
           )}
@@ -565,16 +565,16 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
             <button
               disabled={loading}
               onClick={handlePerformComparison}
-              className="bg-gradient-to-r from-gold-primary to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-slate-900 font-extrabold text-sm px-12 py-3.5 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
+              className="bg-gradient-to-r from-gold-primary to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-slate-900 font-extrabold text-sm px-12 py-3.5 rounded-md shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
             >
               {loading ? 'Initializing Comparison...' : 'Compare'}
             </button>
           </div>
 
           {/* Diagnostic Log Panel for Client-Side Debugging */}
-          <div className="mt-8 pt-6 border-t border-white/5 space-y-2 select-text max-w-2xl mx-auto">
+          <div className="mt-8 pt-6 border-t border-slate-800 space-y-2 select-text max-w-2xl mx-auto">
             <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-black block">Client Diagnostics Console Logs</span>
-            <div className="bg-[#040509]/80 border border-white/5 rounded-xl p-4 font-mono text-[9px] text-slate-400 space-y-1 max-h-48 overflow-y-auto">
+            <div className="bg-[#040509]/80 border border-slate-800 rounded-md p-4 font-mono text-[9px] text-slate-400 space-y-1 max-h-48 overflow-y-auto">
               {debugLogs.length === 0 ? (
                 <div className="text-slate-600 italic">No diagnostics logs registered. Initialize query filters to log actions.</div>
               ) : (
@@ -590,12 +590,12 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
         <div className="space-y-6">
           
           {/* Header Panel */}
-          <div className="bg-[#0b0c13] border border-obsidian-border rounded-3xl p-6 grid grid-cols-3 items-center text-center select-none relative overflow-hidden">
+          <div className="bg-[#0b0c13] border border-obsidian-border rounded-md p-6 grid grid-cols-3 items-center text-center select-none relative overflow-hidden">
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/5 rounded-full filter blur-3xl pointer-events-none" />
             
             <div className="flex items-center space-x-4 z-10 text-left">
               {/* P1 Avatar */}
-              <div className="relative w-16 h-16 bg-[#040509] border border-indigo-500/25 rounded-xl flex items-center justify-center p-1 shadow-indigo-500/10 overflow-hidden flex-shrink-0">
+              <div className="relative w-16 h-16 bg-[#040509] border border-indigo-500/25 rounded-md flex items-center justify-center p-1 shadow-indigo-500/10 overflow-hidden flex-shrink-0">
                 {croppedHead1 ? (
                   <img
                     src={croppedHead1}
@@ -645,7 +645,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                 <span className="inline-block text-[8px] font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/30 px-2 py-0.5 rounded uppercase font-bold mt-1">LEVEL {compareProfile.level}</span>
               </div>
               {/* P2 Avatar */}
-              <div className="relative w-16 h-16 bg-[#040509] border border-gold-primary/25 rounded-xl flex items-center justify-center p-1 shadow-gold-glow/10 overflow-hidden flex-shrink-0">
+              <div className="relative w-16 h-16 bg-[#040509] border border-gold-primary/25 rounded-md flex items-center justify-center p-1 shadow-gold-glow/10 overflow-hidden flex-shrink-0">
                 {croppedHead2 ? (
                   <img
                     src={croppedHead2}
@@ -665,13 +665,13 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
           </div>
 
           {/* Subnavigation Tab Switcher */}
-          <div className="flex bg-[#0b0c13] border border-obsidian-border p-1 rounded-2xl select-none">
+          <div className="flex bg-[#0b0c13] border border-obsidian-border p-1 rounded-md select-none">
             <button
               onClick={() => {
                 setCompareType('stats');
                 updateUrlParams(p1Search, p2Search, 'stats');
               }}
-              className={`flex-1 py-4 text-xs font-bold uppercase rounded-xl text-center transition-all cursor-pointer ${compareType === 'stats' ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/20' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 py-4 text-xs font-bold uppercase rounded-md text-center transition-all cursor-pointer ${compareType === 'stats' ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/20' : 'text-slate-400 hover:text-slate-200'}`}
             >
               Combat Stats Compare
             </button>
@@ -680,14 +680,14 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                 setCompareType('inventory');
                 updateUrlParams(p1Search, p2Search, 'inventory');
               }}
-              className={`flex-1 py-4 text-xs font-bold uppercase rounded-xl text-center transition-all cursor-pointer ${compareType === 'inventory' ? 'bg-gold-primary/15 text-gold-bright border border-gold-primary/20' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 py-4 text-xs font-bold uppercase rounded-md text-center transition-all cursor-pointer ${compareType === 'inventory' ? 'bg-gold-primary/15 text-gold-bright border border-gold-primary/20' : 'text-slate-400 hover:text-slate-200'}`}
             >
               Inventory Valuations
             </button>
           </div>
 
           {/* Tab Work Content */}
-          <div className="bg-[#0b0c13] border border-obsidian-border rounded-3xl p-6">
+          <div className="bg-[#0b0c13] border border-obsidian-border rounded-md p-6">
             {compareType === 'stats' ? (
               /* STATS VIEW */
               <div className="space-y-2">
@@ -708,25 +708,25 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                 
                 {/* Active skin loadout breakdown cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-8">
-                  <div className="bg-[#090A0F] border border-white/5 p-5 rounded-2xl space-y-4">
-                    <span className="text-[10px] font-mono text-indigo-400 font-bold block uppercase tracking-widest border-b border-white/5 pb-2">{primaryProfile.name}'s Combat Loadout</span>
+                  <div className="bg-[#090A0F] border border-slate-800 p-5 rounded-md space-y-4">
+                    <span className="text-[10px] font-mono text-indigo-400 font-bold block uppercase tracking-widest border-b border-slate-800 pb-2">{primaryProfile.name}'s Combat Loadout</span>
                     <div className="space-y-1 text-xs">
                       <span className="text-slate-500 font-mono text-[9px] block uppercase">Character Equipped</span>
                       <span className="font-extrabold text-slate-200 block uppercase truncate text-sm">{primaryProfile.activeBodySkin?.name || 'Default'}</span>
                     </div>
-                    <div className="space-y-1 text-xs pt-2.5 border-t border-white/5">
+                    <div className="space-y-1 text-xs pt-2.5 border-t border-slate-800">
                       <span className="text-slate-500 font-mono text-[9px] block uppercase">Weapon Equipped</span>
                       <span className="font-extrabold text-slate-200 block uppercase truncate text-sm">{primaryProfile.activeWeapon1Skin?.name || 'Default'}</span>
                     </div>
                   </div>
 
-                  <div className="bg-[#090A0F] border border-white/5 p-5 rounded-2xl space-y-4">
-                    <span className="text-[10px] font-mono text-gold-bright font-bold block uppercase tracking-widest border-b border-white/5 pb-2">{compareProfile.name}'s Combat Loadout</span>
+                  <div className="bg-[#090A0F] border border-slate-800 p-5 rounded-md space-y-4">
+                    <span className="text-[10px] font-mono text-gold-bright font-bold block uppercase tracking-widest border-b border-slate-800 pb-2">{compareProfile.name}'s Combat Loadout</span>
                     <div className="space-y-1 text-xs">
                       <span className="text-slate-500 font-mono text-[9px] block uppercase">Character Equipped</span>
                       <span className="font-extrabold text-slate-200 block uppercase truncate text-sm">{compareProfile.activeBodySkin?.name || 'Default'}</span>
                     </div>
-                    <div className="space-y-1 text-xs pt-2.5 border-t border-white/5">
+                    <div className="space-y-1 text-xs pt-2.5 border-t border-slate-800">
                       <span className="text-slate-500 font-mono text-[9px] block uppercase">Weapon Equipped</span>
                       <span className="font-extrabold text-slate-200 block uppercase truncate text-sm">{compareProfile.activeWeapon1Skin?.name || 'Default'}</span>
                     </div>
@@ -738,20 +738,20 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
               <div className="space-y-6">
                 
                 {/* Valuation metrics grid */}
-                <div className="grid grid-cols-3 gap-4 border-b border-white/5 pb-5 select-none">
-                  <div className="bg-[#090A0F]/80 p-3.5 text-center rounded-xl flex flex-col justify-center">
+                <div className="grid grid-cols-3 gap-4 border-b border-slate-800 pb-5 select-none">
+                  <div className="bg-[#090A0F]/80 p-3.5 text-center rounded-md flex flex-col justify-center">
                     <span className="text-slate-500 text-[9px] font-mono uppercase block tracking-wider">Metrics</span>
                     <span className="text-xs text-slate-400 font-extrabold block mt-2 uppercase font-mono">Net Worth</span>
                     <span className="text-xs text-slate-400 font-extrabold block mt-2.5 uppercase font-mono">Total Units</span>
                   </div>
 
-                  <div className="bg-indigo-950/15 p-3.5 rounded-xl border border-indigo-500/10 text-center">
+                  <div className="bg-indigo-950/15 p-3.5 rounded-md border border-indigo-500/10 text-center">
                     <span className="text-indigo-400 text-[10px] font-mono uppercase font-black block">{primaryProfile.name}</span>
                     <span className="text-sm text-emerald-400 font-black block mt-2 font-mono">{formatValue(netWorth1)}</span>
                     <span className="text-sm text-slate-200 font-bold block mt-2 font-mono">{units1.toLocaleString()}</span>
                   </div>
 
-                  <div className="bg-gold-primary/5 p-3.5 rounded-xl border border-gold-primary/10 text-center">
+                  <div className="bg-gold-primary/5 p-3.5 rounded-md border border-gold-primary/10 text-center">
                     <span className="text-gold-bright text-[10px] font-mono uppercase font-black block">{compareProfile.name}</span>
                     <span className="text-sm text-emerald-400 font-black block mt-2 font-mono">{formatValue(netWorth2)}</span>
                     <span className="text-sm text-slate-200 font-bold block mt-2 font-mono">{units2.toLocaleString()}</span>
@@ -762,8 +762,8 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
                   
                   {/* LEFT: Player 1 Checklist */}
-                  <div className="flex flex-col min-h-0 bg-[#090A0F]/50 border border-white/5 rounded-2xl p-5">
-                    <div className="flex justify-between items-center pb-3.5 border-b border-white/5 mb-4 select-none">
+                  <div className="flex flex-col min-h-0 bg-[#090A0F]/50 border border-slate-800 rounded-md p-5">
+                    <div className="flex justify-between items-center pb-3.5 border-b border-slate-800 mb-4 select-none">
                       <span className="text-sm font-black uppercase text-indigo-400 tracking-wider">Your Skins</span>
                       {mySelectedCount > 0 && (
                         <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-500 text-white font-extrabold">{mySelectedCount} Selected</span>
@@ -777,7 +777,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                         placeholder="Search your skins..."
                         value={mySearchTerm}
                         onChange={(e) => setMySearchTerm(e.target.value)}
-                        className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/20 transition-all"
+                        className="w-full bg-[#0b0c13] border border-obsidian-border rounded-md pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/20 transition-all"
                       />
                     </div>
 
@@ -793,14 +793,14 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                           <div
                             key={invItem.item.id}
                             onClick={() => handleToggleMyItem(invItem.item.id)}
-                            className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all cursor-pointer border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : ''}`}
+                            className={`group relative border rounded-md p-3 flex items-center justify-between transition-all cursor-pointer border-slate-800 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : ''}`}
                           >
                             <div className="flex items-center space-x-3.5 flex-grow min-w-0">
                               <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${isSelected ? 'border-indigo-500 bg-indigo-500 text-slate-900' : 'border-white/10 bg-[#090A0F]'}`}>
                                 {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                               </div>
 
-                              <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              <div className="w-10 h-10 rounded-md bg-[#090A0F] border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                                 {renderUrl ? (
                                   <img
                                     src={renderUrl}
@@ -828,11 +828,11 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                               {isSelected && (
                                 <div 
                                   onClick={(e) => e.stopPropagation()}
-                                  className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow"
+                                  className="flex items-center bg-[#090A0F] border border-white/10 rounded-md overflow-hidden shadow"
                                 >
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, false, invItem.amount); }}
-                                    className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                   >
                                     <Minus className="w-2.5 h-2.5" />
                                   </button>
@@ -841,14 +841,14 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                                   </span>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, true, invItem.amount); }}
-                                    className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                   >
                                     <Plus className="w-2.5 h-2.5" />
                                   </button>
                                 </div>
                               )}
 
-                              <div className="bg-[#090A0F] border border-white/5 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
+                              <div className="bg-[#090A0F] border border-slate-800 px-3 py-1.5 rounded-md flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
                                 <img
                                   src={`${import.meta.env.BASE_URL}kirka_coin.png`}
                                   alt="coin"
@@ -862,13 +862,13 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                       })}
 
                       {sortedMyInventory.length === 0 && (
-                        <div className="text-center py-24 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
+                        <div className="text-center py-24 text-slate-600 text-xs border border-dashed border-slate-800 rounded-md select-none">No skins found</div>
                       )}
 
                       {sortedMyInventory.length > myVisibleCount && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setMyVisibleCount(prev => prev + 15); }}
-                          className="w-full py-3 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
+                          className="w-full py-3 bg-[#0b0c13] hover:bg-[#12141d] border border-slate-800 rounded-md text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
                         >
                           Load More Skins
                         </button>
@@ -877,8 +877,8 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                   </div>
 
                   {/* RIGHT: Player 2 Checklist */}
-                  <div className="flex flex-col min-h-0 bg-[#090A0F]/50 border border-white/5 rounded-2xl p-5">
-                    <div className="flex justify-between items-center pb-3.5 border-b border-white/5 mb-4 select-none">
+                  <div className="flex flex-col min-h-0 bg-[#090A0F]/50 border border-slate-800 rounded-md p-5">
+                    <div className="flex justify-between items-center pb-3.5 border-b border-slate-800 mb-4 select-none">
                       <span className="text-sm font-black uppercase text-gold-bright tracking-wider">{compareProfile.name}'s Skins</span>
                       {theirSelectedCount > 0 && (
                         <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-gold-primary text-slate-900 font-extrabold">{theirSelectedCount} Selected</span>
@@ -892,7 +892,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                         placeholder={`Search ${compareProfile.name}'s skins...`}
                         value={theirSearchTerm}
                         onChange={(e) => setTheirSearchTerm(e.target.value)}
-                        className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
+                        className="w-full bg-[#0b0c13] border border-obsidian-border rounded-md pl-10 pr-3 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
                       />
                     </div>
 
@@ -907,14 +907,14 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                           <div
                             key={invItem.item.id}
                             onClick={() => handleToggleTheirItem(invItem.item.id)}
-                            className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all cursor-pointer border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-gold-primary/30 bg-gold-primary/[0.01]' : ''}`}
+                            className={`group relative border rounded-md p-3 flex items-center justify-between transition-all cursor-pointer border-slate-800 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-gold-primary/30 bg-gold-primary/[0.01]' : ''}`}
                           >
                             <div className="flex items-center space-x-3.5 flex-grow min-w-0">
                               <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${isSelected ? 'border-gold-primary bg-gold-primary text-slate-900' : 'border-white/10 bg-[#090A0F]'}`}>
                                 {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                               </div>
 
-                              <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              <div className="w-10 h-10 rounded-md bg-[#090A0F] border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                                 {renderUrl ? (
                                   <img
                                     src={renderUrl}
@@ -942,11 +942,11 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                               {isSelected && (
                                 <div 
                                   onClick={(e) => e.stopPropagation()}
-                                  className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow"
+                                  className="flex items-center bg-[#090A0F] border border-white/10 rounded-md overflow-hidden shadow"
                                 >
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount); }}
-                                    className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                   >
                                     <Minus className="w-2.5 h-2.5" />
                                   </button>
@@ -955,14 +955,14 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                                   </span>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount); }}
-                                    className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                    className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                   >
                                     <Plus className="w-2.5 h-2.5" />
                                   </button>
                                 </div>
                               )}
 
-                              <div className="bg-[#090A0F] border border-white/5 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
+                              <div className="bg-[#090A0F] border border-slate-800 px-3 py-1.5 rounded-md flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
                                 <img
                                   src={`${import.meta.env.BASE_URL}kirka_coin.png`}
                                   alt="coin"
@@ -976,13 +976,13 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                       })}
 
                       {sortedTheirInventory.length === 0 && (
-                        <div className="text-center py-24 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
+                        <div className="text-center py-24 text-slate-600 text-xs border border-dashed border-slate-800 rounded-md select-none">No skins found</div>
                       )}
 
                       {sortedTheirInventory.length > theirVisibleCount && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setTheirVisibleCount(prev => prev + 15); }}
-                          className="w-full py-3 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
+                          className="w-full py-3 bg-[#0b0c13] hover:bg-[#12141d] border border-slate-800 rounded-md text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
                         >
                           Load More Skins
                         </button>
@@ -993,8 +993,8 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                 </div>
 
                 {/* QUICK TRADE PANEL */}
-                <div className="bg-[#090A0F] border border-obsidian-border rounded-2xl p-5 space-y-3 select-none">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-2.5">
+                <div className="bg-[#090A0F] border border-obsidian-border rounded-md p-5 space-y-3 select-none">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-2.5">
                     <span className="text-xs font-mono text-indigo-400 tracking-wider font-black uppercase flex items-center space-x-2">
                       <ArrowRightLeft className="w-4 h-4" />
                       <span>Quick Trade Generator</span>
@@ -1024,7 +1024,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
                       <p className="text-xs text-slate-400">Copy this trade command paste it directly inside the Kirka.io game chat to create a trade offer immediately:</p>
                       <div 
                         onClick={handleCopyCommand}
-                        className="bg-[#040509] border border-white/5 rounded-xl p-4 font-mono text-sm text-indigo-300 hover:text-indigo-200 break-all select-all cursor-pointer transition-colors relative group hover:border-indigo-500/25"
+                        className="bg-[#040509] border border-slate-800 rounded-md p-4 font-mono text-sm text-indigo-300 hover:text-indigo-200 break-all select-all cursor-pointer transition-colors relative group hover:border-indigo-500/25"
                         title="Click to copy to clipboard"
                       >
                         {generatedTradeCommand}
@@ -1045,7 +1045,7 @@ export const CompareSection: React.FC<CompareSectionProps> = ({
           <div className="flex justify-between items-center select-none pt-4">
             <button
               onClick={handleResetComparison}
-              className="flex items-center space-x-2 bg-[#1b1c26] hover:bg-[#252838] border border-white/10 rounded-xl px-5 py-3 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
+              className="flex items-center space-x-2 bg-[#1b1c26] hover:bg-[#252838] border border-white/10 rounded-md px-5 py-3 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
             >
               <GitCompare className="w-4 h-4 text-indigo-400" />
               <span>Compare Different Players</span>

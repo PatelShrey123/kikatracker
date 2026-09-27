@@ -58,15 +58,15 @@ export const SkinPicker: React.FC<SkinPickerProps> = ({ label, options, value, o
           setQuery('');
           setOpen((o) => !o);
         }}
-        className="w-full flex items-center justify-between gap-2 bg-[#090A0F]/80 border border-obsidian-border hover:border-gold-primary/40 rounded-xl px-3 py-2.5 text-sm text-left text-white disabled:opacity-50 cursor-pointer"
+        className="w-full flex items-center justify-between gap-2 bg-[#090A0F]/80 border border-obsidian-border hover:border-gold-primary/40 rounded-md px-3 py-2.5 text-sm text-left text-white disabled:opacity-50 cursor-pointer"
       >
         <span className="truncate">{selected ? selected.label : 'Select…'}</span>
         <ChevronDown className={`w-4 h-4 text-slate-500 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-1.5 w-full min-w-[220px] bg-[#0b0d14] border border-obsidian-border rounded-xl shadow-2xl overflow-hidden">
-          <div className="relative border-b border-white/5">
+        <div className="absolute z-30 mt-1.5 w-full min-w-[220px] bg-[#0b0d14] border border-obsidian-border rounded-md shadow-2xl overflow-hidden">
+          <div className="relative border-b border-slate-800">
             <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               ref={inputRef}
@@ -85,7 +85,7 @@ export const SkinPicker: React.FC<SkinPickerProps> = ({ label, options, value, o
                     onChange(o.key);
                     setOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-white/5 cursor-pointer ${
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-obsidian-card cursor-pointer ${
                     o.key === value ? 'text-gold-bright' : 'text-slate-200'
                   }`}
                 >
@@ -94,7 +94,7 @@ export const SkinPicker: React.FC<SkinPickerProps> = ({ label, options, value, o
                     {o.sublabel && <span className="ml-1.5 text-[10px] text-slate-500 uppercase">{o.sublabel}</span>}
                   </span>
                   {o.badge && (
-                    <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-white/5 text-slate-400 flex-shrink-0">
+                    <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-obsidian-card text-slate-400 flex-shrink-0">
                       {o.badge}
                     </span>
                   )}

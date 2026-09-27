@@ -237,13 +237,13 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
                 if (error) setError(null);
               }}
               placeholder="#SHORTID or UUID"
-              className="w-full bg-[#090A0F]/80 border border-obsidian-border focus:border-gold-primary/50 outline-none rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600"
+              className="w-full bg-[#090A0F]/80 border border-obsidian-border focus:border-gold-primary/50 outline-none rounded-md pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="btn-interactive px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep disabled:opacity-60"
+            className="btn-interactive px-5 py-2.5 rounded-md text-xs font-black uppercase tracking-wider bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep disabled:opacity-60"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Show Fit'}
           </button>
@@ -251,7 +251,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 text-sm text-rose-300 bg-rose-500/10 border border-rose-500/25 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2 text-sm text-rose-300 bg-rose-500/10 border border-rose-500/25 rounded-md px-4 py-3">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -265,7 +265,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
             </div>
 
             {/* Combo builder */}
-            <div className="w-full xl:max-w-sm bg-[#0b0c13]/80 border border-obsidian-border rounded-2xl p-5 space-y-4">
+            <div className="w-full xl:max-w-sm bg-[#0b0c13]/80 border border-obsidian-border rounded-md p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-wider text-white">Build a combo</h3>
@@ -276,7 +276,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
                     type="button"
                     onClick={randomize}
                     title="Random combo"
-                    className="p-2 rounded-lg border border-white/10 bg-black/30 text-slate-400 hover:text-gold-bright cursor-pointer"
+                    className="p-2 rounded-md border border-white/10 bg-black/30 text-slate-400 hover:text-gold-bright cursor-pointer"
                   >
                     <Shuffle className="w-3.5 h-3.5" />
                   </button>
@@ -284,7 +284,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
                     type="button"
                     onClick={() => setCombo(PLAYER_COMBO)}
                     title="Reset to player's fit"
-                    className="p-2 rounded-lg border border-white/10 bg-black/30 text-slate-400 hover:text-white cursor-pointer"
+                    className="p-2 rounded-md border border-white/10 bg-black/30 text-slate-400 hover:text-white cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
@@ -329,14 +329,14 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
           <div className="flex items-center justify-center gap-2">
             <button
               onClick={saveRender}
-              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Save render</span>
             </button>
             <button
               onClick={copyLink}
-              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Link2 className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copied' : 'Copy link'}</span>
@@ -345,7 +345,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
         </div>
       ) : (
         !loading && (
-          <div className="text-center text-slate-500 text-sm py-24 border border-dashed border-obsidian-border rounded-2xl">
+          <div className="text-center text-slate-500 text-sm py-24 border border-dashed border-obsidian-border rounded-md">
             Search a player to see their fit in 3D.
           </div>
         )

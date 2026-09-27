@@ -350,7 +350,7 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
   ];
 
   return (
-    <div className="w-full max-w-[690px] mx-auto rounded-xl overflow-hidden select-none shadow-2xl border border-[#2c3653]" style={{ fontFamily: '"Exo 2", Outfit, Inter, system-ui, sans-serif' }}>
+    <div className="w-full max-w-[690px] mx-auto rounded-md overflow-hidden select-none shadow-2xl border border-[#2c3653]" style={{ fontFamily: '"Exo 2", Outfit, Inter, system-ui, sans-serif' }}>
       <div
         className="relative w-full h-[440px] sm:h-[620px]"
         style={{ background: 'radial-gradient(ellipse at 50% 45%, #2a3450 0%, #222a42 55%, #1c2338 100%)' }}

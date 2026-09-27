@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera, GitCompare, Swords } from 'lucide-react';
+import { Users, ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera, GitCompare, Swords } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 
 import { fetchUserInventory, fetchAllPublicItems } from '../utils/api';
@@ -203,7 +203,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       </div>
 
       {/* Profile Header Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
+      <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-md p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
         {vipBackground && (
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <img 
@@ -224,11 +224,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
         <div className="flex items-center space-x-6 relative z-10">
           {/* Square Avatar Column (displays cropped head/face!) */}
           <div className="flex flex-col items-center space-y-2">
-            <div className={`relative w-20 h-20 bg-obsidian-dark rounded-xl flex items-center justify-center p-1.5 overflow-hidden transition-all ${
+            <div className={`relative w-20 h-20 bg-obsidian-dark rounded-md flex items-center justify-center p-1.5 overflow-hidden transition-all ${
               vip 
                 ? vipType === 'yip'
-                  ? 'border-2 border-cyan-400/80 shadow-[0_0_22px_rgba(82,126,255,0.6)] yip-avatar-glow'
-                  : 'border-2 border-purple-500/70 shadow-[0_0_22px_rgba(168,85,247,0.45)] vip-avatar-glow'
+                  ? 'border-2 border-cyan-400/80 yip-avatar-glow'
+                  : 'border-2 border-purple-500/70 vip-avatar-glow'
                 : 'border border-gold-primary/20 shadow-gold-glow'
             }`}>
               {croppedHeadUrl && !avatarError ? (
@@ -266,7 +266,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               )}
             </div>
             <span className={`text-[11px] font-black font-mono ${
-              vip ? `${vipTextClass} filter drop-shadow-[0_0_6px_rgba(82,126,255,0.6)]` : 'text-slate-300'
+              vip ? `${vipTextClass} filter drop-` : 'text-slate-300'
             }`}>
               #{profile.shortId}
             </span>
@@ -275,7 +275,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
               {vip ? (
-                <span className={`${vipBadgeClass} font-mono text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded shadow-[0_0_14px_rgba(82,126,255,0.35)] flex items-center space-x-1 select-none`}>
+                <span className={`${vipBadgeClass} font-mono text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded flex items-center space-x-1 select-none`}>
                   <span>{vipRole}</span>
                 </span>
               ) : (
@@ -289,7 +289,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
             }`}>
               <span>{profile.name}</span>
               {vip && (
-                <span className={`text-base ${vipType === 'yip' ? 'text-cyan-300 filter drop-shadow-[0_0_8px_rgba(192,245,255,0.9)]' : 'text-purple-300 filter drop-shadow-[0_0_8px_rgba(192,132,252,0.9)]'} animate-pulse select-none`} title={`Premium VIP Supporter (${vipType === 'yip' ? 'Yip' : 'Souless'})`}>
+                <span className={`text-base ${vipType === 'yip' ? 'text-cyan-300 filter drop-' : 'text-purple-300 filter drop-'} animate-pulse select-none`} title={`Premium VIP Supporter (${vipType === 'yip' ? 'Yip' : 'Souless'})`}>
                   ⚡
                 </span>
               )}
@@ -305,7 +305,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       onClick={() => onSelectClan(profile.clan!)}
                       className="flex items-center space-x-1.5 text-gold-bright hover:text-gold-primary font-bold uppercase tracking-wider transition-colors hover:underline cursor-pointer"
                     >
-                      <img src={`${import.meta.env.BASE_URL}clan_registry.png`} alt="Clan Registry" className="w-3.5 h-3.5 rounded-sm object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.4)]" />
+                      <Users className="w-3.5 h-3.5 shrink-0" />
                       <span>[{profile.clan}]</span>
                     </button>
                   </>
@@ -318,7 +318,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
         </div>
 
         {/* Quick KLO / Stats Card */}
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 bg-[#090A0F]/85 border border-obsidian-border p-4 rounded-xl">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 bg-[#090A0F]/85 border border-obsidian-border p-4 rounded-md">
           <div className="text-center px-4 border-r border-obsidian-border/50">
             <span className="text-[10px] text-slate-500 tracking-wider font-mono uppercase block">S&D Rating</span>
             <span className="text-lg font-bold text-white block mt-0.5">{profile.kloSAD ? profile.kloSAD.toFixed(1) : '—'}</span>
@@ -387,7 +387,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           {profileTab === 'inventory' ? (
             <button
               onClick={() => onCompare(profile.id, 'inventory')}
-              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-gold-primary/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
+              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-gold-primary/25 px-4.5 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
             >
               <GitCompare className="w-3.5 h-3.5 text-gold-primary" />
               <span>Compare Inventory</span>
@@ -395,7 +395,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           ) : (
             <button
               onClick={() => onCompare(profile.id, 'stats')}
-              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-indigo-500/25 px-4.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
+              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-indigo-500/25 px-4.5 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
             >
               <GitCompare className="w-3.5 h-3.5 text-indigo-400" />
               <span>Compare Stats</span>
@@ -432,7 +432,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       onInspectItem(profile.activeBodySkin.name, 'character', 1);
                     }
                   }}
-                  className="card-interactive bg-[#0b0c13] border border-obsidian-border/80 p-5 rounded-2xl flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
+                  className="card-interactive bg-[#0b0c13] border border-obsidian-border/80 p-5 rounded-md flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -449,7 +449,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       )}
                     </div>
                     {profile.activeBodySkin && (
-                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-[#161825] px-2 py-1 rounded border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
+                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-[#161825] px-2 py-1 rounded border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
                     )}
                   </div>
 
@@ -475,11 +475,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center pt-3 border-t border-white/5 font-mono text-xs text-slate-500">
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-800 font-mono text-xs text-slate-500">
                     <span>Valuation:</span>
                     {profile.activeBodySkin ? (
                       <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                        <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
+                        <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-" />
                         <span>{formatValue(getItemPrice(profile.activeBodySkin))}</span>
                       </div>
                     ) : (
@@ -499,7 +499,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       );
                     }
                   }}
-                  className="card-interactive bg-[#0b0c13] border border-obsidian-border/80 p-5 rounded-2xl flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
+                  className="card-interactive bg-[#0b0c13] border border-obsidian-border/80 p-5 rounded-md flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -521,7 +521,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       )}
                     </div>
                     {profile.activeWeapon1Skin && (
-                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-[#161825] px-2 py-1 rounded border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
+                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-[#161825] px-2 py-1 rounded border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
                     )}
                   </div>
 
@@ -554,11 +554,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center pt-3 border-t border-white/5 font-mono text-xs text-slate-500">
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-800 font-mono text-xs text-slate-500">
                     <span>Valuation:</span>
                     {profile.activeWeapon1Skin ? (
                       <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                        <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-shadow-[0_0_2px_rgba(212,175,55,0.3)]" />
+                        <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain filter drop-" />
                         <span>{formatValue(getItemPrice(profile.activeWeapon1Skin))}</span>
                       </div>
                     ) : (
@@ -579,66 +579,66 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">K / D</span>
                     <span className="text-xl sm:text-2xl font-black text-[#818cf8] block font-sans">{kd}</span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">KILLS</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawKills.toLocaleString()}</span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">DEATHS</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawDeaths.toLocaleString()}</span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">HEADSHOTS</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawHeadshots.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">GAMES</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawGames.toLocaleString()}</span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">WINS</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawWins.toLocaleString()}</span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl col-span-2 md:col-span-1">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md col-span-2 md:col-span-1">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">WIN RATE</span>
                     <span className="text-xl sm:text-2xl font-black text-[#818cf8] block font-sans">{winRate}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">TOTAL SCORE</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawScore.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">COINS</span>
                     <span className="text-xl sm:text-2xl font-black text-gold-bright block font-sans">
                       {profile.coins !== undefined ? profile.coins.toLocaleString() : '—'}
                     </span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">DIAMONDS</span>
                     <span className="text-xl sm:text-2xl font-black text-cyan-400 block font-sans">
                       {profile.diamonds !== undefined ? profile.diamonds.toLocaleString() : '—'}
                     </span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">TOTAL XP</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">
                       {profile.totalXp !== undefined ? profile.totalXp.toLocaleString() : '—'}
                     </span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">NEXT LEVEL XP</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">
                       {profile.xpUntilNextLevel !== undefined ? profile.xpUntilNextLevel.toLocaleString() : '—'}
@@ -647,31 +647,31 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">KLO</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">
                       {profile.klo !== undefined ? profile.klo.toLocaleString() : '—'}
                     </span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">RANKED</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">
                       {formatRating(profile.kloRanked)}
                     </span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">SAD</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">
                       {formatRating(profile.kloSAD)}
                     </span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">1V1</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">
                       {formatRating(profile.klo1V1)}
                     </span>
                   </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-xl">
+                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
                     <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">2V2</span>
                     <span className="text-xl sm:text-2xl font-black text-white block font-sans">
                       {formatRating(profile.klo2V2)}
@@ -690,12 +690,12 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               <Database className="w-4 h-4 text-gold-primary" />
               <span>Kirka Inventory Valuation & Net Worth Calculator</span>
             </h2>
-            <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-md p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                 {/* Net Worth Block */}
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gold-primary/10 rounded-lg border border-gold-primary/20 flex items-center justify-center">
-                    <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-7.5 h-7.5 object-contain filter drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]" />
+                  <div className="p-2 bg-gold-primary/10 rounded-md border border-gold-primary/20 flex items-center justify-center">
+                    <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-7.5 h-7.5 object-contain filter drop-" />
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-500 tracking-wider uppercase font-mono block">Estimated Net Worth</span>
@@ -706,8 +706,8 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                 </div>
 
                 {/* Total Units Block */}
-                <div className="flex items-center space-x-3 border-t sm:border-t-0 sm:border-l border-white/5 pt-4 sm:pt-0 sm:pl-6">
-                  <div className="p-3 bg-gold-primary/5 rounded-lg border border-white/5">
+                <div className="flex items-center space-x-3 border-t sm:border-t-0 sm:border-l border-slate-800 pt-4 sm:pt-0 sm:pl-6">
+                  <div className="p-3 bg-gold-primary/5 rounded-md border border-slate-800">
                     <Database className="w-6 h-6 text-slate-400" />
                   </div>
                   <div>
@@ -723,30 +723,30 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               <div className="flex items-center gap-3 self-start md:self-auto">
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright hover:shadow-gold-glow text-obsidian-deep px-4 py-2.5 rounded-xl font-bold hover:scale-[1.02] transition-all cursor-pointer text-xs"
+                  className="flex items-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright hover:shadow-gold-glow text-obsidian-deep px-4 py-2.5 rounded-md font-bold hover:scale-[1.02] transition-all cursor-pointer text-xs"
                 >
                   <Camera className="w-4 h-4" />
                   <span>Share Inventory</span>
                 </button>
 
-                <div className="bg-obsidian-deep/80 border border-obsidian-border px-4 py-2.5 rounded-lg flex items-center space-x-2 text-xs font-mono text-slate-400">
+                <div className="bg-obsidian-deep/80 border border-obsidian-border px-4 py-2.5 rounded-md flex items-center space-x-2 text-xs font-mono text-slate-400">
                   <Database className="w-3.5 h-3.5 text-gold-primary" />
                   <span>Price Index: <strong className="text-slate-200">Kirka Hub Valuation</strong></span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 bg-obsidian-card/40 border border-obsidian-border/50 px-4 py-3 rounded-lg text-xs text-slate-400 font-mono">
+            <div className="flex items-center space-x-2 bg-obsidian-card/40 border border-obsidian-border/50 px-4 py-3 rounded-md text-xs text-slate-400 font-mono">
               <Award className="w-4 h-4 text-gold-primary" />
               <span>Note: All prices shown in the inventory valuations are synchronized directly from the official **Kirka Hub Valuation** index. Unpriced items are sorted to the bottom of the list.</span>
             </div>
 
             {loadingInventory ? (
-              <div className="flex items-center justify-center py-32 bg-obsidian-card border border-obsidian-border rounded-xl">
+              <div className="flex items-center justify-center py-32 bg-obsidian-card border border-obsidian-border rounded-md">
                 <div className="w-8 h-8 border-2 border-gold-primary border-t-transparent rounded-full animate-spin" />
               </div>
             ) : inventory.length === 0 ? (
-              <div className="text-center py-24 bg-obsidian-card border border-obsidian-border rounded-xl text-slate-500 text-sm">
+              <div className="text-center py-24 bg-obsidian-card border border-obsidian-border rounded-md text-slate-500 text-sm">
                 No items found in this user's inventory.
               </div>
             ) : (
@@ -768,9 +768,9 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                         invItem.amount,
                         item.textureUrl
                       )}
-                      className={`card-interactive relative flex flex-col justify-between bg-[#0e1017] border p-4.5 rounded-2xl cursor-pointer hover:shadow-gold-glow group transition-all duration-300 ${rarityStyles}`}
+                      className={`card-interactive relative flex flex-col justify-between bg-[#0e1017] border p-4.5 rounded-md cursor-pointer hover:shadow-gold-glow group transition-all duration-300 ${rarityStyles}`}
                     >
-                      <span className="absolute top-3 right-3 bg-[#11131e]/90 border border-white/5 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
+                      <span className="absolute top-3 right-3 bg-[#11131e]/90 border border-slate-800 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
                         x{invItem.amount}
                       </span>
 
@@ -804,7 +804,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                         )}
                       </div>
 
-                      <div className="flex items-end justify-between pt-3 mt-1 border-t border-white/5">
+                      <div className="flex items-end justify-between pt-3 mt-1 border-t border-slate-800">
                         <div className="space-y-0.5 text-left">
                           <span className="text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase">
                             {item.type === 'BODY_SKIN' ? 'Body Skin' : item.parent?.name || 'Weapon Skin'}

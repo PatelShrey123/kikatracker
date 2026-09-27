@@ -300,7 +300,7 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
               key={w}
               type="button"
               onClick={() => { setWeapon(w); setSkin(DEFAULT); }}
-              className={`px-4 py-2 rounded-lg text-sm font-bold border transition ${weapon === w ? 'bg-indigo-500 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}
+              className={`px-4 py-2 rounded-md text-sm font-bold border transition ${weapon === w ? 'bg-indigo-500 border-indigo-400 text-white' : 'bg-obsidian-card border-white/10 text-slate-300 hover:bg-white/10'}`}
             >
               {w}
             </button>
@@ -310,7 +310,7 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
         <div
-          className={`relative rounded-2xl border bg-gradient-to-b from-[#1b1e27] to-[#0d0f14] overflow-hidden aspect-[16/10] transition-colors ${dragging ? 'border-indigo-400' : 'border-white/10'}`}
+          className={`relative rounded-md border bg-gradient-to-b from-[#1b1e27] to-[#0d0f14] overflow-hidden aspect-[16/10] transition-colors ${dragging ? 'border-indigo-400' : 'border-white/10'}`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => { e.preventDefault(); setDragging(false); pickFile(e.dataTransfer.files?.[0]); }}
@@ -322,20 +322,20 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
             </div>
           )}
           <div className="absolute left-3 bottom-3 right-3 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setPlaying((p) => !p)} className="px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
+            <button type="button" onClick={() => setPlaying((p) => !p)} className="px-3 py-2 rounded-md bg-black/50 border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
               {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}{playing ? 'Pause' : 'Play'}
             </button>
-            <button type="button" onClick={restart} className="px-3 py-2 rounded-lg bg-black/50 border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
+            <button type="button" onClick={restart} className="px-3 py-2 rounded-md bg-black/50 border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
               <RotateCcw className="w-4 h-4" />Restart
             </button>
-            <div className="flex rounded-lg overflow-hidden border border-white/15">
+            <div className="flex rounded-md overflow-hidden border border-white/15">
               {SPEEDS.map((sp) => (
                 <button key={sp} type="button" onClick={() => setSpeed(sp)} className={`px-3 py-2 text-sm font-semibold ${speed === sp ? 'bg-indigo-500 text-white' : 'bg-black/50 text-slate-300'}`}>
                   {sp === 1 ? '1×' : sp === 0.5 ? '½×' : '¼×'}
                 </button>
               ))}
             </div>
-            <div className="flex rounded-lg overflow-hidden border border-white/15">
+            <div className="flex rounded-md overflow-hidden border border-white/15">
               {(['hands', 'side'] as View[]).map((v) => (
                 <button key={v} type="button" onClick={() => setView(v)} className={`px-3 py-2 text-sm font-semibold ${view === v ? 'bg-indigo-500 text-white' : 'bg-black/50 text-slate-300'}`}>
                   {v === 'hands' ? 'In hand' : 'Side'}
@@ -354,7 +354,7 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
           {status && <p className="text-xs text-amber-300">{status}</p>}
 
           {/* Try your own texture. Nothing is uploaded anywhere — it is read straight off the disk. */}
-          <div className="rounded-xl border border-dashed border-indigo-500/30 bg-indigo-500/5 p-3 space-y-2">
+          <div className="rounded-md border border-dashed border-indigo-500/30 bg-indigo-500/5 p-3 space-y-2">
             <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-indigo-300">
               <Upload className="w-3.5 h-3.5" />Test your own skin
             </div>
@@ -368,7 +368,7 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="w-full px-3 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-bold transition cursor-pointer"
+              className="w-full px-3 py-2 rounded-md bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-bold transition cursor-pointer"
             >
               {ownSkin ? 'Choose another PNG' : 'Choose a PNG'}
             </button>

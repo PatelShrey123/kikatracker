@@ -182,7 +182,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
         </span>
 
         {/* Hover Tooltip Overlay */}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 hidden group-hover/badge:flex flex-col bg-[#12141D] border border-obsidian-border rounded-xl p-3 shadow-[0_10px_35px_rgba(0,0,0,0.5)] z-50 text-left pointer-events-none">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 hidden group-hover/badge:flex flex-col bg-[#12141D] border border-obsidian-border rounded-md p-3 shadow-[0_10px_35px_rgba(0,0,0,0.5)] z-50 text-left pointer-events-none">
           {/* Item Render Image */}
           {renderUrl ? (
             <div className="w-full h-20 flex items-center justify-center mb-2">
@@ -193,7 +193,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               />
             </div>
           ) : (
-            <div className="w-full h-12 flex items-center justify-center mb-2 border border-white/5 bg-[#090A0F]/50 rounded-lg text-[9px] text-slate-500 font-mono">
+            <div className="w-full h-12 flex items-center justify-center mb-2 border border-slate-800 bg-[#090A0F]/50 rounded-md text-[9px] text-slate-500 font-mono">
               NO RENDER IMAGE
             </div>
           )}
@@ -204,7 +204,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             {isCharacter ? 'Character Skin' : `${parentName} Weapon Skin`}
           </span>
 
-          <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-white/5 font-mono text-[10px]">
+          <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-800 font-mono text-[10px]">
             <span className="text-slate-500">Hub Value:</span>
             <div className="flex items-center space-x-1 text-gold-bright font-black">
               <Coins className="w-3 h-3 text-gold-primary" />
@@ -260,11 +260,11 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-obsidian-border pb-5 mb-5 flex-shrink-0">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gold-primary/10 rounded-lg border border-gold-primary/25">
+          <div className="p-2 bg-gold-primary/10 rounded-md border border-gold-primary/25">
             <Users className="w-5 h-5 text-gold-bright" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-white uppercase tracking-wider">Kirka Chat</h2>
+            <h2 className="text-2xl text-[#EDEDED]">Kirka <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-violet)' }}>Chat</span></h2>
             <p className="text-xs text-slate-500 font-mono mt-0.5">
               Live in-game lobby stream from the public WebSocket network.
             </p>
@@ -274,17 +274,17 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
         {/* Connection status tag */}
         <div className="flex items-center font-mono text-xs">
           {status === 'connected' ? (
-            <span className="flex items-center space-x-1.5 text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg font-bold">
+            <span className="flex items-center space-x-1.5 text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-md font-bold">
               <Wifi className="w-4 h-4 text-emerald-400" />
               <span>CONNECTED</span>
             </span>
           ) : status === 'connecting' ? (
-            <span className="flex items-center space-x-1.5 text-gold-bright bg-gold-primary/10 border border-gold-primary/30 px-3 py-1.5 rounded-lg font-bold">
+            <span className="flex items-center space-x-1.5 text-gold-bright bg-gold-primary/10 border border-gold-primary/30 px-3 py-1.5 rounded-md font-bold">
               <div className="w-3.5 h-3.5 border-2 border-gold-primary border-t-transparent rounded-full animate-spin" />
               <span>CONNECTING</span>
             </span>
           ) : (
-            <span className="flex items-center space-x-1.5 text-red-500 bg-red-500/10 border border-red-500/30 px-3 py-1.5 rounded-lg font-bold">
+            <span className="flex items-center space-x-1.5 text-red-500 bg-red-500/10 border border-red-500/30 px-3 py-1.5 rounded-md font-bold">
               <WifiOff className="w-4 h-4 text-red-500" />
               <span>OFFLINE</span>
             </span>
@@ -295,7 +295,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       {/* Messages Scroll Area with Floating Auto Scroll Control */}
       <div className="flex-1 relative flex flex-col min-h-0 mb-4 select-text">
         {/* Scroll viewport */}
-        <div className="flex-grow bg-[#090A0F]/80 border border-obsidian-border rounded-2xl p-5 overflow-y-auto space-y-3.5 min-h-0">
+        <div className="flex-grow bg-[#090A0F]/80 border border-obsidian-border rounded-md p-5 overflow-y-auto space-y-3.5 min-h-0">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-600 space-y-2">
               <div className="w-6 h-6 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
@@ -311,7 +311,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 return (
                   <div
                     key={msg.id}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-gold-primary/10 to-[#1b1911]/20 border border-gold-primary/25 p-3 rounded-xl justify-center text-center text-xs font-mono text-gold-bright shadow-sm"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-gold-primary/10 to-[#1b1911]/20 border border-gold-primary/25 p-3 rounded-md justify-center text-center text-xs font-mono text-gold-bright shadow-sm"
                   >
                     <ShieldAlert className="w-4 h-4 text-gold-primary" />
                     <span>{msg.message}</span>
@@ -326,7 +326,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               return (
                 <div
                   key={msg.id}
-                  className="flex items-start space-x-2 text-xs select-text hover:bg-obsidian-card/20 p-1.5 rounded-lg transition-colors group/row"
+                  className="flex items-start space-x-2 text-xs select-text hover:bg-obsidian-card/20 p-1.5 rounded-md transition-colors group/row"
                 >
                   {/* Timestamp */}
                   <span className="text-slate-600 font-mono whitespace-nowrap mt-0.5">{msg.timestamp}</span>
@@ -354,7 +354,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                           <span>{msg.user?.name}</span>
                           <span className={isVipUser ? 'opacity-90 text-[10px]' : 'opacity-60'}>#{msg.user?.shortId}</span>
                           {isVipUser && (
-                            <span className="text-[10px] text-purple-300 filter drop-shadow-[0_0_4px_rgba(192,132,252,0.9)] animate-pulse select-none" title="Premium VIP Supporter">⚡</span>
+                            <span className="text-[10px] text-purple-300 filter drop- animate-pulse select-none" title="Premium VIP Supporter">⚡</span>
                           )}
                         </span>
                       );
@@ -400,7 +400,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
           <button
             type="button"
             onClick={() => setAutoScroll(!autoScroll)}
-            className={`px-3 py-2 rounded-xl border font-mono text-[9px] font-black tracking-widest uppercase transition-all duration-300 flex items-center space-x-2 shadow-[0_4px_15px_rgba(0,0,0,0.4)] ${
+            className={`px-3 py-2 rounded-md border font-mono text-[9px] font-black tracking-widest uppercase transition-all duration-300 flex items-center space-x-2 shadow-[0_4px_15px_rgba(0,0,0,0.4)] ${
               autoScroll
                 ? 'bg-gold-primary/20 border-gold-primary/40 text-gold-bright hover:bg-gold-primary/30'
                 : 'bg-obsidian-card border-obsidian-border text-slate-500 hover:text-slate-400'
@@ -427,12 +427,12 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
           type="text"
           placeholder="Kirka chat stream is read-only. Sending messages is disabled."
           disabled
-          className="flex-1 bg-obsidian-card border border-obsidian-border rounded-xl px-4 py-3.5 text-slate-400 placeholder-slate-600 outline-none text-sm cursor-not-allowed"
+          className="flex-1 bg-obsidian-card border border-obsidian-border rounded-md px-4 py-3.5 text-slate-400 placeholder-slate-600 outline-none text-sm cursor-not-allowed"
         />
         <button
           type="button"
           disabled
-          className="flex items-center justify-center bg-slate-800 border border-obsidian-border text-slate-500 px-5 py-3.5 rounded-xl font-bold cursor-not-allowed"
+          className="flex items-center justify-center bg-slate-800 border border-obsidian-border text-slate-500 px-5 py-3.5 rounded-md font-bold cursor-not-allowed"
         >
           <Send className="w-4 h-4" />
         </button>

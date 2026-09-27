@@ -528,7 +528,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
   };
 
   return (
-    <div className={`relative ${className} select-none overflow-hidden rounded-2xl bg-gradient-to-b from-[#0e1017]/80 to-[#07090e]/90 flex items-center justify-center`}>
+    <div className={`relative ${className} select-none overflow-hidden rounded-md bg-gradient-to-b from-[#0e1017]/80 to-[#07090e]/90 flex items-center justify-center`}>
       {/* 3D Canvas Mounting point */}
       <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
@@ -552,7 +552,6 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
       {!loading && !error && (
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
           <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[10px] font-mono text-slate-400 flex items-center space-x-1.5 shadow-lg">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>Drag to rotate • Scroll to zoom</span>
           </div>
 
@@ -560,7 +559,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
             <button
               onClick={toggleAutoRotate}
               title={isAutoRotating ? 'Pause Rotation' : 'Auto Rotate'}
-              className={`p-1.5 rounded-lg border backdrop-blur-md transition-all cursor-pointer ${
+              className={`p-1.5 rounded-md border backdrop-blur-md transition-all cursor-pointer ${
                 isAutoRotating
                   ? 'bg-gold-primary/20 border-gold-primary/50 text-gold-bright'
                   : 'bg-black/60 border-white/10 text-slate-400 hover:text-white'
@@ -571,7 +570,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
             <button
               onClick={resetCamera}
               title="Reset View"
-              className="p-1.5 rounded-lg border border-white/10 bg-black/60 hover:bg-black/80 text-slate-400 hover:text-white backdrop-blur-md transition-all cursor-pointer"
+              className="p-1.5 rounded-md border border-white/10 bg-black/60 hover:bg-black/80 text-slate-400 hover:text-white backdrop-blur-md transition-all cursor-pointer"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>

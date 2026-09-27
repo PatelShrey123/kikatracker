@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
+import { Repeat, RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
 import { getSkinRenderUrl } from './Weapon3DViewer';
@@ -34,6 +34,26 @@ const ALL_TIME_CAP = 30000;
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
+
+/**
+ * Day files already fetched, kept for the life of the page.
+ *
+ * These are static archives - a file dated in the past never changes - so re-fetching them when
+ * you switch months and come back was pure waste. Only today's file can still gain rows, and it
+ * is re-fetched each time the month is opened.
+ *
+ * Capped so browsing every month cannot grow without bound; oldest entries are dropped first.
+ */
+const dayCache = new Map<string, unknown[]>();
+const DAY_CACHE_MAX = 120;
+
+function cacheDay(file: string, rows: unknown[]) {
+  if (dayCache.size >= DAY_CACHE_MAX) {
+    const oldest = dayCache.keys().next().value;
+    if (oldest !== undefined) dayCache.delete(oldest);
+  }
+  dayCache.set(file, rows);
+}
 
 /** "2026-09" for a trade timestamp, or '' when it cannot be read. */
 function monthKeyOf(iso: string): string {
@@ -99,6 +119,8 @@ interface HistoryTrade {
       items: HistoryTradeItem[];
     };
   };
+  /** updatedAt parsed once at collection time, so sorting never re-parses date strings. */
+  _ts?: number;
 }
 
 // Check if a trade side consists exclusively of a single 1x Wood item (friendly transfer / gift)
@@ -258,13 +280,22 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
     // One retry, because a failed day used to be swallowed as an empty array - which is what made
     // months look randomly empty when several requests were throttled at once.
+    // Today's archive is still being written to, so it is never served from cache.
+    const todayFile = snapshotIndex[snapshotIndex.length - 1];
+
     const loadFile = async (file: string): Promise<any[] | null> => {
+      const hit = dayCache.get(file);
+      if (hit && file !== todayFile) return hit as any[];
+
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
           const res = await fetch(`/trade-api/tradehistory/${file}`, { signal: controller.signal });
           if (!res.ok) throw new Error(String(res.status));
           const rows = await res.json();
-          if (Array.isArray(rows)) return rows;
+          if (Array.isArray(rows)) {
+            cacheDay(file, rows);
+            return rows;
+          }
           return null;
         } catch (err: any) {
           if (err?.name === 'AbortError') return null;
@@ -274,7 +305,26 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       return null;
     };
 
-    const BATCH = 5;
+    const BATCH = 8;
+
+    // Sorting by `new Date(x).getTime()` inside the comparator re-parsed both date strings on
+    // every comparison. Parsing once per trade, at the point it is collected, turns the whole
+    // sort into integer subtraction.
+    const tsOf = (t: HistoryTrade) => t._ts ?? 0;
+
+    // Re-sorting and re-rendering the full list after each of ~110 batches was the real cost on
+    // "All time": the array grows to tens of thousands, so the work per batch grows with it and
+    // the newest trades kept getting shuffled in late. Publishing on an interval keeps the page
+    // filling in progressively without paying for it every batch.
+    const PUBLISH_MS = 400;
+    let lastPublish = 0;
+
+    const publish = () => {
+      collected.sort((a, b) => tsOf(b) - tsOf(a));
+      setHistoryTrades([...collected]);
+      lastPublish = performance.now();
+    };
+
     (async () => {
       try {
         for (let i = 0; i < files.length; i += BATCH) {
@@ -289,6 +339,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               if (!t || seen.has(t.tradeId)) continue;
               if (!allTime && monthKeyOf(t.updatedAt) !== selectedMonth) continue;
               seen.add(t.tradeId);
+              t._ts = Date.parse(t.updatedAt);
               collected.push(t);
             }
           }
@@ -298,14 +349,14 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           // stops once there is more than any device can usefully scroll.
           if (allTime && collected.length >= ALL_TIME_CAP) capped = true;
 
-          collected.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
           setMonthProgress({ done, total: files.length, failed, capped });
-          setHistoryTrades([...collected]);
+          if (capped || performance.now() - lastPublish > PUBLISH_MS) publish();
           if (capped) break;
         }
       } finally {
         // always clears, even if a fetch throws or the month is switched mid-flight
         if (!isStale()) {
+          publish();                 // the last batches may not have hit the interval
           setLoadingHistory(false);
           setMonthProgress(failed || capped ? { done, total: files.length, failed, capped } : null);
         }
@@ -481,7 +532,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return (
       <div 
         key={trade.tradeId + '-' + index}
-        className="bg-obsidian-card border border-obsidian-border/80 rounded-2xl p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] flex flex-col space-y-4"
+        className="bg-obsidian-card border border-obsidian-border/80 rounded-md p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] flex flex-col space-y-4"
       >
         {/* Card Header info */}
         <div className="flex items-center justify-between border-b border-obsidian-border/50 pb-3 text-xs">
@@ -521,10 +572,10 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                 <div
                   key={idx}
                   onClick={() => onInspectItem(item.name)}
-                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                  className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
                         <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
                       ) : (
@@ -556,7 +607,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   no price
                 </div>
               ) : margin.status === 'profit' ? (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full flex items-center space-x-1 shadow-[0_0_12px_rgba(16,185,129,0.05)]">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full flex items-center space-x-1">
                   <span>{margin.label}</span>
                 </div>
               ) : margin.status === 'loss' ? (
@@ -582,10 +633,10 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                 <div
                   key={idx}
                   onClick={() => onInspectItem(item.name)}
-                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                  className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
                         <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
                       ) : (
@@ -622,7 +673,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return (
       <div 
         key={trade.tradeId + '-' + index}
-        className="bg-obsidian-card border border-obsidian-border/80 rounded-2xl p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] flex flex-col space-y-4"
+        className="bg-obsidian-card border border-obsidian-border/80 rounded-md p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] flex flex-col space-y-4"
       >
         {/* Card Header info */}
         <div className="flex items-center justify-between border-b border-obsidian-border/50 pb-3 text-xs">
@@ -679,10 +730,10 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                 <div
                   key={idx}
                   onClick={() => onInspectItem(item.name)}
-                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                  className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
                         <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
                       ) : (
@@ -714,7 +765,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   no price
                 </div>
               ) : margin.status === 'profit' ? (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full flex items-center space-x-1 shadow-[0_0_12px_rgba(16,185,129,0.05)]">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full flex items-center space-x-1">
                   <span>{margin.label}</span>
                 </div>
               ) : margin.status === 'loss' ? (
@@ -740,10 +791,10 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                 <div
                   key={idx}
                   onClick={() => onInspectItem(item.name)}
-                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
+                  className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-white/5 rounded-lg flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
                         <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
                       ) : (
@@ -886,15 +937,10 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div className="flex items-center space-x-3.5">
-          {/* Custom image replaces ArrowRightLeft icon */}
-          <img 
-            src={`${import.meta.env.BASE_URL}trade_portal.png`} 
-            alt="Trades Icon" 
-            className="w-8 h-8 rounded-lg object-contain glow-filter-gold" 
-          />
+          <Repeat className="w-7 h-7 text-spray-cyan shrink-0" />
           <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              Trades Portal
+            <h2 className="text-2xl sm:text-3xl text-[#EDEDED] leading-tight">
+              Trades <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>Portal</span>
             </h2>
             <p className="text-sm text-slate-400 mt-1">
               Monitor real-time live open trade offers and inspect full histories in the marketplace.
@@ -903,10 +949,10 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         </div>
 
         {/* Sub-Tabs Navigation */}
-        <div className="flex bg-[#090A0F]/80 p-1.5 rounded-xl border border-obsidian-border w-fit">
+        <div className="flex bg-[#090A0F]/80 p-1.5 rounded-md border border-obsidian-border w-fit">
           <button
             onClick={() => setActiveSubTab('live')}
-            className={`btn-interactive px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`btn-interactive px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === 'live'
                 ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
@@ -916,7 +962,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           </button>
           <button
             onClick={() => setActiveSubTab('history')}
-            className={`btn-interactive px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`btn-interactive px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === 'history'
                 ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
@@ -928,7 +974,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       </div>
 
       {/* Advanced Search Card */}
-      <div className="bg-[#12141D] border border-obsidian-border rounded-xl p-5 space-y-4">
+      <div className="bg-[#12141D] border border-obsidian-border rounded-md p-5 space-y-4">
         {/* Main Search Row */}
         <form 
           onSubmit={(e) => {
@@ -945,12 +991,12 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               placeholder="Search trades..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-600 outline-none focus:border-indigo-500/30 text-xs transition-all font-mono"
+              className="block w-full pl-10 pr-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-md text-slate-200 placeholder-slate-600 outline-none focus:border-indigo-500/30 text-xs transition-all font-mono"
             />
           </div>
           <button
             type="submit"
-            className="px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex-shrink-0"
+            className="px-5 py-3 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex-shrink-0"
           >
             Search
           </button>
@@ -978,7 +1024,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
         {/* Advanced Filters Panel */}
         {showAdvanced && (
-          <div className="bg-[#090A0F]/60 border border-indigo-500/10 rounded-xl p-4.5 space-y-4">
+          <div className="bg-[#090A0F]/60 border border-indigo-500/10 rounded-md p-4.5 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               
               {/* Offered Contains */}
@@ -997,7 +1043,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                       setAppliedWanted(wantedQuery);
                     }
                   }}
-                  className="block w-full px-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-700 outline-none focus:border-emerald-500/30 text-xs transition-all font-mono"
+                  className="block w-full px-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-md text-slate-200 placeholder-slate-700 outline-none focus:border-emerald-500/30 text-xs transition-all font-mono"
                 />
               </div>
 
@@ -1022,7 +1068,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                       setAppliedWanted(wantedQuery);
                     }
                   }}
-                  className="block w-full px-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-700 outline-none focus:border-red-500/30 text-xs transition-all font-mono"
+                  className="block w-full px-4 py-3 bg-obsidian-deep border border-obsidian-border rounded-md text-slate-200 placeholder-slate-700 outline-none focus:border-red-500/30 text-xs transition-all font-mono"
                 />
               </div>
 
@@ -1033,7 +1079,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                     setAppliedOffered(offeredQuery);
                     setAppliedWanted(wantedQuery);
                   }}
-                  className="w-full md:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="w-full md:w-auto px-5 py-3 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   Apply
                 </button>
@@ -1045,7 +1091,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       </div>
 
       {/* Roster / Ranks filter settings card */}
-      <div className="bg-[#12141D] border border-obsidian-border rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 flex-wrap">
+      <div className="bg-[#12141D] border border-obsidian-border rounded-md p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 flex-wrap">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           {/* Toggle Escrow Switch */}
           <div className="flex items-center space-x-3.5">
@@ -1098,7 +1144,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
         {/* Informative info banner for merged snapshots */}
         {activeSubTab === 'history' && (
-          <div className="flex items-center space-x-2 bg-obsidian-deep/50 px-3 py-1.5 rounded-lg border border-white/5">
+          <div className="flex items-center space-x-2 bg-obsidian-deep/50 px-3 py-1.5 rounded-md border border-slate-800">
             <FileText className="w-3.5 h-3.5 text-slate-500" />
             <span className="text-[10px] font-mono text-slate-500 uppercase">Merged snap history active</span>
           </div>
@@ -1118,7 +1164,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       ) : activeSubTab === 'live' ? (
         // Open Trades
         activeFilteredLive.length === 0 ? (
-          <div className="text-center py-24 bg-obsidian-card border border-obsidian-border rounded-xl text-slate-500 text-sm">
+          <div className="text-center py-24 bg-obsidian-card border border-obsidian-border rounded-md text-slate-500 text-sm">
             No active open trades found matching your filters.
           </div>
         ) : (
@@ -1134,7 +1180,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => setVisibleLiveCount((prev) => prev + 40)}
-                  className="px-6 py-2.5 bg-[#12141D] border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-xl transition-all duration-200 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#12141D] border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-md transition-all duration-200 cursor-pointer"
                 >
                   Load More Offers (+40)
                 </button>
@@ -1145,7 +1191,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       ) : (
         // Closed History Trades
         activeFilteredHistory.length === 0 ? (
-          <div className="text-center py-24 bg-obsidian-card border border-obsidian-border rounded-xl text-slate-500 text-sm">
+          <div className="text-center py-24 bg-obsidian-card border border-obsidian-border rounded-md text-slate-500 text-sm">
             No trade history records found matching your filters.
           </div>
         ) : (
@@ -1153,7 +1199,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
             {/* Month picker. The API serves one file per day, so a month is fetched as a batch and
                 streamed in; the progress line below reports how far through it is. */}
             {availableMonths.length > 0 && (
-              <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-mono font-extrabold tracking-wider uppercase text-slate-300">
                     Month
@@ -1161,7 +1207,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   <select
                     value={selectedMonth ?? ''}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="bg-obsidian-card border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white font-semibold cursor-pointer hover:border-purple-400/40 focus:outline-none focus:border-purple-400/60"
+                    className="bg-obsidian-card border border-white/10 rounded-md px-3 py-1.5 text-sm text-white font-semibold cursor-pointer hover:border-purple-400/40 focus:outline-none focus:border-purple-400/60"
                   >
                     <option value={ALL_TIME}>All time (newest first)</option>
                     {availableMonths.map((m) => (
@@ -1202,7 +1248,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               const { diffDays, dateString } = historyDateRangeInfo;
               if (diffDays === 0) return null;
               return (
-                <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-sm">
+                <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-sm">
                   <span className="text-slate-300 font-extrabold tracking-wider uppercase">
                     COMPLETED TRADE HISTORY
                   </span>
@@ -1223,7 +1269,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => setVisibleHistoryCount((prev) => prev + 40)}
-                  className="px-6 py-2.5 bg-[#12141D] border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-xl transition-all duration-200 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#12141D] border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-md transition-all duration-200 cursor-pointer"
                 >
                   Load More History (+40)
                 </button>

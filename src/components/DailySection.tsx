@@ -30,9 +30,9 @@ export const DailySection: React.FC<DailySectionProps> = ({ onSelectPlayer }) =>
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
-            <img src={`${import.meta.env.BASE_URL}daily_leaderboard.png`} alt="Daily Icon" className="w-8 h-8 rounded-lg object-contain glow-filter-gold" />
-            <span>Daily Leaderboard</span>
+          <h2 className="text-2xl sm:text-3xl text-[#EDEDED] flex items-center gap-3">
+            <Trophy className="w-7 h-7 text-spray-orange shrink-0" />
+            <span>Daily <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-orange)' }}>Leaderboard</span></span>
           </h2>
           <p className="text-sm text-slate-400 mt-1.5">
             Real-time standings of individual players based on cumulative daily scores.
@@ -49,13 +49,13 @@ export const DailySection: React.FC<DailySectionProps> = ({ onSelectPlayer }) =>
             placeholder="Search players..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-10 pr-4 py-2.5 bg-obsidian-card border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-500 outline-none focus:border-gold-primary/40 focus:shadow-[0_0_12px_rgba(212,175,55,0.06)] text-sm transition-all"
+            className="block w-full pl-10 pr-4 py-2.5 bg-obsidian-card border border-obsidian-border rounded-md text-slate-200 placeholder-slate-500 outline-none focus:border-gold-primary/40 focus: text-sm transition-all"
           />
         </div>
       </div>
 
       {/* Leaderboard Table Container */}
-      <div className="bg-obsidian-card border border-obsidian-border rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-obsidian-card border border-obsidian-border rounded-md overflow-hidden shadow-sm">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-3">
             <div className="w-8 h-8 border-2 border-gold-primary border-t-transparent rounded-full animate-spin" />

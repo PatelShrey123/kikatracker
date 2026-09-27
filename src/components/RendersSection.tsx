@@ -251,43 +251,32 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#06080d] text-slate-100 flex flex-col pt-1 pb-16 px-4 sm:px-8 max-w-[1700px] mx-auto select-none">
+    <div className="min-h-screen text-slate-100 flex flex-col pt-1 pb-16 px-4 sm:px-8 max-w-[1700px] mx-auto select-none">
       {/* Top Banner Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
         <div>
-          <div className="flex items-center space-x-3">
-            <h1 className="text-xl sm:text-2xl font-black tracking-wider text-white flex items-center space-x-2.5">
-              <span>3D RENDERS SHOWCASE</span>
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            </h1>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-bold uppercase tracking-wider">
-              3D CINEMATIC
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 font-mono mt-1">
-            Explore high-definition 3D renders of all Kirka weapon and character skins. Click any skin to launch the full-screen 3D theater with slow rotation.
+          <h1 className="display text-2xl sm:text-3xl text-[#EDEDED]">
+            3D <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>renders</span>
+          </h1>
+          <p className="text-[13px] text-slate-400 mt-2 max-w-[60ch]">
+            Every weapon and character skin in the game. Click one to open it full screen.
           </p>
         </div>
 
-        {/* Cache status badge & refresh button */}
-        <div className="flex items-center space-x-2.5">
-          <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-[10px] font-mono text-slate-400 shadow-inner">
-            <span className={`w-1.5 h-1.5 rounded-full ${isCachedSource ? 'bg-emerald-400' : 'bg-cyan-400'} animate-pulse`} />
-            <span>{isCachedSource ? 'Browser Cache Active (0ms)' : 'Live API Sync'}</span>
-          </div>
-
-          <button
-            onClick={handleClearCache}
-            title="Refresh skin cache from API"
-            className="p-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-400/40 text-slate-400 hover:text-white cursor-pointer transition-all active:scale-95"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        {/* Cache state lives in the button's tooltip rather than a permanent badge - it only
+            matters at the moment you are deciding whether to refresh. */}
+        <button
+          onClick={handleClearCache}
+          title={isCachedSource ? 'Loaded from your browser cache. Click to re-fetch from Kirka.' : 'Loaded fresh from Kirka.'}
+          className="self-start md:self-auto shrink-0 flex items-center gap-2 h-9 px-3 rounded-md bg-obsidian-card border border-slate-700 hover:border-slate-500 hover:bg-obsidian-hover text-[13px] text-slate-300 hover:text-white cursor-pointer transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          Refresh
+        </button>
       </div>
 
       {/* Filter Controls Bar */}
-      <div className="bg-obsidian-card/80 p-4 rounded-2xl border border-white/10 flex flex-col space-y-3 mb-6 shadow-xl">
+      <div className="bg-obsidian-card/80 p-4 rounded-md border border-white/10 flex flex-col space-y-3 mb-6 shadow-xl">
         {/* Category Filter Pills */}
         <div className="flex flex-wrap items-center gap-1.5">
           {WEAPON_CATEGORIES.map((cat) => (
@@ -297,10 +286,10 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                 setSelectedCategory(cat);
                 setVisibleCount(24);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-bold transition-all cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.35)]'
-                  : 'bg-white/5 border border-white/5 text-slate-400 hover:text-white hover:bg-white/10'
+                  ? 'bg-spray-lime text-obsidian-deep'
+                  : 'bg-obsidian-card border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 hover:bg-obsidian-hover'
               }`}
             >
               {cat === 'CHARACTERS' ? '👤 Characters' : cat}
@@ -309,8 +298,8 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
         </div>
 
         {/* Search Bar & Rarity Dropdown */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
-          <div className="flex items-center bg-black/50 border border-white/10 rounded-xl px-3 py-2 w-full sm:w-80 focus-within:border-cyan-400 transition-all shadow-inner">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+          <div className="flex items-center bg-black/50 border border-white/10 rounded-md px-3 py-2 w-full sm:w-80 focus-within:border-cyan-400 transition-all shadow-inner">
             <Search className="w-4 h-4 text-slate-400 mr-2.5" />
             <input
               type="text"
@@ -332,7 +321,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                 setSelectedRarity(e.target.value);
                 setVisibleCount(24);
               }}
-              className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 outline-none cursor-pointer hover:border-white/20 transition-all"
+              className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-xs font-mono text-slate-200 outline-none cursor-pointer hover:border-white/20 transition-all"
             >
               <option value="ALL">All Rarities</option>
               <option value="MYTHICAL">Mythical (Red)</option>
@@ -351,7 +340,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
 
       {/* 3D Showcase Grid (Big, Crisp Showcase Cards) */}
       {pagedItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-28 text-slate-500 space-y-3 bg-obsidian-card/40 rounded-2xl border border-white/10">
+        <div className="flex flex-col items-center justify-center py-28 text-slate-500 space-y-3 bg-obsidian-card/40 rounded-md border border-white/10">
           <Palette className="w-10 h-10 opacity-40 text-cyan-400" />
           <p className="text-sm font-mono">No matching 3D skins found for your search.</p>
         </div>
@@ -373,7 +362,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
               <div
                 key={`${item.name}-${weaponType}-${idx}`}
                 onClick={() => handleOpenMaximizer(item, idx)}
-                className={`group relative rounded-2xl border ${rarityStyle.border} bg-gradient-to-b from-[#0e121a]/90 to-[#07090e]/95 p-4 flex flex-col justify-between transition-all duration-300 hover:scale-102 hover:shadow-2xl cursor-pointer overflow-hidden backdrop-blur-sm`}
+                className={`group relative rounded-md border ${rarityStyle.border} bg-gradient-to-b from-[#0e121a]/90 to-[#07090e]/95 p-4 flex flex-col justify-between transition-all duration-300 hover:scale-102 hover:shadow-2xl cursor-pointer overflow-hidden backdrop-blur-sm`}
                 style={{
                   boxShadow: `0 4px 20px -2px ${rarityStyle.glow}`,
                 }}
@@ -435,7 +424,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
 
                   {/* Hover "Launch 3D Theater" overlay pill */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-opacity duration-300 flex items-center justify-center">
-                    <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-cyan-500 text-black font-mono font-bold text-xs shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-md bg-cyan-500 text-black font-mono font-bold text-xs shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                       <Maximize2 className="w-3.5 h-3.5" />
                       <span>Launch 3D Theater</span>
                     </div>
@@ -471,7 +460,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
         <div className="mt-8 flex justify-center">
           <button
             onClick={() => setVisibleCount((prev) => prev + 24)}
-            className="px-8 py-3 rounded-xl bg-white/5 border border-white/15 hover:border-cyan-400/40 text-xs font-mono font-bold text-slate-200 hover:text-white cursor-pointer transition-all active:scale-95 shadow-lg"
+            className="px-8 py-3 rounded-md bg-obsidian-card border border-white/15 hover:border-cyan-400/40 text-xs font-mono font-bold text-slate-200 hover:text-white cursor-pointer transition-all active:scale-95 shadow-lg"
           >
             Load More Skins ({filteredItems.length - visibleCount} remaining)
           </button>
@@ -512,11 +501,11 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
             </div>
 
             {/* Center: Prev / Next Navigation Arrows */}
-            <div className="flex items-center space-x-2 bg-white/5 p-1 rounded-xl border border-white/10">
+            <div className="flex items-center space-x-2 bg-obsidian-card p-1 rounded-md border border-white/10">
               <button
                 onClick={handlePrevSkin}
                 title="Previous Skin (Left Arrow Key)"
-                className="px-3 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-all text-xs font-mono flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition-all text-xs font-mono flex items-center space-x-1 cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">Prev</span>
@@ -527,7 +516,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
               <button
                 onClick={handleNextSkin}
                 title="Next Skin (Right Arrow Key)"
-                className="px-3 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-all text-xs font-mono flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition-all text-xs font-mono flex items-center space-x-1 cursor-pointer"
               >
                 <span className="hidden sm:inline">Next</span>
                 <ChevronRight className="w-4 h-4" />
@@ -538,7 +527,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
             <button
               onClick={handleCloseMaximizer}
               title="Close Theater (Esc)"
-              className="p-2 rounded-xl bg-white/10 hover:bg-red-500/20 text-slate-300 hover:text-red-400 transition-all cursor-pointer border border-white/10"
+              className="p-2 rounded-md bg-white/10 hover:bg-red-500/20 text-slate-300 hover:text-red-400 transition-all cursor-pointer border border-white/10"
             >
               <X className="w-5 h-5" />
             </button>
@@ -562,7 +551,6 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
           <div className="px-6 py-3 border-t border-white/10 bg-black/60 flex items-center justify-between text-xs font-mono text-slate-400 z-20 flex-shrink-0">
             <div className="flex items-center space-x-3">
               <span className="flex items-center space-x-1.5 text-cyan-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                 <span>3D Cinematic Rotation Active</span>
               </span>
               <span className="text-slate-600 hidden sm:inline">|</span>

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Compass, AlertCircle, ArrowRight, Award, Trophy, ShieldAlert } from 'lucide-react';
+import { Search, AlertCircle, ArrowRight, ArrowUpRight, Tag, Repeat, Trophy, Swords, Crosshair, Users } from 'lucide-react';
 import { fetchSoloLeaderboard, fetchUserProfile } from '../utils/api';
 import { getVipType, getVipTextClass, getVipBadgeClass } from '../utils/vip';
-import { GridScan } from './GridScan';
 
 interface SearchSectionProps {
   onSearch: (id: string, isShortId: boolean) => void;
@@ -10,6 +9,8 @@ interface SearchSectionProps {
   searchError: string | null;
   onClearError: () => void;
   onNavigateToPrices?: () => void;
+  /** Jump to another tab, for the section cards. */
+  onNavigate?: (tabId: string) => void;
 }
 
 interface FeaturedProfile {
@@ -27,12 +28,31 @@ const FEATURED_PROFILES: FeaturedProfile[] = [
   { name: 'Bot#0', shortId: '9VECSU', role: 'USER', level: 85, desc: 'Active member • Hub valuation inventory', isShortId: true },
 ];
 
+
+// The paint colour is passed to CSS as a custom property, so the stroke and the taped
+// edge are drawn by the stylesheet rather than rebuilt per element here.
+const markStyle = (c: string) => ({ '--mark-color': c }) as React.CSSProperties;
+const tapeStyle = (c: string) => ({ '--tape-color': c }) as React.CSSProperties;
+
+const DESTINATIONS = [
+  { id: 'prices', icon: Tag, title: 'Price viewer', desc: 'Every skin in the game, with its Hub valuation.', can: 'var(--color-spray-lime)' },
+  { id: 'trades', icon: Repeat, title: 'Trades', desc: 'What changed hands, month by month.', can: 'var(--color-spray-cyan)' },
+  { id: 'daily', icon: Trophy, title: 'Daily leaderboard', desc: 'The top players today, read from Kirka.', can: 'var(--color-spray-orange)' },
+  { id: 'ranked', icon: Swords, title: 'Ranked arena', desc: 'Search & Destroy standings and ELO.', can: 'var(--color-spray-pink)' },
+  { id: 'reloadlab', icon: Crosshair, title: 'Reload Lab', desc: 'Reload animations on real weapon models.', can: 'var(--color-spray-violet)' },
+  { id: 'clans', icon: Users, title: 'Clans', desc: 'Registry, members and clan tracking.', can: 'var(--color-spray-cyan)' },
+];
+
+/** Rank colour, hottest first. */
+const PODIUM = ['var(--color-spray-pink)', 'var(--color-spray-cyan)', 'var(--color-spray-lime)'];
+
 export const SearchSection: React.FC<SearchSectionProps> = ({
   onSearch,
   isLoading,
   searchError,
   onClearError,
   onNavigateToPrices,
+  onNavigate,
 }) => {
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
@@ -107,230 +127,167 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12 space-y-12 select-text">
-      {/* 1. Hero Search Panel with Hyperspeed Background */}
-      <div className="relative overflow-hidden w-full rounded-2xl border border-obsidian-border bg-gradient-to-br from-[#0c0e17]/80 to-[#06070b]/90 py-12 px-6 sm:px-12 flex flex-col items-center justify-center text-center space-y-6">
-        
-        {/* Background GridScan Effect */}
-        <div className="absolute inset-0 pointer-events-auto opacity-45 z-0">
-          <GridScan
-            sensitivity={0.55}
-            lineThickness={1}
-            linesColor="#181524"
-            gridScale={0.12}
-            scanColor="#d4af37"
-            scanOpacity={0.5}
-            enablePost={true}
-            bloomIntensity={0.8}
-            chromaticAberration={0.002}
-            noiseIntensity={0.015}
-          />
+    <div className="max-w-5xl mx-auto px-6 pb-16 select-text">
+
+      {/* Search */}
+      <section className="pt-14 pb-10 sm:pt-20">
+        <h1 className="display text-[3.5rem] sm:text-[5rem] text-[#EDEDED] leading-[0.92]">
+          Kirka{' '}
+          <span className="mark text-obsidian-deep" style={markStyle('var(--color-spray-lime)')}>Hub</span>
+        </h1>
+        <p className="mt-5 text-[15px] text-slate-400 leading-relaxed max-w-[44ch]">
+          Look up any player&apos;s inventory, what it&apos;s worth, and what they&apos;ve been trading.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-7 max-w-2xl">
+          <div className="flex items-center gap-2 rounded-md border-2 border-slate-700 bg-obsidian-card p-1.5 focus-within:border-spray-lime transition-colors duration-150">
+            <Search className="w-[18px] h-[18px] text-slate-500 ml-2.5 shrink-0" />
+            <input
+              type="text"
+              placeholder="Enter a short ID, e.g. FUYR7K"
+              value={query}
+              onChange={handleInputChange}
+              disabled={isLoading}
+              spellCheck={false}
+              autoComplete="off"
+              className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[#EDEDED] text-[15px] py-2 placeholder-slate-600 disabled:opacity-40"
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="shrink-0 flex items-center gap-2 h-10 px-5 rounded-md bg-spray-lime hover:bg-spray-cyan text-obsidian-deep text-sm font-extrabold uppercase tracking-wide transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+            >
+              {isLoading ? (
+                <span className="w-4 h-4 border-2 border-obsidian-deep/40 border-t-obsidian-deep rounded-full animate-spin" />
+              ) : (
+                <>
+                  Search
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {error || searchError ? (
+            <p className="mt-2.5 flex items-start gap-1.5 text-red-400 text-[13px] leading-relaxed">
+              <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>{error || searchError}</span>
+            </p>
+          ) : (
+            <p className="mt-2.5 text-[13px] text-slate-600">Six characters, or a full UUID. The # is optional.</p>
+          )}
+        </form>
+      </section>
+
+      {/* Top players today */}
+      <section className="pb-12">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="display text-xl text-[#EDEDED]">Top players today</h2>
+          <button
+            type="button"
+            onClick={() => onNavigate?.('daily')}
+            className="text-[13px] text-slate-500 hover:text-gold-bright transition-colors cursor-pointer"
+          >
+            Full leaderboard
+          </button>
         </div>
 
-        {/* Hero Content Wrapper */}
-        <div className="relative z-10 flex flex-col items-center justify-center space-y-6 max-w-2xl mx-auto pointer-events-none">
-          <img src={`${import.meta.env.BASE_URL}search_portal.png`} alt="Search Icon" className="w-16 h-16 rounded-xl object-contain filter drop-shadow-[0_0_12px_rgba(212,175,55,0.2)] mb-2" />
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase select-none">
-            Kirka <span className="text-gold-gradient">Hub</span>
-          </h1>
-          <p className="text-sm sm:text-base text-slate-400 max-w-xl font-medium leading-relaxed select-none">
-            Kirka.io Tracker — Search any player's Kirka profile, calculate real-time Kirka inventory net worth and skin valuations, inspect 3D weapon loadouts, and track live ranked leaderboards.
-          </p>
-
-          {/* Input box */}
-          <form onSubmit={handleSubmit} className="w-full max-w-xl relative pt-3 pointer-events-auto">
-            <div className="relative flex items-center bg-[#12141d]/90 border border-obsidian-border rounded-2xl p-1.5 focus-within:border-gold-primary/45 focus-within:shadow-[0_0_18px_rgba(212,175,55,0.06)] transition-all duration-300">
-              <div className="pl-4 text-slate-500">
-                <Search className="w-5 h-5" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search by 6-character short ID (e.g. #FUYR7K)..."
-                value={query}
-                onChange={handleInputChange}
-                disabled={isLoading}
-                className="w-full bg-transparent border-0 ring-0 outline-none text-white text-base py-3 px-3 placeholder-slate-600 disabled:opacity-50 font-medium"
-              />
+        <div className="grid gap-2.5 sm:grid-cols-3">
+          {featuredProfiles.map((player, i) => {
+            const vipType = getVipType(player.shortId);
+            const isPlayerVip = vipType !== null;
+            return (
               <button
-                type="submit"
-                disabled={isLoading}
-                className="btn-interactive flex items-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep px-6 py-3 rounded-xl font-bold hover:shadow-[0_0_18px_rgba(255,215,0,0.25)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                key={player.shortId}
+                type="button"
+                onClick={() => onSearch(player.shortId, player.isShortId)}
+                className="taped group text-left rounded-md border border-slate-800 bg-obsidian-card hover:bg-obsidian-hover transition-colors duration-150 p-4 cursor-pointer"
+                style={tapeStyle(PODIUM[i] || 'var(--color-spray-violet)')}
               >
-                {isLoading ? (
-                  <span className="w-5 h-5 border-2 border-obsidian-deep border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span className="font-extrabold uppercase tracking-wider text-xs">Search</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="stencil text-3xl leading-none" style={{ color: PODIUM[i] || 'var(--color-spray-violet)' }}>
+                    {i + 1}
+                  </span>
+                  {isPlayerVip && (
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${getVipBadgeClass(player.shortId)}`}>
+                      {vipType === 'yip' ? 'YIP' : 'VIP'}
+                    </span>
+                  )}
+                </div>
+
+                <div className={`mt-3 text-[15px] font-medium truncate ${
+                  isPlayerVip ? getVipTextClass(player.shortId) : 'text-[#EDEDED]'
+                }`}>
+                  {player.name}
+                </div>
+
+                <div className="mt-1 flex items-center gap-2 text-[12px] text-slate-600">
+                  {player.isShortId && <span className="font-mono">#{player.shortId}</span>}
+                  {player.level > 0 && <span className="tabular-nums">Lv {player.level}</span>}
+                </div>
               </button>
-            </div>
-            
-            {(error || searchError) && (
-              <div className="absolute -bottom-6 left-2 flex items-center space-x-1.5 text-red-500 text-xs font-mono">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>{error || searchError}</span>
-              </div>
-            )}
-          </form>
+            );
+          })}
+        </div>
+      </section>
 
-          {/* Quick VIP Supporter Search Chips */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-2 pointer-events-auto select-none max-w-xl">
-            <span className="text-[10px] font-mono text-purple-400/90 uppercase tracking-wider mr-0.5 flex items-center space-x-1">
-              <span>⚡ VIP Supporters:</span>
-            </span>
+      {/* Destinations */}
+      <section className="pb-12">
+        <h2 className="display text-xl text-[#EDEDED] mb-3">Everything else</h2>
+
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {DESTINATIONS.map(({ id, icon: Icon, title, desc, can }) => (
             <button
+              key={id}
               type="button"
-              onClick={() => onSearch('CARSON', true)}
-              className="chip-purple-wave px-3 py-1 rounded-lg text-xs font-mono font-bold text-purple-200 hover:text-white transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center space-x-1.5"
-              title="View #CARSON VIP Profile"
+              onClick={() => onNavigate?.(id)}
+              className="taped group text-left rounded-md border border-slate-800 bg-obsidian-card hover:bg-obsidian-hover transition-colors duration-150 p-4 cursor-pointer"
+              style={tapeStyle(can)}
             >
-              <span className="text-[10px] text-purple-400">⚡</span>
-              <span className="text-purple-black-wave font-black tracking-wider">#CARSON</span>
+              <div className="flex items-center gap-2.5">
+                <Icon className="w-4 h-4 shrink-0" style={{ color: can }} />
+                <span className="display text-[16px] text-[#EDEDED]">{title}</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-slate-700 group-hover:text-slate-400 transition-colors ml-auto shrink-0" />
+              </div>
+              <p className="mt-2 text-[12.5px] text-slate-500 leading-relaxed">{desc}</p>
             </button>
-            <button
-              type="button"
-              onClick={() => onSearch('TTTVBJ', true)}
-              className="chip-yip-wave px-3 py-1 rounded-lg text-xs font-mono font-bold text-cyan-200 hover:text-white transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center space-x-1.5"
-              title="View #TTTVBJ (Yip) VIP Profile"
-            >
-              <span className="text-[10px] text-cyan-300">⚡</span>
-              <span className="text-yip-blue-wave font-black tracking-wider">#TTTVBJ (Yip)</span>
-            </button>
-          </div>
-
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* 2. Page Distribution Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6">
-        
-        {/* Left 2 Columns: Recommended Profiles */}
-        <div className="lg:col-span-2 space-y-8">
-          <div>
-            <h2 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2 mb-4">
-              <Compass className="w-4.5 h-4.5 text-slate-500" />
-              <span>RECOMMENDED KIRKA PROFILES & PLAYER LOOKUP</span>
-            </h2>
+      {/* Footer strip */}
+      <section className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-slate-800 pt-5">
+        <button
+          onClick={onNavigateToPrices}
+          className="inline-flex items-center gap-2 h-8 px-3 rounded-md border border-slate-800 bg-obsidian-card hover:bg-obsidian-hover hover:border-slate-700 text-[13px] text-slate-300 transition-colors cursor-pointer"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          Prices online
+        </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {featuredProfiles.map((player) => {
-                const vipType = getVipType(player.shortId);
-                const isPlayerVip = vipType !== null;
-                const vipTextClass = getVipTextClass(player.shortId);
-                const vipBadgeClass = getVipBadgeClass(player.shortId);
-                return (
-                  <div
-                    key={player.shortId}
-                    onClick={() => onSearch(player.shortId, player.isShortId)}
-                    className={`group cursor-pointer bg-gradient-to-br border p-5 rounded-2xl transition-all duration-300 relative shadow-sm overflow-hidden flex flex-col justify-between h-[160px] ${
-                      isPlayerVip
-                        ? vipType === 'yip'
-                          ? 'from-[#08142c] to-[#040a18] border-cyan-500/40 hover:border-cyan-400/70 shadow-[0_0_20px_rgba(82,126,255,0.2)] hover:shadow-[0_0_25px_rgba(82,126,255,0.35)]'
-                          : 'from-[#140b24] to-[#0c0517] border-purple-500/40 hover:border-purple-400/70 shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.35)]'
-                        : 'from-[#12141D] to-[#0c0d15] border-obsidian-border hover:border-gold-primary/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
-                    }`}
-                  >
-                    <div className={`absolute top-0 left-0 right-0 h-0.5 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 ${
-                      isPlayerVip
-                        ? vipType === 'yip'
-                          ? 'bg-gradient-to-r from-blue-500 to-cyan-300'
-                          : 'bg-gradient-to-r from-purple-500 to-violet-300'
-                        : 'bg-gradient-to-r from-gold-primary to-gold-bright'
-                    }`} />
-                    
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-col">
-                        <span className={`text-sm font-black uppercase leading-none transition-colors ${
-                          isPlayerVip ? vipTextClass : 'text-white group-hover:text-gold-bright'
-                        }`}>
-                          {player.name}
-                        </span>
-                        {player.level > 0 && <span className="text-[9px] text-slate-500 font-mono mt-1">Lvl {player.level}</span>}
-                      </div>
-                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded uppercase max-w-[90px] truncate ${
-                        isPlayerVip 
-                          ? `${vipBadgeClass} border`
-                          : 'bg-[#04050a] border border-white/5 text-slate-400'
-                      }`}>
-                        {isPlayerVip ? (vipType === 'yip' ? '⚡ YIP' : '⚡ VIP') : player.isShortId ? `#${player.shortId}` : 'PROFILE'}
-                      </span>
-                    </div>
+        <span className="text-[13px] text-slate-600">Valued against the Kirka Hub index.</span>
 
-                    <p className="text-xs text-slate-500 group-hover:text-slate-400 transition-colors leading-relaxed">
-                      {player.desc}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Informational Guide Section */}
-          <div className="bg-gradient-to-r from-[#0d0f17] to-obsidian-card/40 border border-indigo-500/10 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[9px] font-mono text-indigo-400 font-bold uppercase tracking-widest block">Valuation Sync Info</span>
-              <h4 className="text-sm font-bold text-white uppercase">KIRKA HUB VALUATION ACTIVE</h4>
-              <p className="text-xs text-slate-500 max-w-lg">
-                Calculations are mapped directly to the official Kirka Hub market valuation index with verified trade valuations.
-              </p>
-            </div>
-            <button
-              onClick={onNavigateToPrices}
-              className="bg-[#04050a]/80 border border-white/5 hover:border-gold-primary/30 hover:bg-[#0c0d15] px-4 py-2.5 rounded-xl text-[10px] font-mono text-slate-400 text-center flex-shrink-0 cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] group flex items-center space-x-1.5"
-              title="Click to view all item prices"
-            >
-              <span>PRICING STATUS:</span>
-              <span className="text-emerald-400 font-bold group-hover:text-gold-bright transition-colors">ONLINE</span>
-            </button>
-          </div>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-[12px] text-slate-600">Supported by</span>
+          <button
+            type="button"
+            onClick={() => onSearch('CARSON', true)}
+            className="chip-purple-wave h-8 px-2.5 rounded-md text-[12px] font-mono cursor-pointer"
+            title="View #CARSON"
+          >
+            <span className="text-purple-black-wave">#CARSON</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onSearch('TTTVBJ', true)}
+            className="chip-yip-wave h-8 px-2.5 rounded-md text-[12px] font-mono cursor-pointer"
+            title="View #TTTVBJ (Yip)"
+          >
+            <span className="text-yip-blue-wave">#TTTVBJ</span>
+          </button>
         </div>
+      </section>
 
-        {/* Right Column: Live Tracker Info Panel */}
-        <div className="lg:col-span-1 space-y-6">
-          <h2 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2">
-            <Trophy className="w-4.5 h-4.5 text-slate-500" />
-            <span>KIRKA INVENTORY & TRACKER FEATURES</span>
-          </h2>
-
-          <div className="bg-obsidian-card border border-obsidian-border rounded-2xl p-5 space-y-4">
-            {/* Capability 1 */}
-            <div className="flex items-start space-x-3.5 py-3 border-b border-obsidian-border/50">
-              <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20 text-indigo-400 mt-0.5">
-                <Trophy className="w-4 h-4" />
-              </div>
-              <div className="space-y-0.5">
-                <span className="text-xs font-bold text-white block uppercase">S&D Ranks</span>
-                <p className="text-[11px] text-slate-500">Live search rankings of competitive bomb defusal modes.</p>
-              </div>
-            </div>
-
-            {/* Capability 2 */}
-            <div className="flex items-start space-x-3.5 py-3 border-b border-obsidian-border/50">
-              <div className="p-2 bg-gold-primary/10 rounded-lg border border-gold-primary/20 text-gold-bright mt-0.5">
-                <Award className="w-4 h-4" />
-              </div>
-              <div className="space-y-0.5">
-                <span className="text-xs font-bold text-white block uppercase">Net Worth sums</span>
-                <p className="text-[11px] text-slate-500">Auto valuations of player inventories via Kirka Hub market index.</p>
-              </div>
-            </div>
-
-            {/* Capability 3 */}
-            <div className="flex items-start space-x-3.5 py-3">
-              <div className="p-2 bg-red-500/10 rounded-lg border border-red-500/20 text-red-400 mt-0.5">
-                <ShieldAlert className="w-4 h-4" />
-              </div>
-              <div className="space-y-0.5">
-                <span className="text-xs font-bold text-white block uppercase">Lobby Live Lounge</span>
-                <p className="text-[11px] text-slate-500">Real-time WebSocket chat stream showing in-game lobby chat packets.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
     </div>
   );
 };

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TargetCursor } from './components/TargetCursor';
-import { ClickSpark } from './components/ClickSpark';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { SearchSection } from './components/SearchSection';
@@ -74,10 +73,12 @@ function App() {
       }
     });
 
-    // 3. Minimum loading duration to showcase esports brand loader animations
+    // 3. A short hold so the first paint is not a flash of half-built page. Nothing is being
+    //    waited on here - the catalog above resolves on its own and the app renders without it -
+    //    so this is kept deliberately brief rather than timed to an animation.
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 4800);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, []);
@@ -378,19 +379,10 @@ function App() {
           spinDuration={2}
           hideDefaultCursor={true}
           parallaxOn={true}
-          cursorColor="#d4af37"
-          cursorColorOnTarget="#ffd700"
+          cursorColor="#BFA46F"
+          cursorColorOnTarget="#D8C29A"
         />
       )}
-
-      {/* React Bits ClickSpark click effect */}
-      <ClickSpark
-        sparkColor="#ffd700"
-        sparkSize={10}
-        sparkRadius={20}
-        sparkCount={8}
-        duration={500}
-      />
 
       {/* 2. Full-screen custom loader */}
       <LoadingScreen isLoading={isLoading} />
@@ -410,23 +402,12 @@ function App() {
           />
 
           {/* 4. Core Content Area with Left Padding on Desktop */}
-          <div className="flex-grow flex flex-col min-h-screen md:pl-64 pb-24 md:pb-0">
+          <div className="flex-grow flex flex-col min-h-screen md:pl-60 pb-24 md:pb-0">
             
-            {/* Logo bar at the top of content page */}
-            <header className="hidden md:flex items-center justify-between h-14 px-8 border-b border-obsidian-border/50 bg-[#05060b]/40 backdrop-blur-sm sticky top-0 z-30 flex-shrink-0 select-none">
-              <div className="flex items-center space-x-2.5">
-                <img
-                  src="kikatracker_mascot.png"
-                  alt="Mascot Logo"
-                  className="w-7 h-7 rounded-lg border border-indigo-500/20 shadow-[0_0_8px_rgba(99,102,241,0.2)]"
-                />
-                <span className="text-xs font-black tracking-widest text-slate-300">XPERT TRACKER</span>
-              </div>
-              <div className="flex items-center space-x-1.5 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Node Sync Online</span>
-              </div>
-            </header>
+            {/* The desktop header used to repeat the sidebar's logo and wordmark, alongside a
+                pulsing "Node Sync Online" dot that was not wired to anything. Both are gone: the
+                sidebar already says whose site this is, and a status light should only exist if
+                it can actually go red. */}
 
             {/* Ad: top banner, above page content (never inside profiles, skins or tools) */}
             {showAds && <AdSlot key={`top-${adRouteKey}`} slot={AD_SLOTS.topBanner} className="pt-4 px-4" />}
@@ -479,6 +460,7 @@ function App() {
                           searchError={searchError}
                           onClearError={() => setSearchError(null)}
                           onNavigateToPrices={() => handleTabChange('prices')}
+                          onNavigate={handleTabChange}
                         />
                       )}
                     </>

@@ -108,7 +108,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Header & Stats Summary Banner */}
-      <div className="bg-[#0e121d]/90 border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5 backdrop-blur-md">
+      <div className="bg-[#0e121d]/90 border border-white/10 rounded-md p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5 backdrop-blur-md">
         <div>
           <div className="flex items-center space-x-3">
             <h3 className="text-base sm:text-lg font-black tracking-wider text-white flex items-center space-x-2">
@@ -126,7 +126,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
 
         {/* Quick Stats Summary Badges */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl flex items-center space-x-2.5">
+          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
             <Trophy className="w-4 h-4 text-emerald-400" />
             <div className="text-left">
               <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Win Rate</div>
@@ -134,7 +134,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
             </div>
           </div>
 
-          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl flex items-center space-x-2.5">
+          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
             <Flame className="w-4 h-4 text-amber-400" />
             <div className="text-left">
               <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Victories</div>
@@ -142,7 +142,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
             </div>
           </div>
 
-          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl flex items-center space-x-2.5">
+          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
             <Skull className="w-4 h-4 text-red-400" />
             <div className="text-left">
               <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Defeats</div>
@@ -154,7 +154,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
             onClick={handleRefresh}
             disabled={refreshing}
             title="Refresh match records"
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-gold-primary/40 text-slate-400 hover:text-white cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+            className="p-2.5 rounded-md bg-obsidian-card border border-white/10 hover:border-gold-primary/40 text-slate-400 hover:text-white cursor-pointer transition-all active:scale-95 disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-gold-primary' : ''}`} />
           </button>
@@ -162,7 +162,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
       </div>
 
       {/* Filter Controls Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d101a]/80 p-3.5 rounded-xl border border-white/5">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d101a]/80 p-3.5 rounded-md border border-slate-800">
         <div className="flex items-center space-x-2">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
           <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">Filter:</span>
@@ -173,10 +173,10 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
                 setFilterResult('ALL');
                 setVisibleCount(15);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-bold transition-all cursor-pointer ${
                 filterResult === 'ALL'
                   ? 'bg-gold-primary/20 border border-gold-primary/50 text-gold-bright shadow-sm'
-                  : 'bg-white/5 border border-white/5 text-slate-400 hover:text-white'
+                  : 'bg-obsidian-card border border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
               All ({matches.length})
@@ -187,10 +187,10 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
                 setFilterResult('WIN');
                 setVisibleCount(15);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-bold transition-all cursor-pointer ${
                 filterResult === 'WIN'
                   ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 shadow-sm'
-                  : 'bg-white/5 border border-white/5 text-slate-400 hover:text-emerald-400'
+                  : 'bg-obsidian-card border border-slate-800 text-slate-400 hover:text-emerald-400'
               }`}
             >
               Wins ({stats.wins})
@@ -201,10 +201,10 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
                 setFilterResult('LOSS');
                 setVisibleCount(15);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-bold transition-all cursor-pointer ${
                 filterResult === 'LOSS'
                   ? 'bg-red-500/20 border border-red-500/50 text-red-400 shadow-sm'
-                  : 'bg-white/5 border border-white/5 text-slate-400 hover:text-red-400'
+                  : 'bg-obsidian-card border border-slate-800 text-slate-400 hover:text-red-400'
               }`}
             >
               Defeats ({stats.losses})
@@ -219,12 +219,12 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
 
       {/* Match History List Rows */}
       {loading ? (
-        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-[#0d101a]/50 rounded-2xl border border-white/5">
+        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-[#0d101a]/50 rounded-md border border-slate-800">
           <div className="w-8 h-8 rounded-full border-2 border-gold-primary border-t-transparent animate-spin" />
           <p className="text-xs font-mono text-slate-400 tracking-wider uppercase">Loading Match Records from Kirka API...</p>
         </div>
       ) : filteredMatches.length === 0 ? (
-        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-[#0d101a]/50 rounded-2xl border border-white/5 text-slate-500">
+        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-[#0d101a]/50 rounded-md border border-slate-800 text-slate-500">
           <Swords className="w-10 h-10 opacity-30 text-gold-primary" />
           <p className="text-sm font-mono">No match records found for this player.</p>
         </div>
@@ -238,7 +238,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
             return (
               <div
                 key={match.id}
-                className="group relative flex items-stretch bg-[#1a2136] hover:bg-[#1f2740] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all duration-200 shadow-lg hover:shadow-2xl"
+                className="group relative flex items-stretch bg-[#1a2136] hover:bg-[#1f2740] rounded-md overflow-hidden border border-slate-800 hover:border-white/20 transition-all duration-200 shadow-lg hover:shadow-2xl"
               >
                 {/* 1. Far Left Vertical Accent Stripe (Green for Win, Red for Defeat) */}
                 <div
@@ -307,7 +307,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
         <div className="pt-2 flex justify-center">
           <button
             onClick={() => setVisibleCount((prev) => prev + 15)}
-            className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-gold-primary/40 text-xs font-mono font-bold text-slate-200 hover:text-white cursor-pointer transition-all active:scale-95 shadow-md"
+            className="px-8 py-3 rounded-md bg-obsidian-card border border-white/10 hover:border-gold-primary/40 text-xs font-mono font-bold text-slate-200 hover:text-white cursor-pointer transition-all active:scale-95 shadow-md"
           >
             Load More Matches ({filteredMatches.length - visibleCount} remaining)
           </button>

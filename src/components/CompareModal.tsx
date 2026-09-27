@@ -303,7 +303,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
     const isEqual = val1 === val2;
 
     return (
-      <div className="space-y-2 py-4 border-b border-white/5 font-mono">
+      <div className="space-y-2 py-4 border-b border-slate-800 font-mono">
         <div className="flex justify-between items-center text-xs">
           <span className={`font-bold ${isEqual ? 'text-slate-300' : isVal1Better ? 'text-emerald-400 font-extrabold text-sm' : 'text-rose-500/80'}`}>
             {formatFn(val1)}
@@ -313,7 +313,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
             {formatFn(val2)}
           </span>
         </div>
-        <div className="h-2 rounded-full overflow-hidden bg-obsidian-deep border border-white/5 flex">
+        <div className="h-2 rounded-full overflow-hidden bg-obsidian-deep border border-slate-800 flex">
           <div 
             style={{ width: `${pct1}%` }} 
             className={`h-full transition-all duration-500 ${isEqual ? 'bg-indigo-500/40' : isVal1Better ? 'bg-emerald-500/80' : 'bg-rose-600/50'}`}
@@ -342,7 +342,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
       />
 
       {/* Modal Box */}
-      <div className="relative max-w-6xl w-full bg-[#12141D] border border-obsidian-border rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] select-text animate-fade-in">
+      <div className="relative max-w-6xl w-full bg-[#12141D] border border-obsidian-border rounded-md overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] select-text animate-fade-in">
         
         {/* Header Block */}
         <div className="p-6 border-b border-obsidian-border/50 bg-[#0b0c13] flex justify-between items-center flex-shrink-0">
@@ -352,7 +352,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white rounded-full p-2 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+            className="text-slate-400 hover:text-white rounded-full p-2 bg-obsidian-card hover:bg-white/10 transition-all cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -378,27 +378,27 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLoadCompareUser(searchQuery)}
-                  className="w-full bg-[#090A0F] border border-obsidian-border rounded-xl pl-11 pr-24 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/30 transition-all"
+                  className="w-full bg-[#090A0F] border border-obsidian-border rounded-md pl-11 pr-24 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/30 transition-all"
                   autoFocus
                 />
                 <button
                   disabled={loading || !searchQuery.trim()}
                   onClick={() => handleLoadCompareUser(searchQuery)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-[10px] px-3.5 py-1.5 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-[10px] px-3.5 py-1.5 rounded-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Searching...' : 'Compare'}
                 </button>
               </div>
 
               {error && (
-                <div className="text-[10px] font-mono text-rose-500 bg-rose-950/20 border border-rose-900/30 p-2.5 rounded-lg text-center">
+                <div className="text-[10px] font-mono text-rose-500 bg-rose-950/20 border border-rose-900/30 p-2.5 rounded-md text-center">
                   {error}
                 </div>
               )}
             </div>
 
             {/* Quick Compare list */}
-            <div className="max-w-md mx-auto space-y-3 pt-4 border-t border-white/5">
+            <div className="max-w-md mx-auto space-y-3 pt-4 border-t border-slate-800">
               <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block font-bold text-center">Quick Compare Options</span>
               <div className="grid grid-cols-3 gap-2.5">
                 {QUICK_COMPARE_PROFILES.map((p) => (
@@ -406,7 +406,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                     key={p.shortId}
                     disabled={loading}
                     onClick={() => handleLoadCompareUser(p.shortId)}
-                    className="bg-[#161825] hover:bg-[#1f2235] border border-white/5 rounded-xl py-2 px-3 text-center transition-all cursor-pointer group hover:scale-105 active:scale-95"
+                    className="bg-[#161825] hover:bg-[#1f2235] border border-slate-800 rounded-md py-2 px-3 text-center transition-all cursor-pointer group hover:scale-105 active:scale-95"
                   >
                     <span className="text-xs font-bold text-slate-300 group-hover:text-gold-bright transition-colors block truncate">{p.name}</span>
                     <span className="text-[8px] font-mono text-slate-500 tracking-wider block mt-0.5">{p.shortId}</span>
@@ -494,25 +494,25 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   
                   {/* Detailed active skin matches */}
                   <div className="grid grid-cols-2 gap-4 pt-6">
-                    <div className="bg-[#0b0c13] border border-white/5 p-4 rounded-xl space-y-2.5">
-                      <span className="text-[8px] font-mono text-indigo-400 font-bold block uppercase tracking-widest border-b border-white/5 pb-1">{primaryProfile.name}'s Combat Loadout</span>
+                    <div className="bg-[#0b0c13] border border-slate-800 p-4 rounded-md space-y-2.5">
+                      <span className="text-[8px] font-mono text-indigo-400 font-bold block uppercase tracking-widest border-b border-slate-800 pb-1">{primaryProfile.name}'s Combat Loadout</span>
                       <div className="space-y-1 text-xs">
                         <span className="text-slate-500 font-mono text-[9px] block">CHARACTER SKIN</span>
                         <span className="font-extrabold text-slate-200 block uppercase truncate">{primaryProfile.activeBodySkin?.name || 'Default'}</span>
                       </div>
-                      <div className="space-y-1 text-xs pt-1 border-t border-white/5">
+                      <div className="space-y-1 text-xs pt-1 border-t border-slate-800">
                         <span className="text-slate-500 font-mono text-[9px] block">WEAPON SKIN</span>
                         <span className="font-extrabold text-slate-200 block uppercase truncate">{primaryProfile.activeWeapon1Skin?.name || 'Default'}</span>
                       </div>
                     </div>
 
-                    <div className="bg-[#0b0c13] border border-white/5 p-4 rounded-xl space-y-2.5">
-                      <span className="text-[8px] font-mono text-gold-bright font-bold block uppercase tracking-widest border-b border-white/5 pb-1">{compareProfile.name}'s Combat Loadout</span>
+                    <div className="bg-[#0b0c13] border border-slate-800 p-4 rounded-md space-y-2.5">
+                      <span className="text-[8px] font-mono text-gold-bright font-bold block uppercase tracking-widest border-b border-slate-800 pb-1">{compareProfile.name}'s Combat Loadout</span>
                       <div className="space-y-1 text-xs">
                         <span className="text-slate-500 font-mono text-[9px] block">CHARACTER SKIN</span>
                         <span className="font-extrabold text-slate-200 block uppercase truncate">{compareProfile.activeBodySkin?.name || 'Default'}</span>
                       </div>
-                      <div className="space-y-1 text-xs pt-1 border-t border-white/5">
+                      <div className="space-y-1 text-xs pt-1 border-t border-slate-800">
                         <span className="text-slate-500 font-mono text-[9px] block">WEAPON SKIN</span>
                         <span className="font-extrabold text-slate-200 block uppercase truncate">{compareProfile.activeWeapon1Skin?.name || 'Default'}</span>
                       </div>
@@ -524,20 +524,20 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                 <div className="flex-grow flex flex-col min-h-0 space-y-4">
                   
                   {/* Valuation Summary row */}
-                  <div className="grid grid-cols-3 gap-3 border-b border-white/5 pb-4 select-none">
-                    <div className="bg-[#090A0F]/80 p-2 text-center rounded-lg">
+                  <div className="grid grid-cols-3 gap-3 border-b border-slate-800 pb-4 select-none">
+                    <div className="bg-[#090A0F]/80 p-2 text-center rounded-md">
                       <span className="text-slate-500 text-[8px] font-mono uppercase block">Metric</span>
                       <span className="text-[9px] text-slate-400 font-bold block mt-1 uppercase font-mono">Net Worth</span>
                       <span className="text-[9px] text-slate-400 font-bold block mt-1 uppercase font-mono">Total Units</span>
                     </div>
 
-                    <div className="bg-indigo-950/10 p-2 rounded-lg border border-indigo-500/10 text-center">
+                    <div className="bg-indigo-950/10 p-2 rounded-md border border-indigo-500/10 text-center">
                       <span className="text-indigo-400 text-[8px] font-mono uppercase block">{primaryProfile.name}</span>
                       <span className="text-[10px] text-emerald-400 font-black block mt-1 font-mono">{formatValue(netWorth1)}</span>
                       <span className="text-[10px] text-slate-200 font-bold block mt-1 font-mono">{units1.toLocaleString()}</span>
                     </div>
 
-                    <div className="bg-gold-primary/5 p-2 rounded-lg border border-gold-primary/10 text-center">
+                    <div className="bg-gold-primary/5 p-2 rounded-md border border-gold-primary/10 text-center">
                       <span className="text-gold-bright text-[8px] font-mono uppercase block">{compareProfile.name}</span>
                       <span className="text-[10px] text-emerald-400 font-black block mt-1 font-mono">{formatValue(netWorth2)}</span>
                       <span className="text-[10px] text-slate-200 font-bold block mt-1 font-mono">{units2.toLocaleString()}</span>
@@ -548,8 +548,8 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-grow min-h-0">
                     
                     {/* LEFT PANEL: Player 1 (My) Inventory Selector */}
-                    <div className="flex flex-col min-h-0 bg-[#090A0F]/30 border border-white/5 rounded-2xl p-4">
-                      <div className="flex justify-between items-center pb-3 border-b border-white/5 mb-3 select-none">
+                    <div className="flex flex-col min-h-0 bg-[#090A0F]/30 border border-slate-800 rounded-md p-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-800 mb-3 select-none">
                         <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">Your Skins</span>
                         {mySelectedCount > 0 && (
                           <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-indigo-500 text-white font-extrabold">{mySelectedCount} Selected</span>
@@ -564,7 +564,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                           placeholder="Search your skins..."
                           value={mySearchTerm}
                           onChange={(e) => setMySearchTerm(e.target.value)}
-                          className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/20 transition-all"
+                          className="w-full bg-[#0b0c13] border border-obsidian-border rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/20 transition-all"
                         />
                       </div>
 
@@ -580,7 +580,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                             <div
                               key={invItem.item.id}
                               onClick={() => handleToggleMyItem(invItem.item.id)}
-                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all cursor-pointer border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : ''}`}
+                              className={`group relative border rounded-md p-3 flex items-center justify-between transition-all cursor-pointer border-slate-800 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : ''}`}
                             >
                               <div className="flex items-center space-x-3 flex-grow min-w-0">
                                 {/* Checkbox */}
@@ -591,7 +591,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                 </div>
 
                                 {/* Render Preview Box */}
-                                <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <div className="w-10 h-10 rounded-md bg-[#090A0F] border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                                   {renderUrl ? (
                                     <img
                                       src={renderUrl}
@@ -623,11 +623,11 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                 {isSelected && (
                                   <div 
                                     onClick={(e) => e.stopPropagation()}
-                                    className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow"
+                                    className="flex items-center bg-[#090A0F] border border-white/10 rounded-md overflow-hidden shadow"
                                   >
                                     <button
                                       onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, false, invItem.amount); }}
-                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                      className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Minus className="w-2.5 h-2.5" />
                                     </button>
@@ -636,14 +636,14 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                     </span>
                                     <button
                                       onClick={(e) => { e.stopPropagation(); handleAdjustMyItemQty(invItem.item.id, true, invItem.amount); }}
-                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                      className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Plus className="w-2.5 h-2.5" />
                                     </button>
                                   </div>
                                 )}
 
-                                <div className="bg-[#090A0F] border border-white/5 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
+                                <div className="bg-[#090A0F] border border-slate-800 px-3 py-1.5 rounded-md flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
                                   <img
                                     src="kirka_coin.png"
                                     alt="coin"
@@ -657,13 +657,13 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                         })}
 
                         {sortedMyInventory.length === 0 && (
-                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
+                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-slate-800 rounded-md select-none">No skins found</div>
                         )}
 
                         {sortedMyInventory.length > myVisibleCount && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setMyVisibleCount(prev => prev + 15); }}
-                            className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
+                            className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-slate-800 rounded-md text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
                           >
                             Load More Skins
                           </button>
@@ -672,8 +672,8 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                     </div>
 
                     {/* RIGHT PANEL: Player 2 (Their) Inventory Selector */}
-                    <div className="flex flex-col min-h-0 bg-[#090A0F]/30 border border-white/5 rounded-2xl p-4">
-                      <div className="flex justify-between items-center pb-3 border-b border-white/5 mb-3 select-none">
+                    <div className="flex flex-col min-h-0 bg-[#090A0F]/30 border border-slate-800 rounded-md p-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-800 mb-3 select-none">
                         <span className="text-xs font-black uppercase text-gold-bright tracking-wider">{compareProfile.name}'s Skins</span>
                         {theirSelectedCount > 0 && (
                           <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-gold-primary text-slate-900 font-extrabold">{theirSelectedCount} Selected</span>
@@ -688,7 +688,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                           placeholder={`Search ${compareProfile.name}'s skins...`}
                           value={theirSearchTerm}
                           onChange={(e) => setTheirSearchTerm(e.target.value)}
-                          className="w-full bg-[#0b0c13] border border-obsidian-border rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
+                          className="w-full bg-[#0b0c13] border border-obsidian-border rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/20 transition-all"
                         />
                       </div>
 
@@ -704,7 +704,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                             <div
                               key={invItem.item.id}
                               onClick={() => handleToggleTheirItem(invItem.item.id)}
-                              className={`group relative border rounded-xl p-3 flex items-center justify-between transition-all cursor-pointer border-white/5 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-gold-primary/30 bg-gold-primary/[0.01]' : ''}`}
+                              className={`group relative border rounded-md p-3 flex items-center justify-between transition-all cursor-pointer border-slate-800 bg-[#0b0c13]/55 hover:bg-[#0b0c13]/85 ${isSelected ? 'border-gold-primary/30 bg-gold-primary/[0.01]' : ''}`}
                             >
                               <div className="flex items-center space-x-3 flex-grow min-w-0">
                                 {/* Checkbox */}
@@ -715,7 +715,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                 </div>
 
                                 {/* Render Preview Box */}
-                                <div className="w-10 h-10 rounded-lg bg-[#090A0F] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <div className="w-10 h-10 rounded-md bg-[#090A0F] border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                                   {renderUrl ? (
                                     <img
                                       src={renderUrl}
@@ -747,11 +747,11 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                 {isSelected && (
                                   <div 
                                     onClick={(e) => e.stopPropagation()}
-                                    className="flex items-center bg-[#090A0F] border border-white/10 rounded-lg overflow-hidden shadow"
+                                    className="flex items-center bg-[#090A0F] border border-white/10 rounded-md overflow-hidden shadow"
                                   >
                                     <button
                                       onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, false, invItem.amount); }}
-                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                      className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Minus className="w-2.5 h-2.5" />
                                     </button>
@@ -760,14 +760,14 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                                     </span>
                                     <button
                                       onClick={(e) => { e.stopPropagation(); handleAdjustTheirItemQty(invItem.item.id, true, invItem.amount); }}
-                                      className="p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                                      className="p-1.5 text-slate-400 hover:text-white bg-obsidian-card hover:bg-white/10 transition-colors cursor-pointer"
                                     >
                                       <Plus className="w-2.5 h-2.5" />
                                     </button>
                                   </div>
                                 )}
 
-                                <div className="bg-[#090A0F] border border-white/5 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
+                                <div className="bg-[#090A0F] border border-slate-800 px-3 py-1.5 rounded-md flex items-center space-x-1.5 text-[11px] font-mono font-black text-slate-200 shadow-inner">
                                   <img
                                     src="kirka_coin.png"
                                     alt="coin"
@@ -781,13 +781,13 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                         })}
 
                         {sortedTheirInventory.length === 0 && (
-                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-white/5 rounded-2xl select-none">No skins found</div>
+                          <div className="text-center py-16 text-slate-600 text-xs border border-dashed border-slate-800 rounded-md select-none">No skins found</div>
                         )}
 
                         {sortedTheirInventory.length > theirVisibleCount && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setTheirVisibleCount(prev => prev + 15); }}
-                            className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
+                            className="w-full py-2.5 bg-[#0b0c13] hover:bg-[#12141d] border border-slate-800 rounded-md text-[10px] font-bold text-slate-400 hover:text-white transition-colors cursor-pointer select-none"
                           >
                             Load More Skins
                           </button>
@@ -798,8 +798,8 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   </div>
 
                   {/* QUICK TRADE PANEL (Renders trade commands) */}
-                  <div className="bg-[#0b0c13] border border-obsidian-border rounded-2xl p-4 space-y-3 flex-shrink-0 select-none">
-                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                  <div className="bg-[#0b0c13] border border-obsidian-border rounded-md p-4 space-y-3 flex-shrink-0 select-none">
+                    <div className="flex justify-between items-center border-b border-slate-800 pb-2">
                       <span className="text-[10px] font-mono text-indigo-400 tracking-wider font-black uppercase flex items-center space-x-1.5">
                         <ArrowRightLeft className="w-3.5 h-3.5" />
                         <span>Quick Trade Generator</span>
@@ -829,7 +829,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                         <p className="text-[10px] text-slate-400">Copy this trade command paste it directly inside the Kirka.io game chat to create a trade offer immediately:</p>
                         <div 
                           onClick={handleCopyCommand}
-                          className="bg-[#040509] border border-white/5 rounded-xl p-3.5 font-mono text-xs text-indigo-300 hover:text-indigo-200 break-all select-all cursor-pointer transition-colors relative group hover:border-indigo-500/20"
+                          className="bg-[#040509] border border-slate-800 rounded-md p-3.5 font-mono text-xs text-indigo-300 hover:text-indigo-200 break-all select-all cursor-pointer transition-colors relative group hover:border-indigo-500/20"
                           title="Click to copy to clipboard"
                         >
                           {generatedTradeCommand}
@@ -859,7 +859,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                   setError(null);
                   setCopySuccess(false);
                 }}
-                className="flex items-center space-x-1.5 bg-[#1b1c26] hover:bg-[#252838] border border-white/10 rounded-xl px-4.5 py-2.5 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
+                className="flex items-center space-x-1.5 bg-[#1b1c26] hover:bg-[#252838] border border-white/10 rounded-md px-4.5 py-2.5 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
               >
                 <GitCompare className="w-4 h-4 text-indigo-400" />
                 <span>Compare Another Player</span>
@@ -867,7 +867,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:shadow-indigo-glow text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+                className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:shadow-indigo-glow text-white font-bold text-xs px-5 py-2.5 rounded-md transition-all cursor-pointer"
               >
                 Close Comparison
               </button>

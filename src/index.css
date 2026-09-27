@@ -1,34 +1,118 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700;800&family=Doto:wght@300;400;600;700;900&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Exo+2:wght@600;700;800&display=swap');
 
 @import "tailwindcss";
 
+/* =========================================================================
+   Palette: warm neutral dark.
+
+   Surfaces are warm charcoal rather than blue-black, so nothing reads as
+   "default dark theme". The accent is brass - the old gold pulled well down
+   in saturation so it can sit on a page without shouting. Token names are
+   unchanged (obsidian-*, gold-*) so every existing component inherits this.
+   ========================================================================= */
 @theme {
-  --color-obsidian-deep: #090A0F;
-  --color-obsidian-dark: #0e1017;
-  --color-obsidian-card: #12141D;
-  --color-obsidian-hover: #1a1d2b;
-  --color-obsidian-border: #1E2230;
+  --color-obsidian-deep: #0B0B0B;
+  --color-obsidian-dark: #111111;
+  --color-obsidian-card: #161616;
+  --color-obsidian-hover: #1F1F1F;
+  --color-obsidian-border: #2A2A2A;
 
-  --color-gold-primary: #D4AF37;
-  --color-gold-bright: #FFD700;
-  --color-gold-dark: #9A7B1C;
+  --color-gold-primary: #B8FF29;
+  --color-gold-bright: #D4FF6B;
+  --color-gold-dark: #7FB300;
 
-  --color-rarity-mythic: #FF3344;
-  --color-rarity-legendary: #FFCC00;
-  --color-rarity-epic: #A855F7;
-  --color-rarity-rare: #3B82F6;
-  --color-rarity-common: #64748B;
+  /* Rarity still has to be readable at a glance, but neon was the loudest
+     thing on every page. These are the same hues at roughly half the chroma. */
+  --color-rarity-mythic: #FF2D46;
+  --color-rarity-legendary: #FFC81E;
+  --color-rarity-epic: #C46BFF;
+  --color-rarity-rare: #3BA9FF;
+  --color-rarity-common: #9CA3AF;
 
-  --font-sans: "Outfit", "Inter", system-ui, -apple-system, sans-serif;
 
-  --shadow-gold-glow: 0 0 15px rgba(212, 175, 55, 0.15);
-  --shadow-gold-glow-bright: 0 0 25px rgba(255, 215, 0, 0.3);
+  /* ---------------------------------------------------------------------
+     Spray palette. Graffiti gets its punch from a few saturated colours
+     hitting a dull concrete ground - so these stay loud, and the surfaces
+     underneath stay flat and grey. Each one is used as a flat fill or a
+     hard edge, never as a gradient or a glow, which is the difference
+     between paint and neon.
+     --------------------------------------------------------------------- */
+  --color-spray-pink: #FF2D8E;
+  --color-spray-cyan: #22D3EE;
+  --color-spray-lime: #B8FF29;
+  --color-spray-orange: #FF7A1A;
+  --color-spray-violet: #A855F7;
+
+  --font-display: "Anton", "Inter", system-ui, sans-serif;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Kept as tokens because components reference them, but they are now real
+     shadows - depth, not light emission. */
+
+  /* ---------------------------------------------------------------------
+     Built-in scales, retinted.
+
+     602 slate and 182 indigo usages are spread across 36 components. Rather
+     than rewrite every className, the scales themselves are redefined: cool
+     grey becomes warm grey so text sits on the background instead of fighting
+     it, and indigo drops to a low-chroma blue-grey so it reads as a quiet
+     secondary rather than a second accent competing with the brass.
+
+     Purple and cyan are deliberately left alone - the VIP supporter styling
+     depends on them.
+     --------------------------------------------------------------------- */
+  --color-slate-50:  #FAFAFA;
+  --color-slate-100: #EDEDED;
+  --color-slate-200: #D4D4D4;
+  --color-slate-300: #C7C7C7;
+  --color-slate-400: #A0A0A0;
+  --color-slate-500: #828282;
+  --color-slate-600: #6B6B6B;
+  --color-slate-700: #4A4A4A;
+  --color-slate-800: #282828;
+  --color-slate-900: #161616;
+  --color-slate-950: #0D0D0D;
+
+  --color-indigo-200: #C7CEFF;
+  --color-indigo-300: #A8B4FF;
+  --color-indigo-400: #8492FF;
+  --color-indigo-500: #6172FF;
+  --color-indigo-600: #4A59E6;
+  --color-indigo-700: #3A47C4;
+  --color-indigo-800: #32363F;
+
+  /* Semantic colour keeps its meaning, loses the neon. */
+  --color-emerald-200: #A8F5D0;
+  --color-emerald-300: #6EF2B0;
+  --color-emerald-400: #2EE68F;
+  --color-emerald-500: #10D178;
+  --color-emerald-600: #0BA75F;
+
+  --color-red-200: #FFC2C2;
+  --color-red-300: #FF8A8A;
+  --color-red-400: #FF5A5A;
+  --color-red-500: #FF2D46;
+  --color-red-600: #E01530;
+
+  --color-amber-200: #FFE6B0;
+  --color-amber-300: #FFD98A;
+  --color-amber-400: #FFC247;
+  --color-amber-500: #FFAA00;
+  --color-amber-600: #E08E00;
+
+  --color-yellow-300: #FFE86B;
+  --color-yellow-400: #FFDA1F;
+
+  --shadow-gold-glow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-gold-glow-bright: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 @layer base {
   body {
     background-color: var(--color-obsidian-deep);
-    color: #f1f5f9;
+    color: #EDEDED;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -36,58 +120,125 @@
     margin: 0;
     padding: 0;
   }
+
+  /* Large text at default tracking is the giveaway of an untouched framework.
+     Headings tighten as they grow, the way set type actually behaves. */
+  /* Poster type across the whole site. Anton is condensed and heavy, so it wants
+     uppercase and a little tracking rather than the tight negative spacing a
+     grotesque would take. h3 and below stay in Inter so body copy stays readable. */
+  h1, h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.015em;
+  }
+  h3 { letter-spacing: -0.01em; }
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090A0F;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E2230;
-  border-radius: 4px;
+  background: #2A2A2A;
+  border: 3px solid var(--color-obsidian-deep);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D4AF37;
+  background: #3D3D3D;
 }
 
-/* Glassmorphism Classes */
+/* Panels are separated by a hairline and a shade of surface, not by blur.
+   Backdrop blur over a near-black page buys nothing and costs a repaint. */
 .glass-panel {
-  background: rgba(18, 20, 29, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 34, 48, 0.6);
+  background: var(--color-obsidian-card);
+  border: 1px solid var(--color-obsidian-border);
 }
 
 .glass-panel-gold {
-  background: rgba(18, 20, 29, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  background: var(--color-obsidian-card);
+  border: 1px solid #2F2F2F;
 }
 
 .glass-nav {
-  background: rgba(9, 10, 15, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(30, 34, 48, 0.8);
+  background: rgba(11, 10, 8, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-obsidian-border);
 }
 
-/* Custom animations */
+
+/* =========================================================================
+   The wall.
+
+   A single tiling SVG noise layer over the whole page at very low opacity.
+   It is fixed, so it does not swim while scrolling, and pointer-events:none
+   so it never eats a click. This is what stops the background reading as
+   "flat dark div" - there is something to paint on.
+   ========================================================================= */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Headings are poster type: heavy, condensed, tight. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+/* A marker stroke behind a word, cut at an angle the way tape or a roller
+   leaves it. Flat colour, no blur. */
+.mark {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.12em;
+  /* Without this the z-index:-1 block below escapes the element and paints behind the
+     page background, leaving dark text on a dark wall. */
+  isolation: isolate;
+}
+
+.mark::before {
+  content: "";
+  position: absolute;
+  inset: 12% -0.06em 14%;
+  background: var(--mark-color, var(--color-spray-pink));
+  transform: skewX(-8deg) rotate(-0.6deg);
+  z-index: -1;
+}
+
+/* Pasted-poster edge: a hard colour rule along the top of a card. */
+.taped {
+  box-shadow: inset 0 3px 0 0 var(--tape-color, var(--color-spray-pink));
+}
+
+/* Stencil numerals for ranks and counters. */
+.stencil {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+::selection {
+  background: var(--color-spray-lime);
+  color: #0B0B0B;
+}
+
 @keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-spin-slow {
@@ -95,89 +246,67 @@
 }
 
 @keyframes pulse-subtle {
-  0%, 100% {
-    opacity: 0.2;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.35;
-    transform: scale(1.05);
-  }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
 }
 
 .animate-pulse-subtle {
   animation: pulse-subtle 4s ease-in-out infinite;
 }
 
-/* Shiny gradient text */
+/* Was a three-stop gradient with a glow. Gradient-filled headings are the
+   single clearest tell of a generated page, so this is now just the accent. */
 .text-gold-gradient {
-  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #9A7B1C 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-gold-bright);
 }
 
 .text-mythic-gradient {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF3344 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-rarity-mythic);
 }
 
-/* Rarity Glowing Shadows */
-.shadow-mythic {
-  box-shadow: 0 0 15px rgba(255, 51, 68, 0.25);
-  border-color: rgba(255, 51, 68, 0.6) !important;
-}
+/* Rarity used to be communicated with coloured light bleeding off the card.
+   A 1px border in the rarity colour says the same thing and stays quiet. */
+.shadow-mythic    { border-color: rgba(255, 45, 70, 0.75) !important; }
+.shadow-legendary { border-color: rgba(255, 200, 30, 0.7) !important; }
+.shadow-epic      { border-color: rgba(196, 107, 255, 0.65) !important; }
+.shadow-rare      { border-color: rgba(59, 169, 255, 0.6) !important; }
+.shadow-common    { border-color: rgba(156, 163, 175, 0.4) !important; }
 
-.shadow-legendary {
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.25);
-  border-color: rgba(255, 204, 0, 0.6) !important;
-}
-
-.shadow-epic {
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
-  border-color: rgba(168, 85, 247, 0.5) !important;
-}
-
-.shadow-rare {
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4) !important;
-}
-
-.shadow-common {
-  border-color: rgba(100, 116, 139, 0.3) !important;
-}
-
-/* Glow filters for icons */
 .glow-filter-gold {
-  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+  filter: none;
 }
 
-/* Custom Interaction Animations (Pop Up, Slide, Lift, Click Squash) */
+/* Interaction: a change of surface and border, no lift, no scale, no
+   brightness pump. Movement on hover is what makes a page feel like a demo. */
 .btn-interactive {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .btn-interactive:hover {
-  transform: translateY(-2px) scale(1.02);
-  filter: brightness(1.1);
-  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.12);
+  background-color: var(--color-obsidian-hover);
+  border-color: #3D3D3D;
 }
 
 .btn-interactive:active {
-  transform: translateY(1px) scale(0.97);
+  background-color: var(--color-obsidian-card);
 }
 
 .card-interactive {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .card-interactive:hover {
-  transform: translateY(-4px) scale(1.015);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+  background-color: var(--color-obsidian-hover);
+  border-color: #3D3D3D;
 }
 
-.card-interactive:active {
-  transform: scale(0.99);
+/* Respect the OS setting. The old file animated regardless. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* =========================================================================

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, Search, ShieldAlert } from 'lucide-react';
+import { Swords, Trophy, Search, ShieldAlert } from 'lucide-react';
 import type { RankedLeaderboardResult } from '../utils/api';
 import { fetchRanked1v1, fetchRanked2v2, fetchRankedSAD } from '../utils/api';
 import { isVip } from '../utils/vip';
@@ -42,9 +42,9 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
-            <img src={`${import.meta.env.BASE_URL}ranked_arena.png`} alt="Ranked Icon" className="w-8 h-8 rounded-lg object-contain glow-filter-gold" />
-            <span>Ranked Arena Leaderboard</span>
+          <h2 className="text-2xl sm:text-3xl text-[#EDEDED] flex items-center gap-3">
+            <Swords className="w-7 h-7 text-spray-pink shrink-0" />
+            <span>Ranked <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-pink)' }}>Arena</span></span>
           </h2>
           <p className="text-sm text-slate-400 mt-1.5">
             Competitive standings based on Elo rating (KLO score) tiers.
@@ -52,10 +52,10 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
         </div>
 
         {/* Sub-Tabs */}
-        <div className="flex bg-[#090A0F]/80 p-1.5 rounded-xl border border-obsidian-border w-fit">
+        <div className="flex bg-[#090A0F]/80 p-1.5 rounded-md border border-obsidian-border w-fit">
           <button
             onClick={() => setActiveSubTab('sad')}
-            className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === 'sad'
                 ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
@@ -65,7 +65,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
           </button>
           <button
             onClick={() => setActiveSubTab('1v1')}
-            className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === '1v1'
                 ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
@@ -75,7 +75,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
           </button>
           <button
             onClick={() => setActiveSubTab('2v2')}
-            className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+            className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === '2v2'
                 ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
@@ -98,13 +98,13 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             disabled={loading}
-            className="block w-full pl-9 pr-4 py-2.5 bg-obsidian-card border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-500 outline-none focus:border-gold-primary/40 focus:shadow-[0_0_12px_rgba(212,175,55,0.06)] text-xs transition-all disabled:opacity-50"
+            className="block w-full pl-9 pr-4 py-2.5 bg-obsidian-card border border-obsidian-border rounded-md text-slate-200 placeholder-slate-500 outline-none focus:border-gold-primary/40 focus: text-xs transition-all disabled:opacity-50"
           />
         </div>
       </div>
 
       {/* Standings list container */}
-      <div className="bg-obsidian-card border border-obsidian-border rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-obsidian-card border border-obsidian-border rounded-md overflow-hidden shadow-sm">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-3">
             <div className="w-8 h-8 border-2 border-gold-primary border-t-transparent rounded-full animate-spin" />
@@ -170,7 +170,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
                               <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded uppercase ${
                                 vip 
                                   ? 'badge-purple-wave text-purple-200 border-purple-500/40 font-bold' 
-                                  : 'bg-obsidian-deep text-slate-500 border border-white/5'
+                                  : 'bg-obsidian-deep text-slate-500 border border-slate-800'
                               }`}>
                                 {vip ? `⚡ #${player.shortId}` : player.shortId}
                               </span>

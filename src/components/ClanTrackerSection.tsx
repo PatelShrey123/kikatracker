@@ -237,13 +237,13 @@ export const ClanTrackerSection: React.FC = () => {
               placeholder="Enter Clan Name (e.g. kiss)..."
               value={clanInput}
               onChange={(e) => setClanInput(e.target.value)}
-              className="w-full bg-[#0a0c16]/90 border border-obsidian-border text-sm text-slate-200 pl-10 pr-4 py-2.5 rounded-xl outline-none focus:border-gold-primary/60 focus:shadow-[0_0_12px_rgba(212,175,55,0.15)] transition-all font-mono"
+              className="w-full bg-[#0a0c16]/90 border border-obsidian-border text-sm text-slate-200 pl-10 pr-4 py-2.5 rounded-md outline-none focus:border-gold-primary/60 focus: transition-all font-mono"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="bg-gold-primary hover:bg-gold-bright text-obsidian-deep font-bold text-sm px-6 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+            className="bg-gold-primary hover:bg-gold-bright text-obsidian-deep font-bold text-sm px-6 py-2.5 rounded-md transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
           >
             {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             Track
@@ -257,7 +257,7 @@ export const ClanTrackerSection: React.FC = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="border border-red-500/20 bg-red-500/10 text-red-400 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold font-mono"
+            className="border border-red-500/20 bg-red-500/10 text-red-400 px-4 py-3 rounded-md flex items-center gap-3 text-sm font-semibold font-mono"
           >
             <AlertTriangle className="w-5 h-5 flex-shrink-0" />
             {error}
@@ -268,9 +268,9 @@ export const ClanTrackerSection: React.FC = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="border border-obsidian-border/50 bg-[#06070c]/50 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4"
+            className="border border-obsidian-border/50 bg-[#06070c]/50 rounded-md p-12 text-center flex flex-col items-center justify-center space-y-4"
           >
-            <div className="w-16 h-16 rounded-full bg-gold-primary/5 flex items-center justify-center border border-gold-primary/20 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+            <div className="w-16 h-16 rounded-full bg-gold-primary/5 flex items-center justify-center border border-gold-primary/20">
               <TrendingUp className="w-8 h-8 text-gold-primary" />
             </div>
             <div className="space-y-1">
@@ -292,7 +292,7 @@ export const ClanTrackerSection: React.FC = () => {
             {/* Clan info card & snapshot controls */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Info panel */}
-              <div className="lg:col-span-2 border border-obsidian-border bg-gradient-to-br from-[#0c0e17]/90 to-[#06070b]/95 rounded-2xl p-6 flex flex-col justify-between space-y-6">
+              <div className="lg:col-span-2 border border-obsidian-border bg-gradient-to-br from-[#0c0e17]/90 to-[#06070b]/95 rounded-md p-6 flex flex-col justify-between space-y-6">
                 <div>
                   <span className="bg-gold-primary/10 border border-gold-primary/30 text-gold-bright px-3 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider">
                     Clan Profile
@@ -328,7 +328,7 @@ export const ClanTrackerSection: React.FC = () => {
               </div>
 
               {/* Snapshot Controls */}
-              <div className="border border-obsidian-border bg-[#090b14]/90 rounded-2xl p-6 flex flex-col justify-between space-y-6">
+              <div className="border border-obsidian-border bg-[#090b14]/90 rounded-md p-6 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
                   <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gold-bright" />
@@ -340,7 +340,7 @@ export const ClanTrackerSection: React.FC = () => {
                     <select
                       value={selectedSnapshotId}
                       onChange={(e) => setSelectedSnapshotId(e.target.value)}
-                      className="w-full bg-[#05060b] border border-obsidian-border text-sm text-slate-200 px-4 py-3 rounded-xl appearance-none outline-none focus:border-gold-primary/60 font-mono cursor-pointer"
+                      className="w-full bg-[#05060b] border border-obsidian-border text-sm text-slate-200 px-4 py-3 rounded-md appearance-none outline-none focus:border-gold-primary/60 font-mono cursor-pointer"
                     >
                       <option value="month">📅 Current Month Gain (Resets Monthly at 12:30 IST)</option>
                       {snapshots.map(snap => (
@@ -374,7 +374,7 @@ export const ClanTrackerSection: React.FC = () => {
 
                 <button
                   onClick={handleTakeSnapshot}
-                  className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/40 font-bold text-sm py-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/40 font-bold text-sm py-3 rounded-md transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Take Custom Snapshot
@@ -385,8 +385,8 @@ export const ClanTrackerSection: React.FC = () => {
             {/* Metric widgets */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Total Gain Widget */}
-              <div className="border border-obsidian-border bg-[#07090f]/75 rounded-2xl p-5 flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <div className="border border-obsidian-border bg-[#07090f]/75 rounded-md p-5 flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-emerald-400" />
                 </div>
                 <div>
@@ -398,8 +398,8 @@ export const ClanTrackerSection: React.FC = () => {
               </div>
 
               {/* Active Members Widget */}
-              <div className="border border-obsidian-border bg-[#07090f]/75 rounded-2xl p-5 flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+              <div className="border border-obsidian-border bg-[#07090f]/75 rounded-md p-5 flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                   <Users className="w-6 h-6 text-indigo-400" />
                 </div>
                 <div>
@@ -411,8 +411,8 @@ export const ClanTrackerSection: React.FC = () => {
               </div>
 
               {/* Top Contributor Widget */}
-              <div className="border border-obsidian-border bg-[#07090f]/75 rounded-2xl p-5 flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-xl bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center">
+              <div className="border border-obsidian-border bg-[#07090f]/75 rounded-md p-5 flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-md bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center">
                   <Award className="w-6 h-6 text-gold-bright" />
                 </div>
                 <div className="flex-grow min-w-0">
@@ -428,7 +428,7 @@ export const ClanTrackerSection: React.FC = () => {
             </div>
 
             {/* Member list section */}
-            <div className="border border-obsidian-border bg-gradient-to-b from-[#08090f]/90 to-[#040509]/95 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="border border-obsidian-border bg-gradient-to-b from-[#08090f]/90 to-[#040509]/95 rounded-md overflow-hidden shadow-2xl">
               {/* Filter controls bar */}
               <div className="px-6 py-4 border-b border-obsidian-border/50 flex flex-col md:flex-row justify-between items-center gap-4 bg-[#0a0c15]/30">
                 <h3 className="text-sm font-bold text-slate-300 font-mono tracking-wide">
@@ -442,7 +442,7 @@ export const ClanTrackerSection: React.FC = () => {
                     placeholder="Filter by name..."
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
-                    className="w-full bg-[#05060b] border border-obsidian-border/80 text-xs text-slate-300 pl-9 pr-4 py-2 rounded-lg outline-none focus:border-indigo-500/50 transition-all font-mono"
+                    className="w-full bg-[#05060b] border border-obsidian-border/80 text-xs text-slate-300 pl-9 pr-4 py-2 rounded-md outline-none focus:border-indigo-500/50 transition-all font-mono"
                   />
                 </div>
               </div>

@@ -438,7 +438,7 @@ export const BotSection: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl border border-gold-primary/20 bg-gradient-to-br from-obsidian-card via-[#0c0d15] to-[#040509] p-8 md:p-12 shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
+        className="relative overflow-hidden rounded-md border border-gold-primary/20 bg-gradient-to-br from-obsidian-card via-[#0c0d15] to-[#040509] p-8 md:p-12 shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
       >
         <div className="absolute top-0 right-0 w-96 h-96 bg-gold-primary/5 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
@@ -459,15 +459,14 @@ export const BotSection: React.FC = () => {
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400 font-bold flex items-center space-x-1.5">
+              <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400 font-bold flex items-center space-x-1.5">
                 <Users className="w-3.5 h-3.5" />
                 <span>{userReach.toLocaleString()}+ Players Reached</span>
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-slate-300 flex items-center space-x-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="px-2.5 py-1 rounded-md bg-obsidian-card border border-white/10 text-[11px] font-mono text-slate-300 flex items-center space-x-1.5">
                 <span>Supports Prefix <code className="text-gold-bright font-bold">.</code> & Slash <code className="text-indigo-400 font-bold">/</code></span>
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-gold-primary/10 border border-gold-primary/20 text-[11px] font-mono text-gold-bright font-bold flex items-center space-x-1">
+              <span className="px-2.5 py-1 rounded-md bg-gold-primary/10 border border-gold-primary/20 text-[11px] font-mono text-gold-bright font-bold flex items-center space-x-1">
                 <Flame className="w-3 h-3" />
                 <span>Hub Valuation Index</span>
               </span>
@@ -481,7 +480,7 @@ export const BotSection: React.FC = () => {
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center space-x-2 px-5 py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(245,158,11,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
+              className="flex items-center justify-center space-x-2 px-5 py-4 rounded-md bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(245,158,11,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
               <Coffee className="w-4 h-4 text-amber-400" />
               <span>🇮🇳 Indian Donator</span>
@@ -492,7 +491,7 @@ export const BotSection: React.FC = () => {
               onClick={() => setShowVpModal(true)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center space-x-2 px-5 py-4 rounded-2xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(99,102,241,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
+              className="flex items-center justify-center space-x-2 px-5 py-4 rounded-md bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-300 font-extrabold text-sm tracking-wide shadow-[0_4px_20px_rgba(99,102,241,0.2)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
               <Globe className="w-4 h-4 text-indigo-400" />
               <span>🌍 International Donator</span>
@@ -504,7 +503,7 @@ export const BotSection: React.FC = () => {
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center space-x-3 px-7 py-4 rounded-2xl bg-gradient-to-r from-gold-primary to-yellow-600 hover:from-gold-bright hover:to-gold-primary text-black font-extrabold text-base tracking-wide shadow-[0_4px_25px_rgba(212,175,55,0.35)] transition-all cursor-pointer select-none w-full sm:w-auto"
+              className="flex items-center justify-center space-x-3 px-7 py-4 rounded-md bg-gradient-to-r from-gold-primary to-yellow-600 hover:from-gold-bright hover:to-gold-primary text-black font-extrabold text-base tracking-wide shadow-[0_4px_25px_rgba(212,175,55,0.35)] transition-all cursor-pointer select-none w-full sm:w-auto"
             >
               <Download className="w-5 h-5" />
               <span>Add to Discord</span>
@@ -520,7 +519,7 @@ export const BotSection: React.FC = () => {
         transition={{ delay: 0.05 }}
         className="grid grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-2xl p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-md p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           <div className="text-3xl md:text-4xl font-black text-[#38bdf8] font-mono tracking-wider mb-2">
             {userReach.toLocaleString()}+
           </div>
@@ -529,7 +528,7 @@ export const BotSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-2xl p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-md p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           <div className="text-3xl md:text-4xl font-black text-gold-bright font-mono tracking-wider mb-2">
             {linkedCount}
           </div>
@@ -538,7 +537,7 @@ export const BotSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-2xl p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-md p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           <div className="text-3xl md:text-4xl font-black text-[#10b981] font-mono tracking-wider mb-2">
             {serverCount}
           </div>
@@ -547,7 +546,7 @@ export const BotSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-2xl p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="bg-gradient-to-br from-[#0c0d15] to-[#040509] border border-obsidian-border/50 rounded-md p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           <div className="text-3xl md:text-4xl font-black text-amber-400 font-mono tracking-wider mb-2">
             {catalogCount.toLocaleString()}
           </div>
@@ -565,11 +564,11 @@ export const BotSection: React.FC = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-5 rounded-2xl border border-obsidian-border bg-obsidian-card/50 p-6 space-y-5 shadow-2xl"
+          className="lg:col-span-5 rounded-md border border-obsidian-border bg-obsidian-card/50 p-6 space-y-5 shadow-2xl"
         >
           <div className="flex items-center justify-between border-b border-obsidian-border/80 pb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gold-primary/10 flex items-center justify-center text-gold-bright">
+              <div className="w-8 h-8 rounded-md bg-gold-primary/10 flex items-center justify-center text-gold-bright">
                 <Sparkles className="w-4 h-4" />
               </div>
               <h2 className="text-xl font-black text-white tracking-wide">Key Features</h2>
@@ -585,15 +584,15 @@ export const BotSection: React.FC = () => {
               return (
                 <div 
                   key={idx} 
-                  className="flex items-start space-x-3.5 p-3 rounded-xl hover:bg-white/[0.03] border border-transparent hover:border-white/[0.06] transition-all duration-200 group"
+                  className="flex items-start space-x-3.5 p-3 rounded-md hover:bg-white/[0.03] border border-transparent hover:border-white/[0.06] transition-all duration-200 group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 group-hover:bg-gold-primary/10 flex items-center justify-center text-indigo-400 group-hover:text-gold-bright mt-0.5 flex-shrink-0 transition-colors">
+                  <div className="w-8 h-8 rounded-md bg-indigo-500/10 group-hover:bg-gold-primary/10 flex items-center justify-center text-indigo-400 group-hover:text-gold-bright mt-0.5 flex-shrink-0 transition-colors">
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="text-sm font-bold text-slate-200">{feat.text}</h3>
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10 flex-shrink-0">
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-obsidian-card text-slate-400 border border-white/10 flex-shrink-0">
                         {feat.tag}
                       </span>
                     </div>
@@ -610,12 +609,12 @@ export const BotSection: React.FC = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="lg:col-span-7 rounded-2xl border border-obsidian-border bg-obsidian-card/50 p-6 space-y-5 shadow-2xl"
+          className="lg:col-span-7 rounded-md border border-obsidian-border bg-obsidian-card/50 p-6 space-y-5 shadow-2xl"
         >
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-obsidian-border/80 pb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gold-primary/10 flex items-center justify-center text-gold-bright">
+              <div className="w-8 h-8 rounded-md bg-gold-primary/10 flex items-center justify-center text-gold-bright">
                 <Terminal className="w-4 h-4" />
               </div>
               <div>
@@ -623,7 +622,7 @@ export const BotSection: React.FC = () => {
                 <p className="text-xs text-slate-400">All commands work with both dot prefix (<code>.</code>) and slash (<code>/</code>)</p>
               </div>
             </div>
-            <span className="text-[10px] font-mono bg-white/[0.05] border border-white/[0.08] text-gold-bright px-2.5 py-1 rounded-lg font-bold self-start sm:self-auto">
+            <span className="text-[10px] font-mono bg-white/[0.05] border border-white/[0.08] text-gold-bright px-2.5 py-1 rounded-md font-bold self-start sm:self-auto">
               {filteredCommands.length} of {commands.length} Commands
             </span>
           </div>
@@ -638,7 +637,7 @@ export const BotSection: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search commands by name, description, or keyword..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#06070d] border border-white/10 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-gold-primary/50 transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 rounded-md bg-[#06070d] border border-white/10 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-gold-primary/50 transition-colors"
               />
               {searchQuery && (
                 <button
@@ -659,10 +658,10 @@ export const BotSection: React.FC = () => {
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-bold transition-all cursor-pointer ${
                       isActive
                         ? 'bg-gold-primary text-black shadow-md shadow-gold-primary/20'
-                        : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                        : 'bg-obsidian-card border border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -680,7 +679,7 @@ export const BotSection: React.FC = () => {
           <div className="space-y-3 max-h-[640px] overflow-y-auto pr-1.5 custom-scrollbar">
             <AnimatePresence mode="popLayout">
               {filteredCommands.length === 0 ? (
-                <div className="text-center py-12 border border-dashed border-white/10 rounded-xl">
+                <div className="text-center py-12 border border-dashed border-white/10 rounded-md">
                   <Terminal className="w-8 h-8 text-slate-600 mx-auto mb-2" />
                   <p className="text-sm font-mono text-slate-400">No commands found matching "{searchQuery}"</p>
                   <button
@@ -698,59 +697,48 @@ export const BotSection: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ delay: idx * 0.02 }}
-                    className="p-4 rounded-xl bg-[#07080f]/80 border border-obsidian-border/70 hover:border-gold-primary/30 transition-all duration-200 group"
+                    className="p-4 rounded-md bg-obsidian-card border border-slate-800 hover:border-slate-700 transition-colors duration-150 group"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-mono font-black text-gold-bright bg-gold-primary/10 border border-gold-primary/20 px-2.5 py-1 rounded-lg">
-                          {cmd.name}
+                    {/* One line for identity: the command, its dot alias, and what it is about.
+                        This used to be a pill, a second pill, a gradient badge and an Args chip
+                        all competing on the same row. */}
+                    <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                      <code className="text-[15px] font-mono font-bold text-spray-lime">{cmd.name}</code>
+                      <code className="text-[13px] font-mono text-slate-500">{cmd.prefix}</code>
+                      {cmd.badge && (
+                        <span className="text-[10px] font-mono uppercase tracking-wide text-slate-500 ml-auto">
+                          {cmd.badge}
                         </span>
-                        <span className="text-xs font-mono text-slate-400 font-semibold">
-                          or <code className="text-slate-200">{cmd.prefix}</code>
-                        </span>
-                        {cmd.badge && (
-                          <span className={`text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${cmd.badgeColor || 'from-gold-primary to-amber-500'} shadow-sm`}>
-                            {cmd.badge}
-                          </span>
-                        )}
-                      </div>
-
-                      <span className="text-[10px] font-mono text-slate-500 bg-white/5 px-2 py-0.5 rounded self-start sm:self-auto border border-white/5">
-                        Args: {cmd.options}
-                      </span>
+                      )}
                     </div>
 
-                    <p className="text-xs text-slate-300 mt-2.5 leading-relaxed font-sans">
+                    <p className="text-[13px] text-slate-300 mt-2 leading-relaxed">
                       {cmd.desc}
                     </p>
 
-                    {/* Example with 1-Click Copy */}
-                    <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between">
-                      <div className="flex items-center space-x-1.5 text-[11px] font-mono text-slate-400">
-                        <span className="text-slate-500 text-[10px] uppercase tracking-wider font-bold">Try:</span>
-                        <code className="bg-black/50 border border-white/10 px-2 py-0.5 rounded text-amber-300">
-                          {cmd.example}
-                        </code>
-                      </div>
+                    {cmd.options && (
+                      <p className="text-[12px] font-mono text-slate-600 mt-1.5">{cmd.options}</p>
+                    )}
 
-                      <button
-                        onClick={() => copyToClipboard(cmd.example)}
-                        className="flex items-center space-x-1 px-2 py-1 rounded bg-white/5 hover:bg-gold-primary/20 hover:text-gold-bright border border-white/10 text-[10px] font-mono text-slate-400 transition-all cursor-pointer"
-                        title="Copy example to clipboard"
-                      >
-                        {copiedCmd === cmd.example ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-400" />
-                            <span className="text-emerald-400 font-bold">Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
+                    {/* The example is the copy button. Two controls for one action was the
+                        main thing making this page feel busy. */}
+                    <button
+                      onClick={() => copyToClipboard(cmd.example)}
+                      title="Click to copy"
+                      className="mt-3 inline-flex items-center gap-2 h-8 px-2.5 rounded bg-obsidian-deep border border-slate-800 hover:border-slate-600 text-[13px] font-mono text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    >
+                      {copiedCmd === cmd.example ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-spray-lime" />
+                          <span className="text-spray-lime">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-slate-600" />
+                          {cmd.example}
+                        </>
+                      )}
+                    </button>
                   </motion.div>
                 ))
               )}
@@ -763,7 +751,7 @@ export const BotSection: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-[#140e04] via-[#0d0d15] to-[#040509] p-6 md:p-10 shadow-[0_12px_40px_rgba(245,158,11,0.1)] relative overflow-hidden"
+          className="rounded-md border border-amber-500/30 bg-gradient-to-br from-[#140e04] via-[#0d0d15] to-[#040509] p-6 md:p-10 shadow-[0_12px_40px_rgba(245,158,11,0.1)] relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
           
@@ -785,7 +773,7 @@ export const BotSection: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-1">
               
               {/* Segment 1: 🇮🇳 Indian Donators */}
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-5 space-y-4 flex flex-col justify-between">
+              <div className="rounded-md border border-amber-500/30 bg-amber-950/20 p-5 space-y-4 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <span className="text-xl">🇮🇳</span>
@@ -805,7 +793,7 @@ export const BotSection: React.FC = () => {
                     href="https://www.buymeachai.in/xpert"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 min-w-[140px] flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-xs tracking-wide shadow-lg shadow-amber-500/20 transition-all cursor-pointer select-none"
+                    className="flex-1 min-w-[140px] flex items-center justify-center space-x-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-xs tracking-wide shadow-lg shadow-amber-500/20 transition-all cursor-pointer select-none"
                   >
                     <Coffee className="w-3.5 h-3.5" />
                     <span>🇮🇳 Indian Donator (UPI)</span>
@@ -814,7 +802,7 @@ export const BotSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleOpenCodashop}
-                    className="flex-1 min-w-[140px] flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-indigo-500/20 transition-all cursor-pointer select-none"
+                    className="flex-1 min-w-[140px] flex items-center justify-center space-x-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-indigo-500/20 transition-all cursor-pointer select-none"
                   >
                     {copiedRiotId ? (
                       <>
@@ -832,7 +820,7 @@ export const BotSection: React.FC = () => {
               </div>
 
               {/* Segment 2: 🌍 International Donators */}
-              <div className="rounded-2xl border border-indigo-500/30 bg-indigo-950/20 p-5 space-y-4 flex flex-col justify-between">
+              <div className="rounded-md border border-indigo-500/30 bg-indigo-950/20 p-5 space-y-4 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <span className="text-xl">🌍</span>
@@ -852,7 +840,7 @@ export const BotSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowVpModal(true)}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs tracking-wide shadow-lg shadow-indigo-600/20 transition-all cursor-pointer select-none"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs tracking-wide shadow-lg shadow-indigo-600/20 transition-all cursor-pointer select-none"
                   >
                     <Globe className="w-3.5 h-3.5" />
                     <span>🌍 Open International Donator Options</span>
@@ -862,7 +850,7 @@ export const BotSection: React.FC = () => {
                     href="https://www.seagm.com/valorant-gift-card-india?ps=Search-Results:Related-cards"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2 rounded-md bg-indigo-600/30 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
                   >
                     <Gamepad2 className="w-3.5 h-3.5" />
                     <span>SEAGM Valorant</span>
@@ -872,7 +860,7 @@ export const BotSection: React.FC = () => {
                     href="https://www.seagm.com/amazon-gift-card-india?ps=Universal-Search"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+                    className="flex-1 min-w-[130px] flex items-center justify-center space-x-1.5 px-3 py-2 rounded-md bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-200 font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
                   >
                     <Gift className="w-3.5 h-3.5" />
                     <span>SEAGM Amazon</span>
@@ -882,7 +870,7 @@ export const BotSection: React.FC = () => {
                     href="https://discord.gg/3zStCadBtP"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-md bg-obsidian-card hover:bg-white/10 border border-white/10 text-white font-bold text-xs tracking-wide transition-all cursor-pointer select-none"
                   >
                     <Bot className="w-3.5 h-3.5" />
                     <span>Submit Code to Discord Bot (.donate submit)</span>
@@ -910,13 +898,13 @@ export const BotSection: React.FC = () => {
                 exit={{ opacity: 0, scale: 0.92, y: 15 }}
                 transition={{ duration: 0.2 }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-lg rounded-3xl border border-indigo-500/30 bg-[#0c0d18] p-6 md:p-8 shadow-[0_0_50px_rgba(99,102,241,0.25)] text-left"
+                className="relative w-full max-w-lg rounded-md border border-indigo-500/30 bg-[#0c0d18] p-6 md:p-8 text-left"
               >
                 {/* Close Button */}
                 <button
                   type="button"
                   onClick={() => setShowVpModal(false)}
-                  className="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/10 transition-colors"
+                  className="absolute top-5 right-5 p-2 rounded-md bg-obsidian-card hover:bg-white/10 text-slate-400 hover:text-white border border-white/10 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -938,7 +926,7 @@ export const BotSection: React.FC = () => {
                 {/* Two Main Options: Valorant & Amazon */}
                 <div className="mt-5 space-y-3">
                   {/* Option 1: Valorant Points (India) */}
-                  <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-2.5">
+                  <div className="p-4 rounded-md bg-indigo-950/40 border border-indigo-500/30 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Gamepad2 className="w-4 h-4 text-indigo-400" />
@@ -953,7 +941,7 @@ export const BotSection: React.FC = () => {
                       href="https://www.seagm.com/valorant-gift-card-india?ps=Search-Results:Related-cards"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-xs tracking-wide shadow-md shadow-indigo-500/20 transition-all cursor-pointer select-none"
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-xs tracking-wide shadow-md shadow-indigo-500/20 transition-all cursor-pointer select-none"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Buy Valorant Points (India) on SEAGM</span>
@@ -961,7 +949,7 @@ export const BotSection: React.FC = () => {
                   </div>
 
                   {/* Option 2: Amazon Pay Gift Card (India) */}
-                  <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2.5">
+                  <div className="p-4 rounded-md bg-amber-950/20 border border-amber-500/30 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Gift className="w-4 h-4 text-amber-400" />
@@ -976,7 +964,7 @@ export const BotSection: React.FC = () => {
                       href="https://www.seagm.com/amazon-gift-card-india?ps=Universal-Search"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-extrabold text-xs tracking-wide shadow-md shadow-amber-500/20 transition-all cursor-pointer select-none"
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-extrabold text-xs tracking-wide shadow-md shadow-amber-500/20 transition-all cursor-pointer select-none"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Buy Amazon Pay (India) on SEAGM</span>
@@ -985,7 +973,7 @@ export const BotSection: React.FC = () => {
                 </div>
 
                 {/* 3 Steps Guide */}
-                <div className="mt-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+                <div className="mt-4 p-3.5 rounded-md bg-white/[0.03] border border-slate-800 space-y-2">
                   <h4 className="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
                     <span>How it works (3 Simple Steps):</span>
                   </h4>
@@ -1011,7 +999,7 @@ export const BotSection: React.FC = () => {
                     href="https://discord.gg/3zStCadBtP"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center space-x-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-emerald-600/25 transition-all cursor-pointer select-none"
+                    className="w-full flex items-center justify-center space-x-2 px-6 py-3.5 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-emerald-600/25 transition-all cursor-pointer select-none"
                   >
                     <Bot className="w-4 h-4" />
                     <span>🚀 Open Discord to Submit Code (.donate submit)</span>
@@ -1019,7 +1007,7 @@ export const BotSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowVpModal(false)}
-                    className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm border border-white/10 transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-3.5 rounded-md bg-obsidian-card hover:bg-white/10 text-slate-300 font-bold text-sm border border-white/10 transition-all cursor-pointer"
                   >
                     Close
                   </button>

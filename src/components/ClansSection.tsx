@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Users2, MessageSquare, AlertCircle, Calendar, ArrowLeft } from 'lucide-react';
+import { Users, Search, Users2, MessageSquare, AlertCircle, Calendar, ArrowLeft } from 'lucide-react';
 import type { ClanLeaderboardResult, ClanResponse, ClanMember } from '../utils/api';
 import { fetchClanLeaderboard, fetchClanDetail, fetchUserProfile } from '../utils/api';
 import { cropMinecraftHead } from '../utils/skinCropper';
@@ -59,26 +59,26 @@ const ClanMemberCard: React.FC<{
   return (
     <div
       onClick={() => onSelectPlayer(member.user.id, false)}
-      className={`group cursor-pointer flex items-center justify-between p-4 rounded-xl border transition-all duration-300 select-none ${
+      className={`group cursor-pointer flex items-center justify-between p-4 rounded-md border transition-all duration-300 select-none ${
         vip
-          ? 'bg-[#130b24]/60 border-purple-500/40 hover:border-purple-400 hover:shadow-[0_0_18px_rgba(168,85,247,0.25)]'
+          ? 'bg-[#130b24]/60 border-purple-500/40 hover:border-purple-400 hover:'
           : isLeader
-          ? 'bg-red-500/5 border-red-500/25 hover:border-red-500/55 hover:shadow-[0_0_15px_rgba(239,68,68,0.06)]'
+          ? 'bg-red-500/5 border-red-500/25 hover:border-red-500/55 hover:'
           : isOfficer
-          ? 'bg-gold-primary/5 border-gold-primary/20 hover:border-gold-primary/45 hover:shadow-[0_0_15px_rgba(212,175,55,0.06)]'
+          ? 'bg-gold-primary/5 border-gold-primary/20 hover:border-gold-primary/45 hover:'
           : 'bg-obsidian-card/40 border-obsidian-border hover:border-slate-500/35'
       }`}
     >
       <div className="flex items-center space-x-3">
         {/* Profile/Character Square avatar picture (renders cropped skin head!) */}
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs border overflow-hidden relative flex-shrink-0 ${
+        <div className={`w-9 h-9 rounded-md flex items-center justify-center font-bold text-xs border overflow-hidden relative flex-shrink-0 ${
           vip
-            ? 'bg-purple-950/80 border-purple-400/60 shadow-[0_0_12px_rgba(168,85,247,0.4)]'
+            ? 'bg-purple-950/80 border-purple-400/60'
             : isLeader
             ? 'bg-red-950/80 border-red-500/40 text-red-400'
             : isOfficer
             ? 'bg-[#29220c]/80 border-gold-primary/40 text-gold-bright'
-            : 'bg-obsidian-deep border-white/5 text-slate-400'
+            : 'bg-obsidian-deep border-slate-800 text-slate-400'
         }`}>
           {croppedAvatarUrl ? (
             <img
@@ -225,7 +225,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
         {/* Back breadcrumbs */}
         <button
           onClick={closeClanPage}
-          className="flex items-center space-x-2 text-slate-400 hover:text-gold-bright transition-colors font-mono text-sm border border-transparent hover:border-gold-primary/20 px-3 py-1.5 rounded-lg w-fit cursor-pointer"
+          className="flex items-center space-x-2 text-slate-400 hover:text-gold-bright transition-colors font-mono text-sm border border-transparent hover:border-gold-primary/20 px-3 py-1.5 rounded-md w-fit cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Clans Hub</span>
@@ -237,13 +237,13 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
             <span className="text-xs font-mono text-slate-500 uppercase tracking-widest">Compiling Clan Roster...</span>
           </div>
         ) : viewError ? (
-          <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-8 text-center space-y-4 max-w-lg mx-auto">
+          <div className="bg-red-950/20 border border-red-500/20 rounded-md p-8 text-center space-y-4 max-w-lg mx-auto">
             <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
             <h3 className="text-lg font-bold text-white uppercase">Search Failed</h3>
             <p className="text-sm text-slate-400 font-medium leading-relaxed">{viewError}</p>
             <button
               onClick={closeClanPage}
-              className="bg-obsidian-deep hover:bg-obsidian-card border border-obsidian-border text-white text-xs font-bold font-mono px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              className="bg-obsidian-deep hover:bg-obsidian-card border border-obsidian-border text-white text-xs font-bold font-mono px-5 py-2.5 rounded-md transition-all cursor-pointer"
             >
               Clear Search
             </button>
@@ -252,7 +252,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
           /* Roster presentation page */
           <div className="space-y-8 select-text">
             {/* Header info bar */}
-            <div className="bg-gradient-to-br from-obsidian-card to-[#12141D] border border-obsidian-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-obsidian-card to-[#12141D] border border-obsidian-border rounded-md p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-gold-bright uppercase tracking-widest bg-gold-primary/10 border border-gold-primary/25 px-2.5 py-0.5 rounded font-mono w-fit block">
                   ACTIVE CLAN REGISTRY
@@ -273,7 +273,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
                   href={currentViewedClan.discordLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center space-x-1.5 bg-[#5865F2]/10 hover:bg-[#5865F2]/20 border border-[#5865F2]/30 text-[#5865F2] hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all font-mono"
+                  className="flex items-center space-x-1.5 bg-[#5865F2]/10 hover:bg-[#5865F2]/20 border border-[#5865F2]/30 text-[#5865F2] hover:text-white px-4 py-2.5 rounded-md text-xs font-bold tracking-wider uppercase transition-all font-mono"
                 >
                   <MessageSquare className="w-4.5 h-4.5" />
                   <span>Join Discord Server</span>
@@ -282,7 +282,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
             </div>
 
             {/* Performance Stats Panel */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-[#090A0F]/65 p-4 rounded-xl border border-obsidian-border/60 text-xs font-mono text-slate-500">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-[#090A0F]/65 p-4 rounded-md border border-obsidian-border/60 text-xs font-mono text-slate-500">
               <div className="px-2">
                 <span className="block text-[9px] uppercase tracking-wider">Championship Score</span>
                 <strong className="text-gold-bright text-lg font-black mt-0.5 block">
@@ -345,9 +345,9 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
-            <img src={`${import.meta.env.BASE_URL}clan_registry.png`} alt="Clans Icon" className="w-8 h-8 rounded-lg object-contain glow-filter-gold" />
-            <span>Clans Hub</span>
+          <h2 className="text-2xl sm:text-3xl text-[#EDEDED] flex items-center gap-3">
+            <Users className="w-7 h-7 text-spray-cyan shrink-0" />
+            <span>Clans <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>Hub</span></span>
           </h2>
           <p className="text-sm text-slate-400 mt-1.5">
             View Kirka's Top 32 clans or search any clan to inspect description and roster.
@@ -364,7 +364,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
             placeholder="Search clan by exact name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-10 pr-4 py-2.5 bg-obsidian-card border border-obsidian-border rounded-xl text-slate-200 placeholder-slate-500 outline-none focus:border-gold-primary/40 focus:shadow-[0_0_12px_rgba(212,175,55,0.06)] text-sm transition-all"
+            className="block w-full pl-10 pr-4 py-2.5 bg-obsidian-card border border-obsidian-border rounded-md text-slate-200 placeholder-slate-500 outline-none focus:border-gold-primary/40 focus: text-sm transition-all"
           />
         </form>
       </div>
@@ -387,7 +387,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
               <div
                 key={clan.clanId}
                 onClick={() => onSelectClan(clan.name)}
-                className="card-interactive group cursor-pointer bg-gradient-to-br from-obsidian-card to-[#141621] hover:to-[#191c2b] border border-obsidian-border hover:border-gold-primary/20 p-5 rounded-2xl relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] overflow-hidden"
+                className="card-interactive group cursor-pointer bg-gradient-to-br from-obsidian-card to-[#141621] hover:to-[#191c2b] border border-obsidian-border hover:border-gold-primary/20 p-5 rounded-md relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] overflow-hidden"
               >
                 {/* Gold Glow hover lines */}
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-primary to-gold-bright scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300" />
@@ -404,7 +404,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4 bg-[#090A0F]/45 p-3 rounded-xl border border-obsidian-border/50 text-xs font-mono text-slate-400">
+                <div className="grid grid-cols-2 gap-4 mt-4 bg-[#090A0F]/45 p-3 rounded-md border border-obsidian-border/50 text-xs font-mono text-slate-400">
                   <div>
                     <span className="text-[9px] text-slate-500 block uppercase mb-0.5">Members</span>
                     <span className="font-bold text-white text-sm">{clan.membersCount} / 100</span>
