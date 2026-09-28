@@ -424,7 +424,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return url;
   };
 
-  // Resolve skin price from Bolt / catalog (instant O(1))
+  // Resolve skin price from Hub price index (instant O(1))
   const getItemPrice = (name: string): number => {
     const nameKey = name.replace(/^_+|_+$/g, '').trim().toLowerCase();
     if (priceCache.has(nameKey)) {

@@ -352,9 +352,9 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
             const weaponType = isChar ? 'CHARACTER' : item.parent?.name || item.type || 'SCAR';
             const renderUrl = resolveRenderUrl(item);
 
-            // Bolt Price valuation
+            // Hub Price valuation
             const marketItem = marketPrices.get(item.name?.toLowerCase());
-            const boltValue = marketItem?.baseValue || item.salePrice || 0;
+            const hubValue = marketItem?.baseValue || item.salePrice || 0;
 
             const creatorName = resolveItemCreator(item);
 
@@ -428,10 +428,10 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                 {/* Bottom Card Info */}
                 <div className="flex items-center justify-between pt-2.5 border-t border-white/10 text-xs font-mono z-10">
                   <div className="flex items-center space-x-1 text-gold-bright font-bold">
-                    {boltValue > 0 ? (
+                    {hubValue > 0 ? (
                       <>
                         <span className="text-amber-400">⚡</span>
-                        <span>{boltValue.toLocaleString()} Hub Value</span>
+                        <span>{hubValue.toLocaleString()} Hub Value</span>
                       </>
                     ) : (
                       <span className="text-slate-500 text-[10px]">Market Valuation Index</span>

@@ -38,14 +38,14 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   const normalizedName = cleanName.toLowerCase();
   const normalizedType = itemType.toLowerCase();
 
-  // 1. Get pricing details from Bolt (Google Sheet)
+  // 1. Get pricing details from Hub Price index
   // Check composite key matching (e.g. delicate_m60 or delicate_character) or single name key
   const isCharacterType = normalizedType === 'character' || normalizedType === 'body_skin' || normalizedType === 'body skin';
   const itemTypeKey = isCharacterType ? 'character' : normalizedType;
   const compositeKey = `${normalizedName}_${itemTypeKey}`;
   
-  const boltPriceData = marketPrices.get(compositeKey) || marketPrices.get(normalizedName);
-  const boltValue = boltPriceData ? boltPriceData.baseValue : null;
+  const hubPriceData = marketPrices.get(compositeKey) || marketPrices.get(normalizedName);
+  const hubValue = hubPriceData ? hubPriceData.baseValue : null;
 
   // 2. Fetch detailed metadata from AllItemData.json
   const metadata = allItemData.find((item) => {
@@ -76,7 +76,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   }) || {};
 
   // Check 3D model availability (enabled for all weapons and Gecko 3px characters)
-  const weaponModelType = isCharacterType ? 'CHARACTER' : (metadata.parent?.name || boltPriceData?.type || itemType || '');
+  const weaponModelType = isCharacterType ? 'CHARACTER' : (metadata.parent?.name || hubPriceData?.type || itemType || '');
   const has3DModel = has3DViewerSupport(weaponModelType);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>(has3DModel ? '3d' : '2d');
 
@@ -155,13 +155,13 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   });
 
   // Format values safely
-  const itemRarity = boltPriceData?.rarity || metadata.rarity || 'Common';
-  const itemClassType = isCharacterType ? 'BODY SKIN' : (boltPriceData?.type || metadata.parent?.name || 'WEAPON SKIN');
+  const itemRarity = hubPriceData?.rarity || metadata.rarity || 'Common';
+  const itemClassType = isCharacterType ? 'BODY SKIN' : (hubPriceData?.type || metadata.parent?.name || 'WEAPON SKIN');
   // These three come straight from Kirka and are shown as they are. Anything missing reads as a dash
   // rather than a default: a hardcoded date was being printed for every skin, and absent values were
   // being shown as "No" and "0", which said the opposite of the truth for unique, owned items.
   const isUnique = typeof metadata.unique === 'boolean' ? (metadata.unique ? 'Yes' : 'No') : '—';
-  const obtainableMethod = boltPriceData?.obtainableBy || 'N/A';
+  const obtainableMethod = hubPriceData?.obtainableBy || 'N/A';
   const totalOwnedCount = typeof metadata.totalOwned === 'number' ? metadata.totalOwned.toLocaleString() : '—';
 
   const formattedCreatedDate = metadata.createdAt
@@ -410,7 +410,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
                 <span>HUB VALUE:</span>
                 <div className="flex items-center space-x-1.5 text-gold-bright font-black text-sm">
                   <Coins className="w-4 h-4 text-gold-primary" />
-                  <span>{boltValue !== null ? formatValue(boltValue) : '—'}</span>
+                  <span>{hubValue !== null ? formatValue(hubValue) : '—'}</span>
                 </div>
               </div>
 

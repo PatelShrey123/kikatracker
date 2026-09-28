@@ -28,7 +28,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
     setVisibleCount(25);
   }, [searchTerm, selectedRarity, selectedType]);
 
-  // Parse and cache unique items from Bolt marketPrices map
+  // Parse and cache unique items from Hub marketPrices map
   const uniqueItems = useMemo(() => {
     // Collect all values to get the unique set of MarketItem objects
     const items = Array.from(new Set(marketPrices.values()));
