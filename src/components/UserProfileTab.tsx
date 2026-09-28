@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Users, ArrowLeft, Target, Database, Shield, Layers, Award, Camera, Swords } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 
@@ -8,7 +8,7 @@ import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
-import { getSkinRenderUrl, isPlaceholderUrl } from '../utils/skinAssets';
+import { getSkinRenderUrl, isPlaceholderUrl, cleanTextureUrl, getBaseWeaponRender } from '../utils/skinAssets';
 import { getCachedCatalog } from '../utils/catalogCache';
 import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass, getVipBackground } from '../utils/vip';
 interface UserProfileTabProps {
@@ -53,7 +53,7 @@ const StatGroup: React.FC<{ title: string; can: string; children: React.ReactNod
   </section>
 );
 
-export const UserProfileTab: React.FC<UserProfileTabProps> = ({
+const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
   profile, 
   onBack, 
   marketPrices, 
@@ -71,9 +71,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   const [croppedHeadUrl, setCroppedHeadUrl] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(60);
 
   // Sync inventory & public items
   useEffect(() => {
+    setVisibleCount(60);
     setAvatarError(false);
     setLoadingInventory(true);
     fetchUserInventory(profile.id)
@@ -103,6 +105,42 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     };
   }, [profile.name, profile.shortId, profileTab]);
 
+  // Fast O(1) catalog map for instant item lookup without iterating 2,000 skins per card
+  const catalogMap = useMemo(() => {
+    const map = new Map<string, any>();
+    const catalog = (publicItems && publicItems.length > 0)
+      ? publicItems
+      : (allItemData && allItemData.length > 0)
+        ? allItemData
+        : (getCachedCatalog() || []);
+    for (const p of catalog) {
+      if (!p) continue;
+      if (p.id) map.set(p.id, p);
+      if (p.name) {
+        const cleanName = p.name.replace(/^_+|_+$/g, '').toLowerCase().trim();
+        const rawName = p.name.toLowerCase().trim();
+        const typeKey = (p.type === 'BODY_SKIN' || p.type === 'CHARACTER')
+          ? 'character'
+          : (p.parent?.name || '').toLowerCase().trim();
+
+        if (typeKey) {
+          map.set(`${cleanName}_${typeKey}`, p);
+          map.set(`${rawName}_${typeKey}`, p);
+          if (cleanName.endsWith(typeKey)) {
+            const stripped = cleanName.slice(0, -typeKey.length).trim();
+            if (stripped) {
+              map.set(`${stripped}_${typeKey}`, p);
+              if (!map.has(stripped)) map.set(stripped, p);
+            }
+          }
+        }
+        if (!map.has(cleanName)) map.set(cleanName, p);
+        if (!map.has(rawName)) map.set(rawName, p);
+      }
+    }
+    return map;
+  }, [publicItems, allItemData]);
+
   // Crop equipped character skin texture to display head face
   useEffect(() => {
     setCroppedHeadUrl(null);
@@ -111,20 +149,11 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
       let texture = profile.activeBodySkin.textureUrl;
       const cleanSkinName = (profile.activeBodySkin.name || '').replace(/^_+/, '').trim().toLowerCase();
 
-      if (!texture && allItemData && Array.isArray(allItemData)) {
-        // Look up texture in the allItemData repository JSON
-        const matched = allItemData.find(
-          (i) => i.name && i.name.replace(/^_+/, '').trim().toLowerCase() === cleanSkinName && (i.type === 'BODY_SKIN' || i.type === 'CHARACTER')
-        );
-        if (matched?.textureUrl) texture = matched.textureUrl;
-      }
-
-      if (!texture && publicItems && Array.isArray(publicItems)) {
-        // Fallback to publicItems database
-        const matchedPublic = publicItems.find(
-          (i) => i.name && i.name.replace(/^_+/, '').trim().toLowerCase() === cleanSkinName && (i.type === 'BODY_SKIN' || i.type === 'CHARACTER')
-        );
-        if (matchedPublic?.textureUrl) texture = matchedPublic.textureUrl;
+      if (!texture) {
+        const matched = catalogMap.get(cleanSkinName);
+        if (matched?.textureUrl && (matched.type === 'BODY_SKIN' || matched.type === 'CHARACTER')) {
+          texture = matched.textureUrl;
+        }
       }
 
       if (texture) {
@@ -135,12 +164,12 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           .catch((err) => console.error('Failed to crop profile head texture:', err));
       }
     }
-  }, [profile.activeBodySkin, allItemData, publicItems]);
+  }, [profile.activeBodySkin, catalogMap]);
 
   // Helper to map item to market price
-  const getItemPrice = (item: any) => {
+  const getItemPrice = useCallback((item: any) => {
     if (!item) return 0;
-    const cleanName = item.name.replace(/^_+/, '');
+    const cleanName = item.name ? item.name.replace(/^_+/, '').trim() : '';
     const isCharacter = item.type === 'BODY_SKIN';
     const parentName = item.parent?.name || '';
     const itemTypeKey = isCharacter ? 'character' : parentName;
@@ -150,31 +179,74 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
 
     const matched = marketPrices.get(compositeKey) || marketPrices.get(nameKey);
     return matched ? matched.baseValue : (item.salePrice || 0);
-  };
+  }, [marketPrices]);
 
-  // Helper to resolve skin image render URL with automatic api2 3D fallback
-  const getItemRenderUrl = (item: any) => {
+  // Helper to resolve skin image render URL with instant O(1) catalog lookup
+  const getItemRenderUrl = useCallback((item: any) => {
     if (!item) return null;
-    const cleanName = item.name ? item.name.replace(/^_+/, '').trim() : '';
+    const cleanName = item.name ? item.name.replace(/^_+|_+$/g, '').trim() : '';
     const cleanLower = cleanName.toLowerCase();
-    const fallback = fallbackRenders[cleanLower];
-    const catalog = (publicItems && publicItems.length > 0)
-      ? publicItems
-      : (allItemData && allItemData.length > 0)
-        ? allItemData
-        : (getCachedCatalog() || []);
-    const matched = catalog.find(
-      (p: any) => p.name && p.name.toLowerCase() === cleanLower
-    );
-    const candidate = item.renderUrl || fallback?.renderurl || matched?.renderUrl || null;
-    return getSkinRenderUrl({ ...item, name: cleanName, renderUrl: candidate });
-  };
+    const typeKey = (item.type === 'BODY_SKIN' || item.type === 'CHARACTER')
+      ? 'character'
+      : (item.parent?.name || '').toLowerCase().trim();
 
-  // Compute total valuation
-  const totalValuation = inventory.reduce((sum, current) => {
-    const price = getItemPrice(current.item);
-    return sum + price * current.amount;
-  }, 0);
+    // 1. Direct ID match
+    if (item.id && catalogMap.has(item.id)) {
+      const match = catalogMap.get(item.id);
+      if (match?.renderUrl && !isPlaceholderUrl(match.renderUrl, typeKey)) {
+        return cleanTextureUrl(match.renderUrl);
+      }
+    }
+
+    // 2. Exact composite (name + weapon type)
+    if (typeKey) {
+      const matchCombo = catalogMap.get(`${cleanLower}_${typeKey}`);
+      if (matchCombo?.renderUrl && !isPlaceholderUrl(matchCombo.renderUrl, typeKey)) {
+        return cleanTextureUrl(matchCombo.renderUrl);
+      }
+    }
+
+    // 3. Fallback renders dictionary
+    if (typeKey && fallbackRenders[`${cleanLower}_${typeKey}`]?.renderurl) {
+      const fbUrl = fallbackRenders[`${cleanLower}_${typeKey}`].renderurl;
+      if (!isPlaceholderUrl(fbUrl, typeKey)) return cleanTextureUrl(fbUrl);
+    }
+    if (fallbackRenders[cleanLower]?.renderurl) {
+      const fbUrl = fallbackRenders[cleanLower].renderurl;
+      if (!isPlaceholderUrl(fbUrl, typeKey)) return cleanTextureUrl(fbUrl);
+    }
+
+    // 4. Clean name match
+    const matched = catalogMap.get(cleanLower);
+    if (matched?.renderUrl && !isPlaceholderUrl(matched.renderUrl, typeKey)) {
+      return cleanTextureUrl(matched.renderUrl);
+    }
+
+    // 5. Existing item renderUrl or universal fallback
+    const candidate = (!isPlaceholderUrl(item.renderUrl, typeKey) ? item.renderUrl : null) ||
+                      (!isPlaceholderUrl(matched?.renderUrl, typeKey) ? matched?.renderUrl : null);
+    return getSkinRenderUrl({
+      ...item,
+      name: cleanName,
+      type: item.type,
+      parent: item.parent || (typeKey && typeKey !== 'character' ? { name: typeKey.toUpperCase() } : null),
+      renderUrl: candidate
+    });
+  }, [fallbackRenders, catalogMap]);
+
+  // Compute sorted inventory list once when inventory or prices change
+  const sortedInventory = useMemo(() => {
+    if (!inventory || inventory.length === 0) return [];
+    return [...inventory].sort((a, b) => getItemPrice(b.item) - getItemPrice(a.item));
+  }, [inventory, getItemPrice]);
+
+  // Compute total valuation memoized
+  const totalValuation = useMemo(() => {
+    return inventory.reduce((sum, current) => {
+      const price = getItemPrice(current.item);
+      return sum + price * current.amount;
+    }, 0);
+  }, [inventory, getItemPrice]);
 
   /**
    * Rarity, in the site's card language.
@@ -560,13 +632,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                           if (!target.dataset.fallback) {
                             target.dataset.fallback = 'true';
                             const baseName = profile.activeWeapon1Skin?.parent?.name || '';
-                            const catalog = (publicItems && publicItems.length > 0) ? publicItems : (allItemData || []);
-                            const baseMatch = catalog.find((c: any) => c.name && c.name.toLowerCase() === baseName.toLowerCase());
-                            if (baseMatch?.renderUrl && !isPlaceholderUrl(baseMatch.renderUrl)) {
-                              target.src = baseMatch.renderUrl;
-                            } else {
-                              target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
-                            }
+                            target.src = getBaseWeaponRender(baseName);
                           }
                         }}
                       />
@@ -697,80 +763,92 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                 No items found in this user's inventory.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {[...inventory]
-                  .sort((a, b) => getItemPrice(b.item) - getItemPrice(a.item))
-                  .map((invItem, index) => {
-                  const item = invItem.item;
-                  const matchedPrice = getItemPrice(item);
-                  const rarityStyles = getRarityStyles(item.rarity);
-                  const renderUrl = getItemRenderUrl(item);
-                  
-                  return (
-                    <div
-                      key={item.id + '-' + index}
-                      onClick={() => onInspectItem(
-                        item.name, 
-                        item.type === 'BODY_SKIN' ? 'character' : item.parent?.name || 'weapon_skin', 
-                        invItem.amount,
-                        item.textureUrl
-                      )}
-                      className={`relative flex flex-col justify-between border p-4.5 rounded-md cursor-pointer group ${rarityStyles.card}`}
-                    >
-                      <span className="absolute top-3 right-3 bg-[#11131e]/90 border border-slate-800 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
-                        x{invItem.amount}
-                      </span>
-
-                      <div className="w-full h-24 flex items-center justify-center my-3 relative">
-                        {renderUrl ? (
-                          <img
-                            src={renderUrl}
-                            alt={item.name}
-                            className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              if (!target.dataset.fallback) {
-                                target.dataset.fallback = 'true';
-                                if (item.type === 'BODY_SKIN') {
-                                  target.src = 'https://kirka.io/assets/img/render.b8016858.png';
-                                } else {
-                                  target.src = `${import.meta.env.BASE_URL}render-mini.webp`;
-                                }
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-slate-600">
-                            {item.type === 'BODY_SKIN' ? (
-                              <Shield className="w-10 h-10 opacity-20" />
-                            ) : (
-                              <Layers className="w-10 h-10 opacity-20" />
-                            )}
-                            <span className="text-[9px] font-mono uppercase tracking-wider mt-1 opacity-50">No Render</span>
-                          </div>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {sortedInventory.slice(0, visibleCount).map((invItem, index) => {
+                    const item = invItem.item;
+                    const matchedPrice = getItemPrice(item);
+                    const rarityStyles = getRarityStyles(item.rarity);
+                    const renderUrl = getItemRenderUrl(item);
+                    
+                    return (
+                      <div
+                        key={item.id + '-' + index}
+                        onClick={() => onInspectItem(
+                          item.name, 
+                          item.type === 'BODY_SKIN' ? 'character' : item.parent?.name || 'weapon_skin', 
+                          invItem.amount,
+                          item.textureUrl
                         )}
-                      </div>
+                        className={`relative flex flex-col justify-between border p-4.5 rounded-md cursor-pointer group ${rarityStyles.card}`}
+                      >
+                        <span className="absolute top-3 right-3 bg-[#11131e]/90 border border-slate-800 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
+                          x{invItem.amount}
+                        </span>
 
-                      <div className="flex items-end justify-between pt-3 mt-1 border-t border-slate-800">
-                        <div className="space-y-0.5 text-left">
-                          <span className="text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase">
-                            {item.type === 'BODY_SKIN' ? 'Body Skin' : item.parent?.name || 'Weapon Skin'}
-                          </span>
-                          <h4 className="text-sm font-black text-white leading-tight line-clamp-1 group-hover:text-gold-bright transition-colors">
-                            {item.name.replace(/^_+/, '')}
-                          </h4>
-                          <span className="text-[8px] font-mono font-bold tracking-widest text-slate-600 uppercase block pt-1.5">
-                            Valuation:
-                          </span>
+                        <div className="w-full h-24 flex items-center justify-center my-3 relative">
+                          {renderUrl ? (
+                            <img
+                              src={renderUrl}
+                              alt={item.name}
+                              loading="lazy"
+                              className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (!target.dataset.fallback) {
+                                  target.dataset.fallback = 'true';
+                                  if (item.type === 'BODY_SKIN') {
+                                    target.src = 'https://kirka.io/assets/img/render.b8016858.png';
+                                  } else {
+                                    target.src = getBaseWeaponRender(item.parent?.name || item.type);
+                                  }
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-slate-600">
+                              {item.type === 'BODY_SKIN' ? (
+                                <Shield className="w-10 h-10 opacity-20" />
+                              ) : (
+                                <Layers className="w-10 h-10 opacity-20" />
+                              )}
+                              <span className="text-[9px] font-mono uppercase tracking-wider mt-1 opacity-50">No Render</span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center space-x-1 text-gold-bright font-black font-mono text-xs mb-0.5">
-                          <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain" />
-                          <span>{matchedPrice > 0 ? formatValue(matchedPrice) : '—'}</span>
+
+                        <div className="flex items-end justify-between pt-3 mt-1 border-t border-slate-800">
+                          <div className="space-y-0.5 text-left">
+                            <span className="text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase">
+                              {item.type === 'BODY_SKIN' ? 'Body Skin' : item.parent?.name || 'Weapon Skin'}
+                            </span>
+                            <h4 className="text-sm font-black text-white leading-tight line-clamp-1 group-hover:text-gold-bright transition-colors">
+                              {item.name.replace(/^_+/, '')}
+                            </h4>
+                            <span className="text-[8px] font-mono font-bold tracking-widest text-slate-600 uppercase block pt-1.5">
+                              Valuation:
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1 text-gold-bright font-black font-mono text-xs mb-0.5">
+                            <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain" />
+                            <span>{matchedPrice > 0 ? formatValue(matchedPrice) : '—'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
+                {sortedInventory.length > visibleCount && (
+                  <div className="flex justify-center pt-4">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 60)}
+                      className="px-6 py-2.5 bg-obsidian-card hover:bg-obsidian-hover border border-slate-800 hover:border-gold-primary/40 rounded-md text-xs font-mono font-bold text-slate-300 transition-all cursor-pointer"
+                    >
+                      LOAD MORE ITEMS ({sortedInventory.length - visibleCount} REMAINING)
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -797,3 +875,5 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     </div>
   );
 };
+
+export const UserProfileTab = React.memo(UserProfileTabComponent);

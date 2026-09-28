@@ -52,6 +52,14 @@ export default defineConfig(({ mode }) => {
         three: path.resolve(__dirname, 'node_modules/skinview3d/node_modules/three')
       }
     },
+    optimizeDeps: {
+      include: [
+        'three',
+        'three/examples/jsm/loaders/GLTFLoader.js',
+        'three/examples/jsm/controls/OrbitControls.js',
+        'skinview3d',
+      ],
+    },
     server: {
       proxy: {
         '/api2': {

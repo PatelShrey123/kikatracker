@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Tag, Sparkles, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
-import { cleanTextureUrl } from '../utils/skinAssets';
+import { cleanTextureUrl, getBaseWeaponRender } from '../utils/skinAssets';
 
 interface PriceViewerSectionProps {
   marketPrices: Map<string, MarketItem>;
@@ -141,6 +141,13 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
       if (parentName) {
         map.set(`${cleanName}_${parentName}`, cleanUrl);
         map.set(`${cleanName} ${parentName}`, cleanUrl);
+        if (cleanName.endsWith(parentName)) {
+          const stripped = cleanName.slice(0, -parentName.length).trim();
+          if (stripped) {
+            map.set(`${stripped}_${parentName}`, cleanUrl);
+            map.set(`${stripped} ${parentName}`, cleanUrl);
+          }
+        }
       }
       // 2. Character body skin keys
       if (isBodySkin) {
@@ -180,12 +187,14 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
     const directUrl = renderMap.get(cleanSkin);
     if (directUrl) return cleanTextureUrl(directUrl);
 
-    // 3. Dynamic API2 render fallback for character body skins without pre-baked static PNGs
+    // 3. Character skins fallback to generated 2D front render by skin name
     if (cleanType === 'character' || cleanType === 'body_skin' || cleanType === 'body skin') {
-      return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanSkin)}`;
+      const safeName = item.skinName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+      return `${base}/renders/characters/${safeName}.png`;
     }
 
-    return null;
+    return getBaseWeaponRender(cleanType);
   };
 
   return (
@@ -293,19 +302,15 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                         className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)] hover:rotate-6 transition-transform duration-300"
                         onError={(e) => {
                           const target = e.currentTarget;
-                          const cleanName = item.skinName.replace(/^_+|_+$/g, '').trim();
                           const isChar = (item.type || '').toLowerCase() === 'character';
 
-                          // If character skin or first attempt, try api2 dynamic render endpoint
-                          if (!target.dataset.triedApi2 && (isChar || !target.dataset.triedFallback)) {
-                            target.dataset.triedApi2 = 'true';
-                            target.src = `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
-                            return;
-                          }
-                          // Otherwise route through weserv image proxy
                           if (!target.dataset.triedFallback) {
                             target.dataset.triedFallback = 'true';
-                            target.src = `https://images.weserv.nl/?url=${encodeURIComponent(target.src || renderUrl)}`;
+                            if (isChar) {
+                              target.src = 'https://kirka.io/assets/img/render.b8016858.png';
+                            } else {
+                              target.src = getBaseWeaponRender(item.type);
+                            }
                           }
                         }}
                       />

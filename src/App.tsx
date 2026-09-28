@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TargetCursor } from './components/TargetCursor';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -10,7 +10,7 @@ import { RankedSection } from './components/RankedSection';
 import { ClansSection } from './components/ClansSection';
 import { ChatSection } from './components/ChatSection';
 import { TradesSection } from './components/TradesSection';
-const ItemInspectModal = lazy(() => import('./components/ItemInspectModal').then(m => ({ default: m.ItemInspectModal })));
+import { ItemInspectModal } from './components/ItemInspectModal';
 import { PriceViewerSection } from './components/PriceViewerSection';
 import { BotSection } from './components/BotSection';
 import { PlayerCountSection } from './components/PlayerCountSection';
@@ -20,6 +20,7 @@ const RendersSection = lazy(() => import('./components/RendersSection').then(m =
 const FitSection = lazy(() => import('./components/FitSection').then(m => ({ default: m.FitSection })));
 const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ default: m.ReloadLab })));
 import { ChangelogsSection } from './components/ChangelogsSection';
+import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
 import { AdSlot, AD_SLOTS } from './components/AdSlot';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
@@ -175,6 +176,27 @@ function App() {
       setActiveClanName(null);
     }
   };
+
+  const handleInspectItem = useCallback((name: string, type?: string, amount?: number, textureUrl?: string | null) => {
+    setInspectItem({ name, type, amount: amount || 1, textureUrl });
+  }, []);
+
+  const handleSelectClanFromProfile = useCallback((clanName: string) => {
+    navigate('clans', null, clanName);
+  }, []);
+
+  const handleProfileBack = useCallback(() => {
+    navigate('search');
+    setSearchError(null);
+  }, []);
+
+  const handleOpenFitFromProfile = useCallback((shortId: string) => {
+    const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+    window.history.pushState(null, '', `${prefix}/fit/${shortId}`);
+    setFitPlayerId(shortId);
+    setActiveUserProfile(null);
+    setActiveTab('fit');
+  }, []);
 
   // Sync back/forward browser actions
   useEffect(() => {
@@ -366,6 +388,10 @@ function App() {
     navigate(tab);
   };
 
+  if (typeof window !== 'undefined' && window.location.search.includes('render_weapons=1')) {
+    return <OfflineWeaponRenderer />;
+  }
+
   return (
     <div className="relative min-h-screen bg-obsidian-deep text-slate-100 flex flex-col md:flex-row selection:bg-gold-primary/30 selection:text-gold-bright">
       {/* React Bits TargetCursor — visitors can swap back to their system pointer from the sidebar */}
@@ -435,23 +461,10 @@ function App() {
                           marketPrices={marketPrices}
                           fallbackRenders={fallbackRenders}
                           allItemData={allItemData}
-                          onInspectItem={(name, type, amount, textureUrl) => {
-                            setInspectItem({ name, type, amount, textureUrl });
-                          }}
-                          onSelectClan={(clanName) => {
-                            navigate('clans', null, clanName);
-                          }}
-                          onBack={() => {
-                            navigate('search');
-                            setSearchError(null);
-                          }}
-                          onOpenFit={(shortId) => {
-                            const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
-                            window.history.pushState(null, '', `${prefix}/fit/${shortId}`);
-                            setFitPlayerId(shortId);
-                            setActiveUserProfile(null);
-                            setActiveTab('fit');
-                          }}
+                          onInspectItem={handleInspectItem}
+                          onSelectClan={handleSelectClanFromProfile}
+                          onBack={handleProfileBack}
+                          onOpenFit={handleOpenFitFromProfile}
                         />
                       ) : (
                         <SearchSection
@@ -491,9 +504,7 @@ function App() {
                       marketPrices={marketPrices}
                       allItemData={allItemData}
                       fallbackRenders={fallbackRenders}
-                      onInspectItem={(name, type) => {
-                        setInspectItem({ name, type, amount: 1 });
-                      }}
+                      onInspectItem={handleInspectItem}
                     />
                   )}
 
@@ -503,9 +514,7 @@ function App() {
                       marketPrices={marketPrices}
                       publicItems={publicItems}
                       fallbackRenders={fallbackRenders}
-                      onInspectItem={(name, type) => {
-                        setInspectItem({ name, type, amount: 1 });
-                      }}
+                      onInspectItem={handleInspectItem}
                     />
                   )}
 
@@ -515,9 +524,7 @@ function App() {
                       publicItems={publicItems}
                       fallbackRenders={fallbackRenders}
                       allItemData={allItemData}
-                      onInspectItem={(name, type) => {
-                        setInspectItem({ name, type, amount: 1 });
-                      }}
+                      onInspectItem={handleInspectItem}
                     />
                   )}
                   {activeTab === 'bot' && (
@@ -535,9 +542,7 @@ function App() {
                         const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
                         window.history.replaceState(null, '', `${prefix}/fit/${shortId}${window.location.search}`);
                       }}
-                      onInspectItem={(name, type, amount, textureUrl) => {
-                        setInspectItem({ name, type, amount, textureUrl });
-                      }}
+                      onInspectItem={handleInspectItem}
                     />
                   )}
 
@@ -571,11 +576,7 @@ function App() {
             </footer>
           </div>
 
-          {/* 6. Item Details Inspection Modal overlay. Lazy, and only mounted once something is
-                actually being inspected — it renders the 3D viewer, so mounting it eagerly put
-                three.js in the main bundle for every visitor who never clicks a skin. */}
-          {inspectItem !== null && (
-          <Suspense fallback={null}>
+          {/* 6. Item Details Inspection Modal overlay */}
           <ItemInspectModal
             isOpen={inspectItem !== null}
             onClose={() => setInspectItem(null)}
@@ -587,8 +588,6 @@ function App() {
             allItemData={allItemData}
             fallbackRenders={fallbackRenders}
           />
-          </Suspense>
-          )}
         </>
         );
       })()}

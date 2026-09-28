@@ -8,7 +8,7 @@
  *
  * Nothing in this file may import three.js. That is the whole point of it existing.
  */
-import { getCachedCatalog } from './catalogCache';
+import { getCachedItem } from './catalogCache';
 
 export const WEAPON_MODEL_MAP: Record<string, string> = {
   'VITA': 'VITA.glb',
@@ -89,12 +89,47 @@ export function getModelUrl(modelFile: string): string {
 
 // Load and cache a parsed GLB scene; callers receive their own clone
 
-export function isPlaceholderUrl(url: string | null | undefined): boolean {
+export const BASE_WEAPON_RENDERS: Record<string, string> = {
+  'CHARACTER': 'https://kirka.io/assets/img/render.b8016858.png',
+  'BODY_SKIN': 'https://kirka.io/assets/img/render.b8016858.png',
+  'SCAR': 'https://kirka.io/assets/img/render-mini.7f11ce89.webp',
+  'VITA': 'https://kirka.io/assets/img/render-mini.f5b98f34.webp',
+  'SHARK': 'https://kirka.io/assets/img/render-mini.0ec8ea84.webp',
+  'AR-9': 'https://kirka.io/assets/img/render-mini.eb7cfab0.webp',
+  'AR9': 'https://kirka.io/assets/img/render-mini.eb7cfab0.webp',
+  'LAR': 'https://kirka.io/assets/img/render-mini.a0363f9a.webp',
+  'SNIPER': 'https://kirka.io/assets/img/render-mini.a0363f9a.webp',
+  'M60': 'https://kirka.io/assets/img/render-mini.5e482163.webp',
+  'MAC-10': 'https://kirka.io/assets/img/render-mini.4876657f.webp',
+  'MAC10': 'https://kirka.io/assets/img/render-mini.4876657f.webp',
+  'REVOLVER': 'https://kirka.io/assets/img/render-mini.d26a90cd.webp',
+  'PISTOL': 'https://kirka.io/assets/img/render-mini.d26a90cd.webp',
+  'TOMAHAWK': 'https://kirka.io/assets/img/render-mini.e7985b42.webp',
+  'BAYONET': 'https://kirka.io/assets/img/render-mini.f3df9462.webp',
+  'KNIFE': 'https://kirka.io/assets/img/render-mini.f3df9462.webp',
+  'MELEE': 'https://kirka.io/assets/img/render-mini.f3df9462.webp',
+  'WEATIE': 'https://kirka.io/assets/img/render-mini.c50a020d.webp',
+  'SHOTGUN': 'https://kirka.io/assets/img/render-mini.c50a020d.webp',
+};
+
+export function getBaseWeaponRender(weaponType?: string | null): string {
+  if (!weaponType) return `${import.meta.env.BASE_URL}render-mini.webp`;
+  const normalized = weaponType.trim().toUpperCase().replace(/^_+/, '');
+  return BASE_WEAPON_RENDERS[normalized] || `${import.meta.env.BASE_URL}render-mini.webp`;
+}
+
+export function isPlaceholderUrl(url: string | null | undefined, weaponType?: string | null): boolean {
   if (!url || typeof url !== 'string') return true;
   const t = url.trim();
   if (t === '' || t === 'https://kirka.io' || t === 'https://kirka.io/' || t === '/render') return true;
   if (t.endsWith('/render-mini.webp') || t === 'render-mini.webp') return true;
-  if (t.includes('render.0e1d4800') || t.includes('render.d8456ef7')) return true;  if (t.includes('__questions__')) return true;
+  if (t.includes('render.0e1d4800') || t.includes('render.d8456ef7')) return true;
+  if (t.includes('__questions__')) return true;
+  // Shark render hash (render-mini.0ec8ea84.webp) is mistakenly applied to 645 non-Shark skins in Kirka API!
+  if (t.includes('render-mini.0ec8ea84') || t.includes('0ec8ea84')) {
+    const w = (weaponType || '').trim().toUpperCase();
+    if (w !== 'SHARK') return true;
+  }
   return false;
 }
 
@@ -104,23 +139,19 @@ export function isPlaceholderUrl(url: string | null | undefined): boolean {
 // skin's own weapon, so treat "this is some other weapon's base render" as no art at all.
 function borrowedFromAnotherWeapon(url: string, weapon: string | null): boolean {
   if (!url || !weapon) return false;
-  try {
-    const cached = getCachedCatalog();
-    if (!cached || !Array.isArray(cached)) return false;
-    const file = url.split('/').pop();
-    if (!file) return false;
-    const owner = cached.find(
-      (c) =>
-        c.name &&
-        /^(WEAPON_\d+|CHARACTER)$/.test(String(c.type || '')) &&
-        typeof c.renderUrl === 'string' &&
-        c.renderUrl.endsWith(file)
-    );
-    if (!owner?.name) return false;
-    return owner.name.trim().toLowerCase() !== weapon.trim().toLowerCase();
-  } catch {
-    return false;
+  if (url.includes('render-mini.0ec8ea84') && weapon.toUpperCase() !== 'SHARK') {
+    return true;
   }
+  return false;
+}
+
+export function formatRenderPath(url: string | null | undefined): string {
+  if (!url) return `${import.meta.env.BASE_URL}render-mini.webp`;
+  if (url.startsWith('/renders/')) {
+    const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+    return `${base}${url}`;
+  }
+  return url;
 }
 
 // Universal skin render image resolver:
@@ -134,76 +165,56 @@ export function getSkinRenderUrl(itemOrName: any): string {
   const rawUrl = typeof itemOrName === 'object' ? (itemOrName.renderUrl || itemOrName.renderurl) : null;
   const cleaned = cleanTextureUrl(rawUrl);
 
-  // Which weapon this skin belongs to, so a stand-in image from a different weapon can be spotted.
-  // Callers often pass just a name and a url, so fall back to looking the skin up in the catalog.
   const weaponFrom = (it: any): string | null => {
     if (!it) return null;
     if (it.type === 'BODY_SKIN' || it.type === 'CHARACTER') return 'CHARACTER';
     return it.parent?.name || null;
   };
   let ownWeapon = typeof itemOrName === 'object' ? weaponFrom(itemOrName) : null;
-  if (!ownWeapon && cleanName) {
-    try {
-      const cached = getCachedCatalog();
-      const lower = cleanName.toLowerCase();
-      ownWeapon = weaponFrom(cached?.find((c) => c.name && c.name.toLowerCase() === lower));
-    } catch {}
-  }
 
-  // 1. If valid renderUrl is provided, return direct CDN URL (<img> tags do not need CORS proxy)
-  if (cleaned && !isPlaceholderUrl(cleaned) && !borrowedFromAnotherWeapon(cleaned, ownWeapon)) {
-    return cleaned;
+  // 1. If valid renderUrl is provided, return direct CDN URL or local character render
+  if (cleaned && !isPlaceholderUrl(cleaned, ownWeapon) && !borrowedFromAnotherWeapon(cleaned, ownWeapon)) {
+    return formatRenderPath(cleaned);
   }
 
   // 2. If renderUrl missing or placeholder, look up item in client-side cached catalog
+  let cachedWeapon: string | null = null;
   if (cleanName) {
     try {
-      const cached = getCachedCatalog();
-      if (cached && Array.isArray(cached)) {
-        const lower = cleanName.toLowerCase();
-        const found = cached.find((c) => c.name && c.name.toLowerCase() === lower);
-        const foundClean = cleanTextureUrl(found?.renderUrl);
-        const foundWeapon = found
-          ? (found.type === 'BODY_SKIN' || found.type === 'CHARACTER' ? 'CHARACTER' : found.parent?.name || ownWeapon)
-          : ownWeapon;
-        if (foundClean && !isPlaceholderUrl(foundClean) && !borrowedFromAnotherWeapon(foundClean, foundWeapon)) {
-          return foundClean;
+      const found = getCachedItem(cleanName, ownWeapon || undefined);
+      if (found) {
+        cachedWeapon = found.type === 'BODY_SKIN' || found.type === 'CHARACTER'
+          ? 'CHARACTER'
+          : found.parent?.name || null;
+        const foundClean = cleanTextureUrl(found.renderUrl);
+        const foundWeapon = cachedWeapon || ownWeapon;
+        if (foundClean && !isPlaceholderUrl(foundClean, foundWeapon) && !borrowedFromAnotherWeapon(foundClean, foundWeapon)) {
+          return formatRenderPath(foundClean);
         }
       }
     } catch {}
   }
 
-  // 3. Query live official 3D render from api2.kirka.io if skin name is present
-  if (cleanName) {
-    return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
-  }
-
-  // 4. If item is a character skin without a name, return official Kirka default character render
+  // 3. Character skins fallback to generated 2D front render by skin name
   const isChar = typeof itemOrName === 'object' && (
     itemOrName.type === 'BODY_SKIN' ||
     itemOrName.type === 'CHARACTER' ||
     itemOrName.parent?.name === 'CHARACTER' ||
     isCharacterSkin(itemOrName.parent?.name || itemOrName.type)
   );
-  if (isChar) {
+  if (isChar || ownWeapon === 'CHARACTER' || cachedWeapon === 'CHARACTER') {
+    if (cleanName) {
+      const safeName = cleanName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+      return `${base}/renders/characters/${safeName}.png`;
+    }
     return 'https://kirka.io/assets/img/render.b8016858.png';
   }
 
-  // 5. If item is a weapon skin with a known parent, try finding the base weapon render
-  if (typeof itemOrName === 'object' && itemOrName.parent?.name) {
-    const baseName = itemOrName.parent.name.trim();
-    try {
-      const cached = getCachedCatalog();
-      if (cached && Array.isArray(cached)) {
-        const lowerBase = baseName.toLowerCase();
-        const foundBase = cached.find(
-          (c) => c.name && (c.name.toLowerCase() === lowerBase || c.name.toLowerCase() === `_${lowerBase}`)
-        );
-        if (foundBase?.renderUrl && !isPlaceholderUrl(foundBase.renderUrl)) {
-          return cleanTextureUrl(foundBase.renderUrl)!;
-        }
-      }
-    } catch {}
+  // 4. Weapon skins fallback to base weapon model render
+  const weaponKey = (typeof itemOrName === 'object' ? (itemOrName.parent?.name || ownWeapon) : ownWeapon) || cachedWeapon;
+  if (weaponKey) {
+    return getBaseWeaponRender(weaponKey);
   }
 
   return `${import.meta.env.BASE_URL}render-mini.webp`;

@@ -414,7 +414,12 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     const fallback = fallbackRenders[nameKey];
     const matched = itemDataMap.get(nameKey);
     const candidate = fallback?.renderurl || matched?.renderUrl || null;
-    const url = getSkinRenderUrl({ name, renderUrl: candidate });
+    const url = getSkinRenderUrl({
+      name,
+      parent: matched?.parent,
+      type: matched?.type,
+      renderUrl: candidate,
+    });
     renderCache.set(nameKey, url);
     return url;
   };
