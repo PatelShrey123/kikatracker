@@ -236,6 +236,17 @@ body::before {
   color: #0B0B0B;
 }
 
+
+/* A skin card: one colour, flat.
+   This was two radial washes from opposite corners, lime and pink, which is precisely the
+   generated look - a gradient doing decoration rather than saying anything. The card now
+   carries a single flat tint of its rarity colour, the same colour as the top edge, so each
+   card is one colour at two strengths instead of three colours at once. */
+.skin-card {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

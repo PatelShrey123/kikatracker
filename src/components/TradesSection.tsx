@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Repeat, RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { getSkinRenderUrl } from './Weapon3DViewer';
+import { getSkinRenderUrl } from '../utils/skinAssets';
 import { isVip } from '../utils/vip';
 
 interface TradesSectionProps {

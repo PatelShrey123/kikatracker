@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, ArrowLeft, Target, Sparkles, Database, Shield, Layers, Award, Camera, GitCompare, Swords } from 'lucide-react';
+import { Users, ArrowLeft, Target, Database, Shield, Layers, Award, Camera, Swords } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 
 import { fetchUserInventory, fetchAllPublicItems } from '../utils/api';
@@ -8,7 +8,7 @@ import { formatValue } from '../utils/csv';
 import { cropMinecraftHead } from '../utils/skinCropper';
 import { ShareInventoryModal } from './ShareInventoryModal';
 import { MatchHistorySection } from './MatchHistorySection';
-import { getSkinRenderUrl, isPlaceholderUrl } from './Weapon3DViewer';
+import { getSkinRenderUrl, isPlaceholderUrl } from '../utils/skinAssets';
 import { getCachedCatalog } from '../utils/catalogCache';
 import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass, getVipBackground } from '../utils/vip';
 interface UserProfileTabProps {
@@ -19,11 +19,41 @@ interface UserProfileTabProps {
   fallbackRenders: Record<string, any>;
   onInspectItem: (name: string, type?: string, amount?: number, textureUrl?: string | null) => void;
   allItemData: any[];
-  onCompare: (id: string, type: 'stats' | 'inventory') => void;
   onOpenFit: (shortId: string) => void;
 }
 
-export const UserProfileTab: React.FC<UserProfileTabProps> = ({ 
+/**
+ * One stat tile. The stats block used to be six separate grids of hand-written divs, each
+ * repeating the same markup with its own column count, so the page read as several tables
+ * stacked rather than one. This is that markup, once.
+ *
+ * `accent` is for figures that are a judgement about the player - K/D, win rate, headshot rate,
+ * what their inventory is worth. Raw counts stay neutral so the eye lands on the interesting
+ * numbers instead of every number competing.
+ */
+const Stat: React.FC<{ label: string; value: React.ReactNode; accent?: string }> = ({ label, value, accent }) => (
+  <div className="bg-obsidian-card border border-slate-800 rounded-md px-4 py-3.5">
+    <span className="block text-[11px] text-slate-500 mb-1.5">{label}</span>
+    <span
+      className="display block text-2xl sm:text-[28px] leading-none tabular-nums"
+      style={{ color: accent ?? '#EDEDED' }}
+    >
+      {value}
+    </span>
+  </div>
+);
+
+/** Section heading with a sprayed edge, matching the cards elsewhere on the site. */
+const StatGroup: React.FC<{ title: string; can: string; children: React.ReactNode }> = ({ title, can, children }) => (
+  <section>
+    <h3 className="display text-lg text-[#EDEDED] mb-3 pl-2.5 border-l-[3px]" style={{ borderColor: can }}>
+      {title}
+    </h3>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">{children}</div>
+  </section>
+);
+
+export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   profile, 
   onBack, 
   marketPrices, 
@@ -31,7 +61,6 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
   fallbackRenders,
   onInspectItem,
   allItemData,
-  onCompare,
   onOpenFit
 }) => {
   const isInventoryRoute = typeof window !== 'undefined' && window.location.pathname.includes('/inventory');
@@ -147,20 +176,35 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
     return sum + price * current.amount;
   }, 0);
 
-  // Helper to get rarity border/shadow classes
+  /**
+   * Rarity, in the site's card language.
+   *
+   * The hue is untouched — red mythical, gold legendary, violet epic, blue rare is a convention
+   * players already read fluently.
+   *
+   * One colour per card, at two strengths: the top edge carries rarity at full weight, and the
+   * body is the same colour at 7%. A lime-and-pink corner wash was tried first and read as a
+   * stock gradient - decoration rather than information. A single flat tint says the same thing
+   * and looks deliberate.
+   *
+   * It used to be a full-strength rarity border on every side with a rarity fill, which is not
+   * how anything else here carries an accent, so the grid read as a separate product.
+   *
+   * The badge keeps the colour AND the word, so rarity is never colour alone.
+   */
   const getRarityStyles = (rarity: string) => {
     switch (rarity.toUpperCase()) {
       case 'MYTHICAL':
       case 'MYTHIC':
-        return 'border-rarity-mythic text-rarity-mythic shadow-mythic bg-rarity-mythic/5';
+        return { card: 'skin-card bg-rarity-mythic/[0.07] hover:bg-rarity-mythic/[0.13] border-slate-800 border-t-[3px] border-t-rarity-mythic', badge: 'border-rarity-mythic/40 bg-rarity-mythic/10 text-rarity-mythic' };
       case 'LEGENDARY':
-        return 'border-rarity-legendary text-rarity-legendary shadow-legendary bg-rarity-legendary/5';
+        return { card: 'skin-card bg-rarity-legendary/[0.07] hover:bg-rarity-legendary/[0.13] border-slate-800 border-t-[3px] border-t-rarity-legendary', badge: 'border-rarity-legendary/40 bg-rarity-legendary/10 text-rarity-legendary' };
       case 'EPIC':
-        return 'border-rarity-epic text-rarity-epic shadow-epic bg-rarity-epic/5';
+        return { card: 'skin-card bg-rarity-epic/[0.07] hover:bg-rarity-epic/[0.13] border-slate-800 border-t-[3px] border-t-rarity-epic', badge: 'border-rarity-epic/40 bg-rarity-epic/10 text-rarity-epic' };
       case 'RARE':
-        return 'border-rarity-rare text-rarity-rare shadow-rare bg-rarity-rare/5';
+        return { card: 'skin-card bg-rarity-rare/[0.07] hover:bg-rarity-rare/[0.13] border-slate-800 border-t-[3px] border-t-rarity-rare', badge: 'border-rarity-rare/40 bg-rarity-rare/10 text-rarity-rare' };
       default:
-        return 'border-rarity-common/30 text-slate-400 shadow-common bg-rarity-common/5';
+        return { card: 'skin-card bg-obsidian-card hover:bg-obsidian-hover border-slate-800 border-t-[3px] border-t-rarity-common', badge: 'border-slate-700 bg-slate-800/40 text-slate-400' };
     }
   };
 
@@ -382,26 +426,6 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
           </button>
         </div>
 
-        {/* Compare Profile Buttons aligned right */}
-        <div className="px-4 pb-2.5 sm:pb-0">
-          {profileTab === 'inventory' ? (
-            <button
-              onClick={() => onCompare(profile.id, 'inventory')}
-              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-gold-primary/25 px-4.5 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <GitCompare className="w-3.5 h-3.5 text-gold-primary" />
-              <span>Compare Inventory</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => onCompare(profile.id, 'stats')}
-              className="flex items-center space-x-1.5 bg-[#1b1c26]/60 hover:bg-[#252838]/80 border border-indigo-500/25 px-4.5 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <GitCompare className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Compare Stats</span>
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Tab Contents */}
@@ -439,7 +463,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1">Character Slot</span>
                       {profile.activeBodySkin ? (
                         <div>
-                          <span className={`inline-block text-[8px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${getRarityStyles(profile.activeBodySkin.rarity).split(' ')[0]} ${getRarityStyles(profile.activeBodySkin.rarity).split(' ')[2]}`}>
+                          <span className={`inline-block text-[8px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${getRarityStyles(profile.activeBodySkin.rarity).badge}`}>
                             {profile.activeBodySkin.rarity}
                           </span>
                           <h4 className="text-lg font-extrabold text-white mt-2 leading-none group-hover:text-gold-bright transition-colors">{profile.activeBodySkin.name}</h4>
@@ -506,7 +530,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                       <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1">Primary Weapon</span>
                       {profile.activeWeapon1Skin ? (
                         <div>
-                          <span className={`inline-block text-[8px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${getRarityStyles(profile.activeWeapon1Skin.rarity).split(' ')[0]} ${getRarityStyles(profile.activeWeapon1Skin.rarity).split(' ')[2]}`}>
+                          <span className={`inline-block text-[8px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${getRarityStyles(profile.activeWeapon1Skin.rarity).badge}`}>
                             {profile.activeWeapon1Skin.rarity}
                           </span>
                           <h4 className="text-lg font-extrabold text-white mt-2 leading-none group-hover:text-gold-bright transition-colors">
@@ -570,115 +594,38 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
               </div>
             </div>
 
-            {/* 2. Full Performance Statistics Grid */}
-            <div className="space-y-6">
-              <h3 className="text-xs font-mono text-slate-500 tracking-widest uppercase flex items-center space-x-2 border-b border-obsidian-border/50 pb-3">
-                <Sparkles className="w-4 h-4 text-gold-primary" />
-                <span>Player Performance Metrics</span>
-              </h3>
+            {/* 2. Statistics */}
+            <div className="space-y-7">
+              <StatGroup title="Combat" can="var(--color-spray-pink)">
+                <Stat label="Games played" value={rawGames.toLocaleString()} />
+                <Stat label="Wins" value={rawWins.toLocaleString()} />
+                <Stat label="Win rate" value={winRate} accent="var(--color-spray-lime)" />
+                <Stat label="K/D ratio" value={kd} accent="var(--color-spray-lime)" />
+                <Stat label="Kills" value={rawKills.toLocaleString()} />
+                <Stat label="Deaths" value={rawDeaths.toLocaleString()} />
+                <Stat label="Headshots" value={rawHeadshots.toLocaleString()} />
+                <Stat
+                  label="Headshot rate"
+                  value={rawKills > 0 ? `${((rawHeadshots / rawKills) * 100).toFixed(1)}%` : '—'}
+                  accent="var(--color-spray-lime)"
+                />
+                <Stat label="Total score" value={rawScore.toLocaleString()} />
+              </StatGroup>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">K / D</span>
-                    <span className="text-xl sm:text-2xl font-black text-[#818cf8] block font-sans">{kd}</span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">KILLS</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawKills.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">DEATHS</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawDeaths.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">HEADSHOTS</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawHeadshots.toLocaleString()}</span>
-                  </div>
-                </div>
+              <StatGroup title="Rating" can="var(--color-spray-cyan)">
+                <Stat label="KLO" value={profile.klo !== undefined ? profile.klo.toLocaleString() : '—'} accent="var(--color-spray-cyan)" />
+                <Stat label="Ranked" value={formatRating(profile.kloRanked)} />
+                <Stat label="Search & Destroy" value={formatRating(profile.kloSAD)} />
+                <Stat label="1v1" value={formatRating(profile.klo1V1)} />
+                <Stat label="2v2" value={formatRating(profile.klo2V2)} />
+              </StatGroup>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">GAMES</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawGames.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">WINS</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawWins.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md col-span-2 md:col-span-1">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">WIN RATE</span>
-                    <span className="text-xl sm:text-2xl font-black text-[#818cf8] block font-sans">{winRate}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">TOTAL SCORE</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">{rawScore.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">COINS</span>
-                    <span className="text-xl sm:text-2xl font-black text-gold-bright block font-sans">
-                      {profile.coins !== undefined ? profile.coins.toLocaleString() : '—'}
-                    </span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">DIAMONDS</span>
-                    <span className="text-xl sm:text-2xl font-black text-cyan-400 block font-sans">
-                      {profile.diamonds !== undefined ? profile.diamonds.toLocaleString() : '—'}
-                    </span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">TOTAL XP</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">
-                      {profile.totalXp !== undefined ? profile.totalXp.toLocaleString() : '—'}
-                    </span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">NEXT LEVEL XP</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">
-                      {profile.xpUntilNextLevel !== undefined ? profile.xpUntilNextLevel.toLocaleString() : '—'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">KLO</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">
-                      {profile.klo !== undefined ? profile.klo.toLocaleString() : '—'}
-                    </span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">RANKED</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">
-                      {formatRating(profile.kloRanked)}
-                    </span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">SAD</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">
-                      {formatRating(profile.kloSAD)}
-                    </span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">1V1</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">
-                      {formatRating(profile.klo1V1)}
-                    </span>
-                  </div>
-                  <div className="bg-[#0b0c13] border border-obsidian-border/60 p-4.5 rounded-md">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mb-1.5">2V2</span>
-                    <span className="text-xl sm:text-2xl font-black text-white block font-sans">
-                      {formatRating(profile.klo2V2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <StatGroup title="Account" can="var(--color-spray-orange)">
+                <Stat label="Coins" value={profile.coins !== undefined ? profile.coins.toLocaleString() : '—'} accent="var(--color-spray-orange)" />
+                <Stat label="Diamonds" value={profile.diamonds !== undefined ? profile.diamonds.toLocaleString() : '—'} accent="var(--color-spray-cyan)" />
+                <Stat label="Total XP" value={profile.totalXp !== undefined ? profile.totalXp.toLocaleString() : '—'} />
+                <Stat label="XP to next level" value={profile.xpUntilNextLevel !== undefined ? profile.xpUntilNextLevel.toLocaleString() : '—'} />
+              </StatGroup>
             </div>
           </div>
         )}
@@ -768,7 +715,7 @@ export const UserProfileTab: React.FC<UserProfileTabProps> = ({
                         invItem.amount,
                         item.textureUrl
                       )}
-                      className={`card-interactive relative flex flex-col justify-between bg-[#0e1017] border p-4.5 rounded-md cursor-pointer hover:shadow-gold-glow group transition-all duration-300 ${rarityStyles}`}
+                      className={`relative flex flex-col justify-between border p-4.5 rounded-md cursor-pointer group ${rarityStyles.card}`}
                     >
                       <span className="absolute top-3 right-3 bg-[#11131e]/90 border border-slate-800 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
                         x{invItem.amount}

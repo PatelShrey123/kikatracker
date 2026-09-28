@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Tag, GitCompare, Bot, TrendingUp, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users } from 'lucide-react';
+import { Activity, MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supportsCustomCursor } from '../hooks/useCursorMode';
 
@@ -53,11 +53,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
     { id: 'daily', label: 'Daily Leaderboard', icon: Trophy },
     { id: 'ranked', label: 'Ranked Arena', icon: Swords },
     { id: 'clans', label: 'Clans Registry', icon: Users },
-    { id: 'clantracker', label: 'Clan Tracker', icon: TrendingUp },
     { id: 'trades', label: 'Trades Portal', icon: Repeat },
     { id: 'chat', label: 'Kirka Chat', icon: MessageSquare },
-    { id: 'prices', label: 'Price Viewer', icon: Tag },
-    { id: 'compare', label: 'Compare Arena', icon: GitCompare },
+    { id: 'players', label: 'Player Count', icon: Activity },
+    { id: 'prices', label: 'Skins & Prices', icon: Tag },
     { id: 'bot', label: 'Discord Bot', icon: Bot },
   ];
 

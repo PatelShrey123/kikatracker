@@ -35,7 +35,7 @@ const markStyle = (c: string) => ({ '--mark-color': c }) as React.CSSProperties;
 const tapeStyle = (c: string) => ({ '--tape-color': c }) as React.CSSProperties;
 
 const DESTINATIONS = [
-  { id: 'prices', icon: Tag, title: 'Price viewer', desc: 'Every skin in the game, with its Hub valuation.', can: 'var(--color-spray-lime)' },
+  { id: 'prices', icon: Tag, title: 'Skins & prices', desc: 'Every skin in the game, with its Hub valuation.', can: 'var(--color-spray-lime)' },
   { id: 'trades', icon: Repeat, title: 'Trades', desc: 'What changed hands, month by month.', can: 'var(--color-spray-cyan)' },
   { id: 'daily', icon: Trophy, title: 'Daily leaderboard', desc: 'The top players today, read from Kirka.', can: 'var(--color-spray-orange)' },
   { id: 'ranked', icon: Swords, title: 'Ranked arena', desc: 'Search & Destroy standings and ELO.', can: 'var(--color-spray-pink)' },

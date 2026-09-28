@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Wifi, WifiOff, Coins, ShieldAlert, Users, ExternalLink, ArrowDown } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { getSkinRenderUrl } from './Weapon3DViewer';
+import { getSkinRenderUrl } from '../utils/skinAssets';
 import { isVip } from '../utils/vip';
 
 interface ChatUser {

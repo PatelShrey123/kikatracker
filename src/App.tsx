@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TargetCursor } from './components/TargetCursor';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -10,14 +10,15 @@ import { RankedSection } from './components/RankedSection';
 import { ClansSection } from './components/ClansSection';
 import { ChatSection } from './components/ChatSection';
 import { TradesSection } from './components/TradesSection';
-import { ItemInspectModal } from './components/ItemInspectModal';
+const ItemInspectModal = lazy(() => import('./components/ItemInspectModal').then(m => ({ default: m.ItemInspectModal })));
 import { PriceViewerSection } from './components/PriceViewerSection';
-import { CompareSection } from './components/CompareSection';
 import { BotSection } from './components/BotSection';
-import { ClanTrackerSection } from './components/ClanTrackerSection';
-import { RendersSection } from './components/RendersSection';
-import { FitSection } from './components/FitSection';
-import { ReloadLab } from './components/ReloadLab';
+import { PlayerCountSection } from './components/PlayerCountSection';
+// three.js, GLTFLoader, OrbitControls and skinview3d together are most of the bundle, and
+// only these three pages need them. Loading them on demand keeps them off every other page.
+const RendersSection = lazy(() => import('./components/RendersSection').then(m => ({ default: m.RendersSection })));
+const FitSection = lazy(() => import('./components/FitSection').then(m => ({ default: m.FitSection })));
+const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ default: m.ReloadLab })));
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { AdSlot, AD_SLOTS } from './components/AdSlot';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
@@ -30,6 +31,7 @@ import { useCursorMode } from './hooks/useCursorMode';
 function App() {
   const { isCustomCursor, toggleCursorMode } = useCursorMode();
   const [isLoading, setIsLoading] = useState(true);
+
   const [activeTab, setActiveTab] = useState<string>('search');
   const [activeUserProfile, setActiveUserProfile] = useState<UserProfile | null>(null);
   const [marketPrices, setMarketPrices] = useState<Map<string, MarketItem>>(new Map());
@@ -104,9 +106,6 @@ function App() {
       const name = cleanPath.split('/clan/')[1];
       return { tab: 'clans', player: null, clan: name, skin: null };
     }
-    if (cleanPath === '/clantracker') {
-      return { tab: 'clantracker', player: null, clan: null, skin: null };
-    }
     if (cleanPath.startsWith('/skin/')) {
       const skinName = cleanPath.split('/skin/')[1];
       return { tab: 'prices', player: null, clan: null, skin: decodeURIComponent(skinName) };
@@ -118,6 +117,9 @@ function App() {
       return { tab: 'reloadlab', player: null, clan: null, skin: null };
     }
     // unlisted: reachable by URL, deliberately absent from the navbar and the sitemap
+    if (cleanPath === '/players' || cleanPath === '/playercount') {
+      return { tab: 'players', player: null, clan: null, skin: null };
+    }
     if (cleanPath === '/changelogs') {
       return { tab: 'changelogs', player: null, clan: null, skin: null };
     }
@@ -138,9 +140,6 @@ function App() {
     }
     if (cleanPath === '/prices') {
       return { tab: 'prices', player: null, clan: null, skin: null };
-    }
-    if (cleanPath.startsWith('/compare')) {
-      return { tab: 'compare', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/bot') {
       return { tab: 'bot', player: null, clan: null, skin: null };
@@ -276,17 +275,14 @@ function App() {
       case 'clans':
         document.title = 'Kirka Clan Registry & Leaderboard Rankings | Kirka Hub';
         break;
-      case 'clantracker':
-        document.title = 'Kirka Clan Activity Tracker & Member Logs | Kirka Hub';
+      case 'players':
+        document.title = 'Kirka Player Count by Region | Kirka Hub';
         break;
       case 'ranked':
         document.title = 'Kirka Ranked S&D Leaderboards & ELO Ladder | Kirka Hub';
         break;
       case 'daily':
         document.title = 'Kirka Daily Competitors & Top Scores | Kirka Hub';
-        break;
-      case 'compare':
-        document.title = 'Compare Kirka Player Profiles & Inventories | Kirka Hub';
         break;
       case 'fit':
         document.title = 'Kirka 3D Fit Viewer — Flex Your Loadout | Kirka Hub';
@@ -421,7 +417,16 @@ function App() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.25 }}
                   className="w-full"
+                  data-tab={activeTab}
                 >
+                  {/* The 3D pages load on demand; this covers the moment their chunk arrives. */}
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center justify-center py-32 text-[13px] text-slate-500">
+                        Loading…
+                      </div>
+                    }
+                  >
                   {activeTab === 'search' && (
                     <>
                       {activeUserProfile ? (
@@ -439,11 +444,6 @@ function App() {
                           onBack={() => {
                             navigate('search');
                             setSearchError(null);
-                          }}
-                          onCompare={(id, type) => {
-                            const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
-                            window.history.pushState(null, '', `${prefix}/compare?p1=${id}&type=${type}`);
-                            setActiveTab('compare');
                           }}
                           onOpenFit={(shortId) => {
                             const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
@@ -485,10 +485,6 @@ function App() {
                     />
                   )}
 
-                  {activeTab === 'clantracker' && (
-                    <ClanTrackerSection />
-                  )}
-
                   {activeTab === 'trades' && (
                     <TradesSection
                       onSelectPlayer={handlePlayerSearch}
@@ -524,16 +520,11 @@ function App() {
                       }}
                     />
                   )}
-                  {activeTab === 'compare' && (
-                    <CompareSection
-                      marketPrices={marketPrices}
-                      fallbackRenders={fallbackRenders}
-                      publicItems={publicItems}
-                      allItemData={allItemData}
-                    />
-                  )}
                   {activeTab === 'bot' && (
                     <BotSection />
+                  )}
+                  {activeTab === 'players' && (
+                    <PlayerCountSection />
                   )}
                   {activeTab === 'fit' && (
                     <FitSection
@@ -564,6 +555,7 @@ function App() {
                       allItemData={allItemData}
                     />
                   )}
+                  </Suspense>
                 </motion.div>
               </AnimatePresence>
             </main>
@@ -579,7 +571,11 @@ function App() {
             </footer>
           </div>
 
-          {/* 6. Item Details Inspection Modal overlay */}
+          {/* 6. Item Details Inspection Modal overlay. Lazy, and only mounted once something is
+                actually being inspected — it renders the 3D viewer, so mounting it eagerly put
+                three.js in the main bundle for every visitor who never clicks a skin. */}
+          {inspectItem !== null && (
+          <Suspense fallback={null}>
           <ItemInspectModal
             isOpen={inspectItem !== null}
             onClose={() => setInspectItem(null)}
@@ -591,6 +587,8 @@ function App() {
             allItemData={allItemData}
             fallbackRenders={fallbackRenders}
           />
+          </Suspense>
+          )}
         </>
         );
       })()}

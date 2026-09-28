@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Tag, Sparkles, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
-import { cleanTextureUrl } from './Weapon3DViewer';
+import { cleanTextureUrl } from '../utils/skinAssets';
 
 interface PriceViewerSectionProps {
   marketPrices: Map<string, MarketItem>;
@@ -67,19 +67,35 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
     });
   }, [uniqueItems, searchTerm, selectedRarity, selectedType]);
 
+  /**
+   * Rarity, in the site's card language.
+   *
+   * The hue is untouched — red mythical, gold legendary, violet epic, blue rare is a convention
+   * players already read fluently.
+   *
+   * One colour per card, at two strengths: the top edge carries rarity at full weight, and the
+   * body is the same colour at 7%. A lime-and-pink corner wash was tried first and read as a
+   * stock gradient - decoration rather than information. A single flat tint says the same thing
+   * and looks deliberate.
+   *
+   * It used to be a full-strength rarity border on every side with a rarity fill, which is not
+   * how anything else here carries an accent, so the grid read as a separate product.
+   *
+   * The badge keeps the colour AND the word, so rarity is never colour alone.
+   */
   const getRarityStyles = (rarity: string) => {
     switch (rarity.toUpperCase()) {
       case 'MYTHICAL':
       case 'MYTHIC':
-        return 'border-rarity-mythic text-rarity-mythic shadow-mythic bg-rarity-mythic/5';
+        return { card: 'skin-card bg-rarity-mythic/[0.07] hover:bg-rarity-mythic/[0.13] border-slate-800 border-t-[3px] border-t-rarity-mythic', badge: 'border-rarity-mythic/40 bg-rarity-mythic/10 text-rarity-mythic' };
       case 'LEGENDARY':
-        return 'border-rarity-legendary text-rarity-legendary shadow-legendary bg-rarity-legendary/5';
+        return { card: 'skin-card bg-rarity-legendary/[0.07] hover:bg-rarity-legendary/[0.13] border-slate-800 border-t-[3px] border-t-rarity-legendary', badge: 'border-rarity-legendary/40 bg-rarity-legendary/10 text-rarity-legendary' };
       case 'EPIC':
-        return 'border-rarity-epic text-rarity-epic shadow-epic bg-rarity-epic/5';
+        return { card: 'skin-card bg-rarity-epic/[0.07] hover:bg-rarity-epic/[0.13] border-slate-800 border-t-[3px] border-t-rarity-epic', badge: 'border-rarity-epic/40 bg-rarity-epic/10 text-rarity-epic' };
       case 'RARE':
-        return 'border-rarity-rare text-rarity-rare shadow-rare bg-rarity-rare/5';
+        return { card: 'skin-card bg-rarity-rare/[0.07] hover:bg-rarity-rare/[0.13] border-slate-800 border-t-[3px] border-t-rarity-rare', badge: 'border-rarity-rare/40 bg-rarity-rare/10 text-rarity-rare' };
       default:
-        return 'border-rarity-common/30 text-slate-400 shadow-common bg-rarity-common/5';
+        return { card: 'skin-card bg-obsidian-card hover:bg-obsidian-hover border-slate-800 border-t-[3px] border-t-rarity-common', badge: 'border-slate-700 bg-slate-800/40 text-slate-400' };
     }
   };
 
@@ -181,7 +197,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
             <Tag className="w-4 h-4" />
             <span className="text-[10px] font-mono font-bold tracking-widest uppercase">Pricing Database</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl text-[#EDEDED]">Item Price <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-lime)' }}>Viewer</span></h2>
+          <h2 className="text-2xl sm:text-3xl text-[#EDEDED]">Skins &amp; <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-lime)' }}>prices</span></h2>
           <p className="text-xs text-slate-400 font-medium">Search and browse current market valuations synchronized from Kirka Hub Index.</p>
         </div>
         <div className="flex items-center space-x-2 bg-obsidian-card/60 border border-obsidian-border/80 px-4 py-2.5 rounded-md text-xs text-slate-400 font-mono self-start md:self-auto">
@@ -254,10 +270,8 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                 <div
                   key={item.skinName + '-' + item.type + '-' + index}
                   onClick={() => onInspectItem?.(item.skinName, item.type)}
-                  className={`relative flex flex-col justify-between bg-gradient-to-b from-[#161824] to-[#0c0d13] border rounded-md p-4 transition-all duration-300 hover:scale-[1.03] select-none hover:shadow-lg cursor-pointer ${rarityStyles.split(' ')[0]}`}
+                  className={`relative flex flex-col justify-between border rounded-md p-4 select-none cursor-pointer ${rarityStyles.card}`}
                 >
-                  {/* Rarity Border Highlight */}
-                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
                   {/* Top Info */}
                   <div className="flex justify-between items-start mb-2">

@@ -4,28 +4,36 @@ import tailwindcss from '@tailwindcss/vite'
 
 import path from 'path';
 
-// `vite dev` does not run the functions in api/, so /api/changelog would 404 locally and the
-// pending-changes panel could never be seen while developing. This mounts the real handler as
-// dev middleware, so local behaviour matches production.
+// `vite dev` does not run the functions in api/, so those routes 404 locally and the features
+// behind them cannot be exercised while developing. This mounts the real handlers as dev
+// middleware so local behaviour matches production.
+//
+// Only /api/changelog was mounted before, which meant /api/prices 404'd on every page load in
+// dev and the price list silently fell back to the committed JSON — so the sheet, and anything
+// layered on it, could never be tested locally.
+const DEV_API_ROUTES = ['changelog', 'prices', 'bot-stats'];
+
 function apiDevServer() {
   return {
     name: 'api-dev-server',
     apply: 'serve' as const,
     configureServer(server: any) {
-      server.middlewares.use('/api/changelog', async (req: any, res: any) => {
-        try {
-          const mod = await server.ssrLoadModule('/api/changelog.js');
-          await mod.default(req, {
-            setHeader: (k: string, v: string) => res.setHeader(k, v),
-            status(code: number) { res.statusCode = code; return this; },
-            json: (body: unknown) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); },
-            end: () => res.end(),
-          });
-        } catch (err: any) {
-          res.statusCode = 500;
-          res.end(JSON.stringify({ error: err?.message ?? 'dev handler failed' }));
-        }
-      });
+      for (const route of DEV_API_ROUTES) {
+        server.middlewares.use(`/api/${route}`, async (req: any, res: any) => {
+          try {
+            const mod = await server.ssrLoadModule(`/api/${route}.js`);
+            await mod.default(req, {
+              setHeader: (k: string, v: string) => res.setHeader(k, v),
+              status(code: number) { res.statusCode = code; return this; },
+              json: (body: unknown) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); },
+              end: () => res.end(),
+            });
+          } catch (err: any) {
+            res.statusCode = 500;
+            res.end(JSON.stringify({ error: err?.message ?? 'dev handler failed' }));
+          }
+        });
+      }
     },
   };
 }
