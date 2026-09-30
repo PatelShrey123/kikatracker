@@ -150,7 +150,7 @@ export const BotSection: React.FC = () => {
     },
     {
       text: 'Live Trades & Market Browser (.trade)',
-      desc: 'Search active marketplace listings and historical transactions with seller info and real-time Bolt values.',
+      desc: 'Search active marketplace listings and historical transactions with seller info and real-time Hub values.',
       icon: ArrowRightLeft,
       tag: 'NEW Feature'
     },

@@ -36,3 +36,11 @@ scratch/
 # Reload Lab arm rigs: the public page ships the gun-only clips
 public/models/reload/*-arms.glb
 missing-skins.tsv
+
+# Private fit viewer assets & documentation
+public/models/kirka_character.glb
+public/textures/
+kikatracker-main/
+CLAUDE_FIT_VIEWER_BRIEFING.md
+FULL_CHAT_HISTORY.md
+PROJECT_TIMELINE_INDEX.md

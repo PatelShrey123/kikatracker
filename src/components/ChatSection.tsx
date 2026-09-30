@@ -151,7 +151,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     const compositeKey = `${name.toLowerCase()}_${typeKey.toLowerCase()}`;
     const nameKey = name.toLowerCase();
 
-    // Lookup Bolt Price
+    // Lookup Hub Price
     const priceData = marketPrices.get(compositeKey) || marketPrices.get(nameKey);
     const price = priceData ? priceData.baseValue : 0;
 

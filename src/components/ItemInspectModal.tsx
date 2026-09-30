@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box, Palette } from 'lucide-react';
+import React, { useState, Suspense } from 'react';
+import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box, Palette, Loader2 } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { Weapon3DViewer, has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl, isPlaceholderUrl } from './Weapon3DViewer';
+import { has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl, isPlaceholderUrl } from '../utils/skinAssets';
 import { resolveItemCreator } from '../utils/catalogCache';
+
+const Weapon3DViewer = React.lazy(() =>
+  import('./Weapon3DViewer').then((m) => ({ default: m.Weapon3DViewer }))
+);
 
 interface ItemInspectModalProps {
   isOpen: boolean;
@@ -34,31 +38,45 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   const normalizedName = cleanName.toLowerCase();
   const normalizedType = itemType.toLowerCase();
 
-  // 1. Get pricing details from Bolt (Google Sheet)
+  // 1. Get pricing details from Hub Price index
   // Check composite key matching (e.g. delicate_m60 or delicate_character) or single name key
   const isCharacterType = normalizedType === 'character' || normalizedType === 'body_skin' || normalizedType === 'body skin';
   const itemTypeKey = isCharacterType ? 'character' : normalizedType;
   const compositeKey = `${normalizedName}_${itemTypeKey}`;
   
-  const boltPriceData = marketPrices.get(compositeKey) || marketPrices.get(normalizedName);
-  const boltValue = boltPriceData ? boltPriceData.baseValue : null;
+  const hubPriceData = marketPrices.get(compositeKey) || marketPrices.get(normalizedName);
+  const hubValue = hubPriceData ? hubPriceData.baseValue : null;
 
   // 2. Fetch detailed metadata from AllItemData.json
   const metadata = allItemData.find((item) => {
-    const matchesName = item.name.toLowerCase() === normalizedName;
-    if (!matchesName) return false;
+    const cleanItemName = (item.name || '').toLowerCase().trim().replace(/^_+|_+$/g, '');
+    const itemParentName = (item.parent?.name || '').toLowerCase().trim();
+    const isBodySkin = item.type === 'BODY_SKIN' || item.type === 'CHARACTER';
 
-    // Check type matching
     if (isCharacterType) {
-      return item.type === 'BODY_SKIN';
-    } else if (normalizedType) {
-      return item.parent?.name.toLowerCase() === normalizedType || item.type === 'WEAPON_SKIN';
+      return isBodySkin && cleanItemName === normalizedName;
     }
-    return true;
+
+    if (normalizedType) {
+      // Must match the requested weapon type!
+      const typeMatches = itemParentName === normalizedType || cleanItemName.endsWith(`_${normalizedType}`) || cleanItemName.endsWith(` ${normalizedType}`);
+      if (!typeMatches) return false;
+
+      if (cleanItemName === normalizedName) return true;
+      if (cleanItemName === `${normalizedName} ${normalizedType}`) return true;
+      if (cleanItemName === `${normalizedName}_${normalizedType}`) return true;
+      if (cleanItemName.endsWith(normalizedType)) {
+        const stripped = cleanItemName.slice(0, -normalizedType.length).trim();
+        if (stripped === normalizedName) return true;
+      }
+      return false;
+    }
+
+    return cleanItemName === normalizedName;
   }) || {};
 
   // Check 3D model availability (enabled for all weapons and Gecko 3px characters)
-  const weaponModelType = isCharacterType ? 'CHARACTER' : (metadata.parent?.name || boltPriceData?.type || itemType || '');
+  const weaponModelType = isCharacterType ? 'CHARACTER' : (metadata.parent?.name || hubPriceData?.type || itemType || '');
   const has3DModel = has3DViewerSupport(weaponModelType);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>(has3DModel ? '3d' : '2d');
 
@@ -93,17 +111,23 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   }
 
   if (!textureUrl && normalizedType) {
-    const comboKey = `${normalizedName} ${normalizedType}`;
-    const comboFallback = fallbackRenders[comboKey];
+    const comboKeySpace = `${normalizedName} ${normalizedType}`;
+    const comboKeyUnder = `${normalizedName}_${normalizedType}`;
+    const comboFallback = fallbackRenders[comboKeySpace] || fallbackRenders[comboKeyUnder];
     if (comboFallback && isValidTexture(comboFallback.textureurl || comboFallback.textureUrl)) {
       textureUrl = comboFallback.textureurl || comboFallback.textureUrl;
     }
   }
 
   if (!textureUrl && Array.isArray(allItemData)) {
-    const matched = allItemData.find((i) =>
-      i.name && i.name.toLowerCase().trim() === normalizedName && isValidTexture(i.textureUrl)
-    );
+    const matched = allItemData.find((i) => {
+      const cName = (i.name || '').toLowerCase().trim().replace(/^_+|_+$/g, '');
+      const pName = (i.parent?.name || '').toLowerCase().trim();
+      const nameMatch = cName === normalizedName || cName === `${normalizedName} ${normalizedType}` || cName === `${normalizedName}_${normalizedType}`;
+      if (!nameMatch) return false;
+      if (normalizedType && pName && pName !== normalizedType) return false;
+      return isValidTexture(i.textureUrl);
+    });
     if (matched && matched.textureUrl) {
       textureUrl = matched.textureUrl;
     }
@@ -117,17 +141,27 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
   textureUrl = cleanTextureUrl(textureUrl);
 
   // Resolve render URL with live api2 fallback
-  const renderCandidate = metadata.renderUrl || fallbackRenders[normalizedName]?.renderurl || fallbackRenders[`${normalizedName} ${normalizedType}`]?.renderurl || null;
-  const renderUrl = getSkinRenderUrl({ name: cleanName, renderUrl: renderCandidate });
+  const comboKeySpace = `${normalizedName} ${normalizedType}`;
+  const comboKeyUnderscore = `${normalizedName}_${normalizedType}`;
+  const renderCandidate = metadata.renderUrl ||
+    (normalizedType ? fallbackRenders[comboKeySpace]?.renderurl || fallbackRenders[comboKeyUnderscore]?.renderurl : null) ||
+    fallbackRenders[normalizedName]?.renderurl ||
+    null;
+  const renderUrl = getSkinRenderUrl({
+    name: cleanName,
+    parent: metadata.parent || (normalizedType && !isCharacterType ? { name: normalizedType.toUpperCase() } : null),
+    type: isCharacterType ? 'BODY_SKIN' : metadata.type,
+    renderUrl: renderCandidate
+  });
 
   // Format values safely
-  const itemRarity = boltPriceData?.rarity || metadata.rarity || 'Common';
-  const itemClassType = isCharacterType ? 'BODY SKIN' : (boltPriceData?.type || metadata.parent?.name || 'WEAPON SKIN');
+  const itemRarity = hubPriceData?.rarity || metadata.rarity || 'Common';
+  const itemClassType = isCharacterType ? 'BODY SKIN' : (hubPriceData?.type || metadata.parent?.name || 'WEAPON SKIN');
   // These three come straight from Kirka and are shown as they are. Anything missing reads as a dash
   // rather than a default: a hardcoded date was being printed for every skin, and absent values were
   // being shown as "No" and "0", which said the opposite of the truth for unique, owned items.
   const isUnique = typeof metadata.unique === 'boolean' ? (metadata.unique ? 'Yes' : 'No') : '—';
-  const obtainableMethod = boltPriceData?.obtainableBy || 'N/A';
+  const obtainableMethod = hubPriceData?.obtainableBy || 'N/A';
   const totalOwnedCount = typeof metadata.totalOwned === 'number' ? metadata.totalOwned.toLocaleString() : '—';
 
   const formattedCreatedDate = metadata.createdAt
@@ -226,12 +260,23 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
           {/* Content: 3D Interactive Viewer OR 2D Render image */}
           {viewMode === '3d' && has3DModel ? (
             <div className="w-full h-full pt-6">
-              <Weapon3DViewer
-                weaponType={weaponModelType}
-                textureUrl={textureUrl}
-                skinName={cleanName}
-                className="w-full h-full"
-              />
+              <Suspense
+                fallback={
+                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                    <Loader2 className="w-7 h-7 animate-spin text-gold-primary mb-2" />
+                    <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
+                      Loading 3D Viewer...
+                    </span>
+                  </div>
+                }
+              >
+                <Weapon3DViewer
+                  weaponType={weaponModelType}
+                  textureUrl={textureUrl}
+                  skinName={cleanName}
+                  className="w-full h-full"
+                />
+              </Suspense>
             </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center relative pt-4">
@@ -365,7 +410,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
                 <span>HUB VALUE:</span>
                 <div className="flex items-center space-x-1.5 text-gold-bright font-black text-sm">
                   <Coins className="w-4 h-4 text-gold-primary" />
-                  <span>{boltValue !== null ? formatValue(boltValue) : '—'}</span>
+                  <span>{hubValue !== null ? formatValue(hubValue) : '—'}</span>
                 </div>
               </div>
 

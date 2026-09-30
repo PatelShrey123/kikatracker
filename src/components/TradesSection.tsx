@@ -414,12 +414,17 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     const fallback = fallbackRenders[nameKey];
     const matched = itemDataMap.get(nameKey);
     const candidate = fallback?.renderurl || matched?.renderUrl || null;
-    const url = getSkinRenderUrl({ name, renderUrl: candidate });
+    const url = getSkinRenderUrl({
+      name,
+      parent: matched?.parent,
+      type: matched?.type,
+      renderUrl: candidate,
+    });
     renderCache.set(nameKey, url);
     return url;
   };
 
-  // Resolve skin price from Bolt / catalog (instant O(1))
+  // Resolve skin price from Hub price index (instant O(1))
   const getItemPrice = (name: string): number => {
     const nameKey = name.replace(/^_+|_+$/g, '').trim().toLowerCase();
     if (priceCache.has(nameKey)) {

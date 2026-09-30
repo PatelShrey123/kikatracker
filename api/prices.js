@@ -54,10 +54,18 @@ function parseCsv(csvText, minCols = 4) {
       headers.forEach((h, idx) => {
         item[h] = values[idx] || '';
       });
+      const skinName = (item['Skin Name'] || '').trim();
+      if (!skinName) continue;
       const val = item['Hub Value'] || item['Base Value'] || '0';
-      item['Hub Value'] = val;
-      item['Base Value'] = val;
-      rows.push(item);
+      // Whitelist only legitimate Hub fields: no upstream author or internal notes can leak to F12
+      rows.push({
+        'Skin Name': skinName,
+        'Type': (item['Type'] || '').trim(),
+        'Skin Rarity': (item['Skin Rarity'] || '').trim(),
+        'Hub Value': val,
+        'Base Value': val,
+        'Obtainable By': (item['Obtainable By'] || 'N/A').trim()
+      });
     }
   }
 
@@ -118,7 +126,15 @@ function applyOverrides(base, overrides) {
       base[at] = merged;
       replaced++;
     } else {
-      base.push(ov);
+      const val = ov['Hub Value'] || ov['Base Value'] || '0';
+      base.push({
+        'Skin Name': (ov['Skin Name'] || '').trim(),
+        'Type': (ov['Type'] || '').trim(),
+        'Skin Rarity': (ov['Skin Rarity'] || '').trim(),
+        'Hub Value': val,
+        'Base Value': val,
+        'Obtainable By': (ov['Obtainable By'] || 'N/A').trim()
+      });
       added++;
     }
   }

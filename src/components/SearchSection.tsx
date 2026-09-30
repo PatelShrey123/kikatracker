@@ -24,7 +24,7 @@ interface FeaturedProfile {
 
 const FEATURED_PROFILES: FeaturedProfile[] = [
   { name: 'shadow', shortId: 'HESHPY', role: 'LEADER', level: 98, desc: 'Clan Leader (kiss) • Mythic active loadout', isShortId: true },
-  { name: 'Hisoka', shortId: 'S2WVOK', role: 'USER', level: 99, desc: 'Top S&D Leaderboard #1 • 5.7K KLO score', isShortId: true },
+  { name: 'Hisoka', shortId: '9d42e1d0-cf39-40bd-91c2-7b85e8b36233', role: 'USER', level: 99, desc: 'Top S&D Leaderboard #1 • 5.7K KLO score', isShortId: false },
   { name: 'Bot#0', shortId: '9VECSU', role: 'USER', level: 85, desc: 'Active member • Hub valuation inventory', isShortId: true },
 ];
 

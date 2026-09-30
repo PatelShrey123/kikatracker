@@ -83,9 +83,34 @@ export function loadSkinTexture(url: string | null | undefined, skinName?: strin
 
   const texLoader = new THREE.TextureLoader();
   texLoader.crossOrigin = 'anonymous';
-  const tryLoad = (src: string) =>
+  const tryLoad = (src: string, timeoutMs = 3500) =>
     new Promise<THREE.Texture | null>((resolve) => {
-      texLoader.load(src, (tex) => resolve(prepareSkinTexture(tex)), undefined, () => resolve(null));
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          resolve(null);
+        }
+      }, timeoutMs);
+
+      texLoader.load(
+        src,
+        (tex) => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            resolve(prepareSkinTexture(tex));
+          }
+        },
+        undefined,
+        () => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            resolve(null);
+          }
+        }
+      );
     });
 
   return (async () => {
@@ -200,8 +225,8 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      preserveDrawingBuffer: true,
-      powerPreference: 'high-performance'
+      preserveDrawingBuffer: false,
+      powerPreference: 'default'
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

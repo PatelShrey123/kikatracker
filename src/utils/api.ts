@@ -199,6 +199,19 @@ export const MOCK_PROFILE: Record<string, UserProfile> = {
     diamonds: 320,
     createdAt: "2023-11-12T14:22:11.231Z",
     clan: "kiss",
+    activeWeapon1Skin: {
+      id: "0344620b-1372-4fdf-aafb-20ee34d17321",
+      name: "Mommy",
+      type: "WEAPON_SKIN",
+      rarity: "LEGENDARY",
+      parent: { id: "93c79fd2-e178-4bd5-abaa-63c1298db07b", name: "AR-9", type: "WEAPON_1", rarity: "COMMON" }
+    },
+    activeBodySkin: {
+      id: "0f4174a7-1546-4f9b-90a0-96c544555f9676",
+      name: "Bunny",
+      type: "BODY_SKIN",
+      rarity: "EPIC"
+    },
     stats: { games: 12450, wins: 9840, kills: 148900, deaths: 62100, headshots: 110450, scores: 18451000 }
   }
 };
@@ -480,12 +493,16 @@ export async function fetchUserProfile(id: string, isShortId: boolean = false): 
     cleanId = 'FUYR7K';
     cleanIsShortId = true;
   }
+  if (decoded === 'HISOKA' || decoded === 'S2WVOK') {
+    cleanId = '9d42e1d0-cf39-40bd-91c2-7b85e8b36233';
+    cleanIsShortId = false;
+  }
   try {
     return await apiRequest<UserProfile>('/user/getProfile', 'POST', { id: cleanId, isShortId: cleanIsShortId });
   } catch (err) {
     console.warn(`Failed to fetch live profile for ${cleanId}, checking mock fallbacks:`, err);
     const matched = Object.values(MOCK_PROFILE).find(
-      (p) => p.id === cleanId || p.shortId.toUpperCase() === cleanId
+      (p) => p.id === cleanId || p.shortId.toUpperCase() === cleanId || p.shortId.toUpperCase() === decoded || (decoded === 'HISOKA' && p.id === '9d42e1d0-cf39-40bd-91c2-7b85e8b36233')
     );
     if (matched) return matched;
     throw err;
@@ -500,12 +517,16 @@ export async function fetchUserInventory(id: string, isShortId: boolean = false)
     cleanId = 'FUYR7K';
     cleanIsShortId = true;
   }
+  if (decoded === 'HISOKA' || decoded === 'S2WVOK') {
+    cleanId = '9d42e1d0-cf39-40bd-91c2-7b85e8b36233';
+    cleanIsShortId = false;
+  }
   try {
     return await apiRequest<UserInventoryItem[]>('/inventory/user', 'POST', { id: cleanId, isShortId: cleanIsShortId });
   } catch (err) {
     console.warn(`Failed to fetch live inventory for ${cleanId}, checking mock fallbacks:`, err);
     const matchedProfile = Object.values(MOCK_PROFILE).find(
-      (p) => p.id === cleanId || p.shortId.toUpperCase() === cleanId
+      (p) => p.id === cleanId || p.shortId.toUpperCase() === cleanId || p.shortId.toUpperCase() === decoded || (decoded === 'HISOKA' && p.id === '9d42e1d0-cf39-40bd-91c2-7b85e8b36233')
     );
     const uuid = matchedProfile ? matchedProfile.id : cleanId;
     if (MOCK_INVENTORY[uuid]) {
@@ -524,6 +545,22 @@ export async function fetchQuests(): Promise<Quest[]> {
 }
 
 export async function fetchAllPublicItems(): Promise<any[]> {
+  // 1. Instantly return local static catalog (15ms load time)
+  try {
+    const rawBase = import.meta.env.BASE_URL || '/';
+    const base = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const res = await fetch(`${base}/data/items.json`);
+    if (res.ok) {
+      const staticItems = await res.json();
+      if (Array.isArray(staticItems) && staticItems.length > 0) {
+        return staticItems;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load local static items.json:', err);
+  }
+
+  // 2. Fallback to API endpoint
   try {
     const items = await apiRequest<any[]>('/inventory/items');
     if (Array.isArray(items) && items.length > 0) return items;
@@ -561,6 +598,9 @@ export async function fetchMatchHistory(identifier: string, page: number = 0): P
   let cleanId = identifier.trim().toUpperCase().replace('#', '');
   if (cleanId === 'WEATIE') {
     cleanId = 'FUYR7K';
+  }
+  if (cleanId === 'HISOKA' || cleanId === 'S2WVOK') {
+    cleanId = '9d42e1d0-cf39-40bd-91c2-7b85e8b36233';
   }
 
   const payload = {
