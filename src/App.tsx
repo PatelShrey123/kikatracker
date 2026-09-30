@@ -20,12 +20,13 @@ const RendersSection = lazy(() => import('./components/RendersSection').then(m =
 const FitSection = lazy(() => import('./components/FitSection').then(m => ({ default: m.FitSection })));
 const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ default: m.ReloadLab })));
 import { ChangelogsSection } from './components/ChangelogsSection';
+import { ChatLogsSection } from './components/ChatLogsSection';
 import { AdSlot, AD_SLOTS } from './components/AdSlot';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
 import type { MarketItem } from './utils/csv';
-import { getCachedCatalog, syncAndStoreCatalog } from './utils/catalogCache';
+import { getCachedCatalog, syncAndStoreCatalog, catalogCacheAgeMs } from './utils/catalogCache';
 import { useCursorMode } from './hooks/useCursorMode';
 
 function App() {
@@ -61,19 +62,40 @@ function App() {
       setMarketPrices(priceMap);
     });
 
-    // 2. Fetch public items list from official Kirka API and auto-sync any new skins
-    fetchAllPublicItems().then((items) => {
-      if (Array.isArray(items) && items.length > 0) {
-        const { merged, newCount } = syncAndStoreCatalog(items);
-        setPublicItems(merged);
-        setAllItemData(merged);
-        if (newCount > 0) {
-          console.log(`[AutoSync] Stored and displayed ${newCount} newly discovered Kirka skins! Total cached: ${merged.length}`);
-        } else {
-          console.log(`[AutoSync] Catalog verified up-to-date with ${merged.length} skins.`);
-        }
-      }
-    });
+    // 2. Keep the skin catalog current — but only when it actually needs it.
+    //
+    //    This used to fetch all ~2,000 items on every single page load. That request takes
+    //    seconds (25s was measured on a cold load), and because a browser allows only six
+    //    connections to a host at once, it sat in front of the profile the visitor had just
+    //    clicked. The page looked frozen while it waited on a catalog nobody had asked for.
+    //
+    //    The catalog is already in state from cache on the line above. It only changes when
+    //    Kirka ships a skin, so re-reading it more than a few times a day buys nothing.
+    const REFRESH_AFTER_MS = 6 * 60 * 60 * 1000;
+    const age = catalogCacheAgeMs();
+    const needsRefresh = age === null || age > REFRESH_AFTER_MS;
+
+    let catalogTimer: number | undefined;
+    if (needsRefresh) {
+      // Deferred so it starts after the first paint and whatever the visitor came for, rather
+      // than racing it for a connection.
+      catalogTimer = window.setTimeout(() => {
+        fetchAllPublicItems().then((items) => {
+          if (Array.isArray(items) && items.length > 0) {
+            const { merged, newCount } = syncAndStoreCatalog(items);
+            setPublicItems(merged);
+            setAllItemData(merged);
+            console.log(
+              newCount > 0
+                ? `[AutoSync] ${newCount} new skin(s) found. Catalog now ${merged.length}.`
+                : `[AutoSync] Catalog up to date, ${merged.length} skins.`
+            );
+          }
+        });
+      }, 2500);
+    } else {
+      console.log(`[AutoSync] Catalog cache is ${Math.round(age / 60000)} min old — skipping fetch.`);
+    }
 
     // 3. A short hold so the first paint is not a flash of half-built page. Nothing is being
     //    waited on here - the catalog above resolves on its own and the app renders without it -
@@ -82,7 +104,10 @@ function App() {
       setIsLoading(false);
     }, 600);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (catalogTimer) clearTimeout(catalogTimer);
+    };
   }, []);
 
   // Helper to parse path and return resolved routing state
@@ -122,6 +147,9 @@ function App() {
     }
     if (cleanPath === '/changelogs') {
       return { tab: 'changelogs', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/chatlogs') {
+      return { tab: 'chatlogs', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/renders' || cleanPath === '/3drenders') {
       return { tab: 'renders', player: null, clan: null, skin: null };
@@ -546,6 +574,8 @@ function App() {
                   )}
 
                   {activeTab === 'changelogs' && <ChangelogsSection />}
+
+                  {activeTab === 'chatlogs' && <ChatLogsSection />}
 
                   {activeTab === 'renders' && (
                     <RendersSection

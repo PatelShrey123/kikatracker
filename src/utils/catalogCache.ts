@@ -55,6 +55,25 @@ export function cleanSkinUrl(url: string | null | undefined): string | null {
 }
 
 /**
+ * How old the stored catalog is, in ms, or null when there is nothing stored.
+ *
+ * The catalog is ~2,000 items and takes seconds to fetch. Knowing its age lets the app skip
+ * the fetch entirely when what it already has is recent enough, instead of re-downloading the
+ * whole thing on every page load.
+ */
+export function catalogCacheAgeMs(): number | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed: CachePayload = JSON.parse(raw);
+    if (!parsed?.timestamp) return null;
+    return Date.now() - parsed.timestamp;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Retrieve cached catalog items from browser storage.
  * Returns null if cache doesn't exist or has expired.
  */
