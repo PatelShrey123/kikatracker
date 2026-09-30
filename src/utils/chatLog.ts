@@ -2,10 +2,15 @@
 // be published, so the browser queries Supabase directly - there is nothing here a visitor could not
 // already see in game. Writes are impossible with this key; only the collector can insert.
 
-const URL_BASE = import.meta.env.VITE_CHAT_SUPABASE_URL as string | undefined;
-const ANON = import.meta.env.VITE_CHAT_SUPABASE_ANON_KEY as string | undefined;
-
-export const chatArchiveConfigured = Boolean(URL_BASE && ANON);
+// Queries go through our own /api/chat, which holds the Supabase credentials server-side.
+// They used to be VITE_-prefixed and therefore compiled into this bundle, where anyone could
+// read them in DevTools. That was safe — the key is read-only by RLS — but every other
+// credential on this site is already kept off the client, and there was no reason for this one
+// to be the exception.
+//
+// The endpoint is always present in a deployed build; if the server is missing its environment
+// it says so in the response, which the UI surfaces.
+export const chatArchiveConfigured = true;
 
 export interface ChatRow {
   msg_id: string;
@@ -38,15 +43,24 @@ export interface ChatQuery {
 }
 
 async function get<T>(path: string, wantCount = false): Promise<{ rows: T[]; total: number | null }> {
-  if (!chatArchiveConfigured) throw new Error('Chat archive is not configured');
-  const res = await fetch(`${URL_BASE}/rest/v1/${path}`, {
-    headers: {
-      apikey: ANON!,
-      Authorization: `Bearer ${ANON!}`,
-      ...(wantCount ? { Prefer: 'count=estimated' } : {}),
-    },
-  });
-  if (!res.ok) throw new Error(`Archive returned ${res.status}`);
+  // `path` is PostgREST-shaped, e.g. "chat_messages?select=...&order=...". The table is sent
+  // as its own parameter so the proxy can check it against its allow-list rather than
+  // forwarding whatever it is handed.
+  const [table, query = ''] = path.split('?');
+  const qs = new URLSearchParams(query);
+  qs.set('table', table);
+  if (wantCount) qs.set('count', '1');
+
+  const res = await fetch(`/api/chat?${qs.toString()}`);
+  if (!res.ok) {
+    let detail = `Archive returned ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.error) detail = body.error;
+    } catch { /* not json; keep the status */ }
+    throw new Error(detail);
+  }
+
   const rows = (await res.json()) as T[];
   const range = res.headers.get('content-range');
   const total = range ? Number(range.split('/')[1]) : null;

@@ -11,7 +11,7 @@ import path from 'path';
 // Only /api/changelog was mounted before, which meant /api/prices 404'd on every page load in
 // dev and the price list silently fell back to the committed JSON — so the sheet, and anything
 // layered on it, could never be tested locally.
-const DEV_API_ROUTES = ['changelog', 'prices', 'bot-stats'];
+const DEV_API_ROUTES = ['changelog', 'prices', 'bot-stats', 'chat'];
 
 function apiDevServer() {
   return {
@@ -26,6 +26,9 @@ function apiDevServer() {
               setHeader: (k: string, v: string) => res.setHeader(k, v),
               status(code: number) { res.statusCode = code; return this; },
               json: (body: unknown) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); },
+              // Vercel's response object has send(); this shim did not, so any handler using it
+              // threw and was reported as an upstream failure. Kept in step with the real thing.
+              send: (body: unknown) => { res.end(typeof body === 'string' ? body : JSON.stringify(body)); },
               end: () => res.end(),
             });
           } catch (err: any) {
@@ -43,6 +46,9 @@ export default defineConfig(({ mode }) => {
   const apiKey = env.KIRKA_API_KEY || '';
   // the dev middleware runs api/changelog.js in-process, which reads this from process.env
   if (env.HUB_PRICES_SHEET_URL) process.env.HUB_PRICES_SHEET_URL = env.HUB_PRICES_SHEET_URL;
+  // api/chat.js reads these; they are deliberately not VITE_-prefixed so they never reach the client
+  if (env.CHAT_SUPABASE_URL) process.env.CHAT_SUPABASE_URL = env.CHAT_SUPABASE_URL;
+  if (env.CHAT_SUPABASE_ANON_KEY) process.env.CHAT_SUPABASE_ANON_KEY = env.CHAT_SUPABASE_ANON_KEY;
 
   return {
     base: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? '/' : './',
