@@ -21,10 +21,18 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
 
-  const base = process.env.CHAT_SUPABASE_URL;
-  const key = process.env.CHAT_SUPABASE_ANON_KEY;
+  // Values pasted into a dashboard pick up stray whitespace, newlines and sometimes the quotes
+  // around them. An untrimmed URL makes new URL() throw, which used to surface as the useless
+  // "unreachable" message below rather than anything that pointed at the cause.
+  const clean = (v) => (v || '').trim().replace(/^["']|["']$/g, '');
+  const base = clean(process.env.CHAT_SUPABASE_URL);
+  const key = clean(process.env.CHAT_SUPABASE_ANON_KEY);
+
   if (!base || !key) {
-    return res.status(503).json({ error: 'Chat archive is not configured on the server.' });
+    return res.status(503).json({
+      error: 'Chat archive is not configured on the server.',
+      missing: [!base && 'CHAT_SUPABASE_URL', !key && 'CHAT_SUPABASE_ANON_KEY'].filter(Boolean),
+    });
   }
 
   // req.url is "/api/chat?table=chat_messages&select=...&order=..."
@@ -62,7 +70,15 @@ export default async function handler(req, res) {
 
     return res.status(upstream.status).send(body);
   } catch (err) {
-    console.error('[chat] upstream failed:', err?.message);
-    return res.status(502).json({ error: 'Chat archive is unreachable right now.' });
+    // Say enough to diagnose without ever echoing the key or the full upstream URL back to a
+    // visitor. The host alone is sufficient to spot a malformed or wrong value.
+    let host = 'unparseable';
+    try { host = new URL(base).host; } catch { /* that is itself the answer */ }
+    console.error('[chat] upstream failed:', err?.name, err?.message);
+    return res.status(502).json({
+      error: 'Chat archive is unreachable right now.',
+      reason: `${err?.name || 'Error'}: ${err?.message || 'unknown'}`,
+      upstreamHost: host,
+    });
   }
 }
