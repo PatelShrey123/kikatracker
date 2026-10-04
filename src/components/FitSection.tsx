@@ -94,10 +94,17 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
   );
 
   // The player's own equipped weapon types, so skin lists follow them until a type is picked
+  const basePrimaryItem = inventory.find((i) => i.isSelected && (i.item.type as unknown as string) === 'WEAPON_1' && !i.item.parent && !i.item.parentId);
   const playerPrimaryType = profile?.activeWeapon1Skin?.parent?.name
+    || basePrimaryItem?.item.name
     || inventory.find((i) => i.isSelected && i.item.parent?.type === 'WEAPON_1')?.item.parent?.name
     || 'SCAR';
-  const playerMeleeType = inventory.find((i) => i.isSelected && i.item.parent?.type === 'WEAPON_3')?.item.parent?.name || 'Bayonet';
+
+  const baseMeleeItem = inventory.find((i) => i.isSelected && ((i.item.type as unknown as string) === 'WEAPON_3' || ['TOMAHAWK', 'BAYONET'].includes((i.item.name || '').toUpperCase())) && !i.item.parent && !i.item.parentId);
+  const playerMeleeType = baseMeleeItem?.item.name
+    || inventory.find((i) => i.isSelected && i.item.parent?.type === 'WEAPON_3')?.item.parent?.name
+    || 'Bayonet';
+
 
   const primaryType = combo.primaryType === PLAYER ? playerPrimaryType : combo.primaryType;
   const meleeType = combo.meleeType === PLAYER ? playerMeleeType : combo.meleeType;

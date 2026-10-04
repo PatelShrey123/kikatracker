@@ -121,16 +121,41 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
 
   // 2. Loadout: WEAPON_1 primary, WEAPON_2 secondary, WEAPON_3 melee (falls back to base weapon names)
   const loadout = useMemo(() => {
-    const selected = inventory.filter((i) => i.isSelected && i.item.type === 'WEAPON_SKIN').map((i) => i.item as LoadoutItem);
-    const bySlot = (slotType: string, names: string[]) =>
-      selected.find((item) => (item.parent?.type || '').toUpperCase() === slotType) ||
-      selected.find((item) => names.includes(cleanName(item.parent?.name).toUpperCase())) ||
-      null;
+    const selectedItems = inventory.filter((i) => i.isSelected).map((i) => i.item as LoadoutItem);
+    const baseMelee = selectedItems.find((item) => 
+      (item.type === 'WEAPON_3' || MELEE_WEAPONS.includes(cleanName(item.name).toUpperCase())) && 
+      !item.parent
+    );
+    const baseSecondary = selectedItems.find((item) => 
+      (item.type === 'WEAPON_2' || SECONDARY_WEAPONS.includes(cleanName(item.name).toUpperCase())) && 
+      !item.parent
+    );
+    const basePrimary = selectedItems.find((item) => 
+      item.type === 'WEAPON_1' && 
+      !item.parent
+    );
+
+    const weaponSkins = selectedItems.filter((item) => item.type === 'WEAPON_SKIN');
+
+    const matchSlot = (baseItem: LoadoutItem | undefined, slotType: string, fallbackNames: string[]) => {
+      const slotSkins = weaponSkins.filter((item) => {
+        const pType = (item.parent?.type || '').toUpperCase();
+        const pName = cleanName(item.parent?.name).toUpperCase();
+        return pType === slotType || fallbackNames.includes(pName);
+      });
+
+      if (baseItem) {
+        const baseName = cleanName(baseItem.name).toUpperCase();
+        const skinForBase = slotSkins.find((item) => cleanName(item.parent?.name).toUpperCase() === baseName);
+        return skinForBase || baseItem;
+      }
+      return slotSkins[0] || null;
+    };
 
     return {
-      primary: overrides.primary || (profile.activeWeapon1Skin as LoadoutItem) || bySlot('WEAPON_1', PRIMARY_WEAPONS),
-      secondary: overrides.secondary || bySlot('WEAPON_2', SECONDARY_WEAPONS),
-      melee: overrides.melee || bySlot('WEAPON_3', MELEE_WEAPONS),
+      primary: overrides.primary || (profile.activeWeapon1Skin as LoadoutItem) || matchSlot(basePrimary, 'WEAPON_1', PRIMARY_WEAPONS),
+      secondary: overrides.secondary || matchSlot(baseSecondary, 'WEAPON_2', SECONDARY_WEAPONS),
+      melee: overrides.melee || matchSlot(baseMelee, 'WEAPON_3', MELEE_WEAPONS),
     };
   }, [overrides.primary, overrides.secondary, overrides.melee, profile.activeWeapon1Skin, inventory]);
 

@@ -116,10 +116,19 @@ function applyOverrides(base, overrides) {
       // the rarity and obtainability the base row already had
       const merged = { ...base[at] };
       for (const [col, v] of Object.entries(ov)) {
+        if (col === 'Hub Value' || col === 'Base Value') continue;
         if (String(v).trim() !== '') merged[col] = v;
       }
       const val = ov['Hub Value'] || ov['Base Value'];
-      if (val && String(val).trim() !== '') {
+      const baseVal = base[at]['Hub Value'] || base[at]['Base Value'];
+      const cleanBase = String(baseVal || '').replace(/,/g, '').trim().toLowerCase();
+      const cleanOv = String(val || '').replace(/,/g, '').trim().toLowerCase();
+      const baseHasRealPrice = cleanBase !== '' && cleanBase !== '0' && cleanBase !== 'tbd' && cleanBase !== '-' && !isNaN(Number(cleanBase));
+      const ovIsTbd = cleanOv === '' || cleanOv === 'tbd' || cleanOv === '-' || cleanOv === 'n/a';
+
+      if (ovIsTbd && baseHasRealPrice) {
+        // Do not downgrade an established base price to TBD/placeholder
+      } else if (val && String(val).trim() !== '') {
         merged['Hub Value'] = val;
         merged['Base Value'] = val;
       }
