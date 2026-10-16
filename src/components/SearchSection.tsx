@@ -35,12 +35,13 @@ const markStyle = (c: string) => ({ '--mark-color': c }) as React.CSSProperties;
 const tapeStyle = (c: string) => ({ '--tape-color': c }) as React.CSSProperties;
 
 const DESTINATIONS = [
+  { id: 'players', icon: Swords, title: 'Live lobbies', desc: 'Browse active Kirka matches across 5 regions with 1-click join.', can: 'var(--color-spray-cyan)' },
   { id: 'prices', icon: Tag, title: 'Skins & prices', desc: 'Every skin in the game, with its Hub valuation.', can: 'var(--color-spray-lime)' },
   { id: 'trades', icon: Repeat, title: 'Trades', desc: 'What changed hands, month by month.', can: 'var(--color-spray-cyan)' },
   { id: 'daily', icon: Trophy, title: 'Daily leaderboard', desc: 'The top players today, read from Kirka.', can: 'var(--color-spray-orange)' },
   { id: 'ranked', icon: Swords, title: 'Ranked arena', desc: 'Search & Destroy standings and ELO.', can: 'var(--color-spray-pink)' },
   { id: 'reloadlab', icon: Crosshair, title: 'Reload Lab', desc: 'Reload animations on real weapon models.', can: 'var(--color-spray-violet)' },
-  { id: 'clans', icon: Users, title: 'Clans', desc: 'Registry, members and clan tracking.', can: 'var(--color-spray-cyan)' },
+  { id: 'clans', icon: Users, title: 'Clans', desc: 'Registry, members and clan tracking.', can: 'var(--color-spray-pink)' },
 ];
 
 /** Rank colour, hottest first. */

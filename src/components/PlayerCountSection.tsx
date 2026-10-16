@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
+import { LiveMatchBrowser } from './LiveMatchBrowser';
 
 /**
  * How many people are playing Kirka, by region, over the last week.
@@ -53,6 +54,7 @@ const H = 300;
 const PAD = { top: 12, right: 8, bottom: 22, left: 40 };
 
 export const PlayerCountSection: React.FC = () => {
+  const [subTab, setSubTab] = useState<'lobbies' | 'trends'>('lobbies');
   const [data, setData] = useState<Sample[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -128,28 +130,57 @@ export const PlayerCountSection: React.FC = () => {
   const active = hover !== null && data ? data[hover] : view?.latest;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8 select-text">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
           <h2 className="text-2xl sm:text-3xl text-[#EDEDED]">
-            Player{' '}
-            <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>
-              count
-            </span>
+            Live <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>lobbies</span>
           </h2>
           <p className="text-[13px] text-slate-400 mt-2 max-w-[60ch]">
-            How many people are in Kirka right now, and where. Sampled every 15 minutes over the last week.
+            Active game servers across all 5 regions. Click join to launch directly into a match.
           </p>
         </div>
-        <button
-          onClick={load}
-          disabled={loading}
-          className="self-start shrink-0 flex items-center gap-2 h-9 px-3 rounded-md bg-obsidian-card border border-slate-700 hover:border-slate-500 hover:bg-obsidian-hover text-[13px] text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-40"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
+
+        {/* Clean View Switcher */}
+        <div className="flex items-center gap-1 bg-obsidian-card p-1 rounded-md border border-slate-800 self-start md:self-auto text-xs font-medium">
+          <button
+            onClick={() => setSubTab('lobbies')}
+            className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
+              subTab === 'lobbies'
+                ? 'bg-slate-800 text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Live Matches
+          </button>
+
+          <button
+            onClick={() => setSubTab('trends')}
+            className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
+              subTab === 'trends'
+                ? 'bg-slate-800 text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Weekly Trends
+          </button>
+        </div>
       </header>
+
+      {subTab === 'lobbies' ? (
+        <LiveMatchBrowser />
+      ) : (
+        <>
+          <div className="flex justify-end">
+            <button
+              onClick={load}
+              disabled={loading}
+              className="flex items-center gap-2 h-9 px-3 rounded-md bg-obsidian-card border border-slate-700 hover:border-slate-500 hover:bg-obsidian-hover text-[13px] text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-40"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh Trends</span>
+            </button>
+          </div>
 
       {error && (
         <div className="flex items-start gap-2.5 rounded-md border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">
@@ -243,6 +274,8 @@ export const PlayerCountSection: React.FC = () => {
             chart to read any moment in the week. Figures are what that feed reported, not a direct measurement
             of Kirka's servers.
           </p>
+        </>
+      )}
         </>
       )}
     </div>
