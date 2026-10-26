@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Tag, Sparkles, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
-import { cleanTextureUrl, getBaseWeaponRender } from '../utils/skinAssets';
+import { cleanTextureUrl, getBaseWeaponRender, isPlaceholderUrl } from '../utils/skinAssets';
 
 interface PriceViewerSectionProps {
   marketPrices: Map<string, MarketItem>;
@@ -136,6 +136,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
       const cleanName = (p.name || '').replace(/^_+|_+$/g, '').trim().toLowerCase();
       const parentName = (p.parent?.name || '').trim().toLowerCase();
       const isBodySkin = p.type === 'BODY_SKIN';
+      if (isPlaceholderUrl(cleanUrl, parentName)) continue;
 
       // 1. Precise composite keys: "rub1x_ar-9" and "rub1x ar-9"
       if (parentName) {
@@ -192,6 +193,10 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
       const safeName = item.skinName.replace(/[^a-zA-Z0-9_-]/g, '_');
       const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
       return `${base}/renders/characters/${safeName}.png`;
+    }
+
+    if (item.skinName) {
+      return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(item.skinName)}`;
     }
 
     return getBaseWeaponRender(cleanType);

@@ -211,7 +211,7 @@ export function getSkinRenderUrl(itemOrName: any): string {
     return 'https://kirka.io/assets/img/render.b8016858.png';
   }
 
-  // 4. Weapon skins fallback to base weapon model render
+  // 4. Live api2 render endpoint fallback for weapons before generic base weapon\n  if (cleanName && (!ownWeapon || ownWeapon.toUpperCase() !== 'SHARK')) {\n    return https://api2.kirka.io/api/skin-render/;\n  }\n\n  // 5. Weapon skins fallback to base weapon model render
   const weaponKey = (typeof itemOrName === 'object' ? (itemOrName.parent?.name || ownWeapon) : ownWeapon) || cachedWeapon;
   if (weaponKey) {
     return getBaseWeaponRender(weaponKey);

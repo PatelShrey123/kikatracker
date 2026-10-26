@@ -18,6 +18,27 @@ const rarityMap = {
   'C': 'Common'
 };
 
+let obtainableMap = null;
+function getObtainableMap() {
+  if (obtainableMap && Object.keys(obtainableMap).length > 0) return obtainableMap;
+  try {
+    const fileUrl = new URL('../public/data/obtainable_methods.json', import.meta.url);
+    if (fs.existsSync(fileUrl)) {
+      obtainableMap = JSON.parse(fs.readFileSync(fileUrl, 'utf8'));
+      return obtainableMap;
+    }
+  } catch {}
+  try {
+    const p1 = path.join(process.cwd(), 'public/data/obtainable_methods.json');
+    if (fs.existsSync(p1)) {
+      obtainableMap = JSON.parse(fs.readFileSync(p1, 'utf8'));
+      return obtainableMap;
+    }
+  } catch {}
+  obtainableMap = {};
+  return obtainableMap;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -33,6 +54,7 @@ export default async function handler(req, res) {
   }
 
   let base = null;
+  const obtMap = getObtainableMap();
 
   // 1. Fetch directly from upstream live price feed
   try {
@@ -47,13 +69,18 @@ export default async function handler(req, res) {
           const rarity = rarityMap[rawRarity] || rawRarity;
           const val = (item.bolt && item.bolt > 0) ? item.bolt : (item.average && item.average > 0 ? item.average : (item.fate || 0));
           const valStr = val > 0 ? val.toLocaleString('en-US') : 'TBD';
+          const skinName = (item.itemName || '').trim();
+          const type = (item.type || '').trim();
+          const key = `${skinName.toLowerCase()}_${type.toLowerCase()}`;
+          const obtainableBy = obtMap[key] || obtMap[skinName.toLowerCase()] || 'Chest Drop / Trading';
+
           return {
-            'Skin Name': (item.itemName || '').trim(),
-            'Type': (item.type || '').trim(),
+            'Skin Name': skinName,
+            'Type': type,
             'Skin Rarity': rarity,
             'Hub Value': valStr,
             'Base Value': valStr,
-            'Obtainable By': 'All chests'
+            'Obtainable By': obtainableBy
           };
         });
       }

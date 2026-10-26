@@ -153,7 +153,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/2025%20Shark%201",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -280,7 +280,7 @@
     "name": "500",
     "type": "BODY_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/500",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/500",
     "parent": null,
     "salePrice": 0,
@@ -415,7 +415,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Acorned",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -505,8 +505,8 @@
     "name": "Aiko",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Aiko",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Aiko",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -549,7 +549,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Alach",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -693,8 +693,8 @@
     "name": "Alien 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Alien%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Alien%201",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -733,8 +733,8 @@
     "name": "Alienoid",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Alienoid",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Alienoid",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -870,8 +870,8 @@
     "name": "Ambercomb",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ambercomb",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ambercomb",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -1041,8 +1041,8 @@
     "name": "Andromeda 1",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Andromeda%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Andromeda%201",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -1136,7 +1136,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Anubis",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -1158,8 +1158,8 @@
     "name": "Apex",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Apex",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Apex",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -1714,7 +1714,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Atom",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -1785,7 +1785,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Aureus",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -2217,8 +2217,8 @@
     "name": "Barracuda",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Barracuda",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Barracuda",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -2381,7 +2381,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Beau",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -2443,8 +2443,8 @@
     "name": "Bellatrix AR-9",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20AR-9",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20AR-9",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -2466,8 +2466,8 @@
     "name": "Bellatrix LAR",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20LAR",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20LAR",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -2489,8 +2489,8 @@
     "name": "Bellatrix M60",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20M60",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20M60",
     "parent": {
       "name": "M60",
       "type": "WEAPON_1"
@@ -2512,8 +2512,8 @@
     "name": "Bellatrix MAC-10",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20MAC-10",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20MAC-10",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -2535,8 +2535,8 @@
     "name": "Bellatrix Revolver",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20Revolver",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20Revolver",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -2558,8 +2558,8 @@
     "name": "Bellatrix SCAR",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20SCAR",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20SCAR",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -2581,8 +2581,8 @@
     "name": "Bellatrix VITA",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20VITA",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20VITA",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -2604,8 +2604,8 @@
     "name": "Bellatrix Weatie",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bellatrix%20Weatie",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bellatrix%20Weatie",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -2681,8 +2681,8 @@
     "name": "Big Money",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Big%20Money",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Big%20Money",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -3247,8 +3247,8 @@
     "name": "Blazing",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Blazing",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Blazing",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -3293,8 +3293,8 @@
     "name": "Bled 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bled%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bled%201",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -3336,8 +3336,8 @@
     "name": "Bling",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bling",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bling",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -3416,8 +3416,8 @@
     "name": "Bloodrushed",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bloodrushed",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bloodrushed",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -3496,8 +3496,8 @@
     "name": "Blub",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Blub",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Blub",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -3632,8 +3632,8 @@
     "name": "Bobanet",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bobanet",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bobanet",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -4025,8 +4025,8 @@
     "name": "Brimstone",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Brimstone",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Brimstone",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -4048,8 +4048,8 @@
     "name": "Brokaw",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Brokaw",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Brokaw",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -4180,7 +4180,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/BTS%20Shark",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -4202,8 +4202,8 @@
     "name": "Bubblebite",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bubblebite",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bubblebite",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -4226,7 +4226,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bubblechomp",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -4294,8 +4294,8 @@
     "name": "Bubblesnap",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Bubblesnap",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Bubblesnap",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -5162,7 +5162,7 @@
     "name": "Castle",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Castle",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Castle",
     "parent": null,
     "salePrice": 0,
@@ -5213,8 +5213,8 @@
     "name": "CatsCatsCats",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/CatsCatsCats",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/CatsCatsCats",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -5299,8 +5299,8 @@
     "name": "Celestial King",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Celestial%20King",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Celestial%20King",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -5461,8 +5461,8 @@
     "name": "CheckUV 1",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/CheckUV%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/CheckUV%201",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -5764,7 +5764,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Chip",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -5875,7 +5875,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Chocowaffle",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -5892,7 +5892,7 @@
     "type": "CHEST",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/__chest-christmas__.ccea4ad0.png",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Christmas",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2025-12-03T22:52:54.452Z",
@@ -6241,8 +6241,8 @@
     "name": "Cloudy 1",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Cloudy%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Cloudy%201",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -6264,8 +6264,8 @@
     "name": "Cloudy 2",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Cloudy%202",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Cloudy%202",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -6348,7 +6348,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Cobalt",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -6399,7 +6399,7 @@
     "type": "CHARACTER_CARD",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/__questions__.a6c748fd.png",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Cold",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2021-12-15T18:53:37.662Z",
@@ -6412,8 +6412,8 @@
     "name": "Coldsnap",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Coldsnap",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Coldsnap",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -6435,8 +6435,8 @@
     "name": "Cold War",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Cold%20War",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Cold%20War",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -6722,8 +6722,8 @@
     "name": "Confetti",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Confetti",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Confetti",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -7420,8 +7420,8 @@
     "name": "Crystal 1",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Crystal%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Crystal%201",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -7466,8 +7466,8 @@
     "name": "Crystalline",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Crystalline",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Crystalline",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -7605,8 +7605,8 @@
     "name": "Custom1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Custom1",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Custom1",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -7628,8 +7628,8 @@
     "name": "Custom2",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Custom2",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Custom2",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -8057,8 +8057,8 @@
     "name": "Cyborg 1",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Cyborg%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Cyborg%201",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -8100,7 +8100,7 @@
     "name": "Dababy",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Dababy",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Dababy",
     "parent": null,
     "salePrice": 0,
@@ -8225,7 +8225,7 @@
     "name": "Dark Knight",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Dark%20Knight",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Dark%20Knight",
     "parent": null,
     "salePrice": 0,
@@ -8370,8 +8370,8 @@
     "name": "Daydream",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Daydream",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Daydream",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -8461,8 +8461,8 @@
     "name": "Demise",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Demise",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Demise",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -8612,8 +8612,8 @@
     "name": "Digi Blade",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Digi%20Blade",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Digi%20Blade",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -8816,8 +8816,8 @@
     "name": "Draco Veridis",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Draco%20Veridis",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Draco%20Veridis",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -9353,8 +9353,8 @@
     "name": "Dusty",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Dusty",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Dusty",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -9450,8 +9450,8 @@
     "name": "Echelon",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Echelon",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Echelon",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -9490,8 +9490,8 @@
     "name": "Eclair",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Eclair",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Eclair",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -9536,8 +9536,8 @@
     "name": "Ectoplasm",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ectoplasm",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ectoplasm",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -9619,8 +9619,8 @@
     "name": "Eggs_Taste_Funny",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Eggs_Taste_Funny",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Eggs_Taste_Funny",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -9668,7 +9668,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Eldritch",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -9728,7 +9728,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Elemented",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -9818,8 +9818,8 @@
     "name": "Elite",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Elite",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Elite",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -9883,8 +9883,8 @@
     "name": "Else",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Else",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Else",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -9960,8 +9960,8 @@
     "name": "Ember Rain",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ember%20Rain",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ember%20Rain",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -10114,8 +10114,8 @@
     "name": "Enchanted",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Enchanted",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Enchanted",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -10137,8 +10137,8 @@
     "name": "Encompass",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Encompass",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Encompass",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -10271,8 +10271,8 @@
     "name": "Epitaph",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Epitaph",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Epitaph",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -10394,8 +10394,8 @@
     "name": "Eternity",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Eternity",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Eternity",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -10437,8 +10437,8 @@
     "name": "Euphoria",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Euphoria",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Euphoria",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -10461,7 +10461,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Europa",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -10500,8 +10500,8 @@
     "name": "Evangelic",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Evangelic",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Evangelic",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -10585,8 +10585,8 @@
     "name": "Exhibit B",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Exhibit%20B",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Exhibit%20B",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -10608,8 +10608,8 @@
     "name": "Exhibit D",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Exhibit%20D",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Exhibit%20D",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -10631,8 +10631,8 @@
     "name": "Exomatter",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Exomatter",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Exomatter",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -11021,8 +11021,8 @@
     "name": "Fine",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Fine",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Fine",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -11250,7 +11250,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Flashy",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -11306,8 +11306,8 @@
     "name": "Float",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Float",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Float",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -11349,7 +11349,7 @@
     "name": "Flora",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Flora",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Flora",
     "parent": null,
     "salePrice": 0,
@@ -11363,7 +11363,7 @@
     "name": "Floral",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Floral",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Floral",
     "parent": null,
     "salePrice": 0,
@@ -11497,8 +11497,8 @@
     "name": "Flowistic",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Flowistic",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Flowistic",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -11639,8 +11639,8 @@
     "name": "Forested",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Forested",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Forested",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -11759,8 +11759,8 @@
     "name": "Fracture",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Fracture",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Fracture",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -11799,8 +11799,8 @@
     "name": "Fragment",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Fragment",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Fragment",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -11822,8 +11822,8 @@
     "name": "Fragments",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Fragments",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Fragments",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -11859,8 +11859,8 @@
     "name": "Fratricide",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Fratricide",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Fratricide",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -11896,8 +11896,8 @@
     "name": "Free Spirit",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Free%20Spirit",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Free%20Spirit",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -11939,8 +11939,8 @@
     "name": "Freezee-Weazee",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Freezee-Weazee",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Freezee-Weazee",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -12039,8 +12039,8 @@
     "name": "Frostbitten",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Frostbitten",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Frostbitten",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -12312,8 +12312,8 @@
     "name": "Futuristic",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Futuristic",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Futuristic",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -12790,8 +12790,8 @@
     "name": "Ghillie-Wrap",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ghillie-Wrap",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ghillie-Wrap",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -12984,7 +12984,7 @@
     "type": "CHARACTER_CARD",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/__questions__.a6c748fd.png",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Girls%20band",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2021-06-15T15:59:15.607Z",
@@ -13163,8 +13163,8 @@
     "name": "Gloom",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Gloom",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Gloom",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -13359,8 +13359,8 @@
     "name": "Godzilla 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Godzilla%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Godzilla%201",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -13437,7 +13437,7 @@
     "type": "CHEST",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/__chest-3__.ea3b713c.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Golden",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2021-06-15T15:58:49.473Z",
@@ -13450,8 +13450,8 @@
     "name": "Goldfish",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Goldfish",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Goldfish",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -13606,8 +13606,8 @@
     "name": "Governor",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Governor",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Governor",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -13740,8 +13740,8 @@
     "name": "Gravity Bayonet",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Gravity%20Bayonet",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Gravity%20Bayonet",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -13764,7 +13764,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Gravity%20Shark",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -13786,8 +13786,8 @@
     "name": "Gravity Vita",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Gravity%20Vita",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Gravity%20Vita",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -13996,8 +13996,8 @@
     "name": "Grove",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Grove",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Grove",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -14027,8 +14027,8 @@
     "name": "GTFO",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/GTFO",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/GTFO",
     "parent": {
       "name": "M60",
       "type": "WEAPON_1"
@@ -14181,8 +14181,8 @@
     "name": "Hallowed",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Hallowed",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Hallowed",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -14199,7 +14199,7 @@
     "type": "CHEST",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/__chest-halloween-large__.b777522a.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Halloween",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2025-11-16T21:14:14.634Z",
@@ -14212,7 +14212,7 @@
     "name": "Hallowgreen",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Hallowgreen",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Hallowgreen",
     "parent": null,
     "salePrice": 0,
@@ -14390,8 +14390,8 @@
     "name": "Headache",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Headache",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Headache",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -14605,7 +14605,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Heh",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -14650,8 +14650,8 @@
     "name": "Heirloom",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Heirloom",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Heirloom",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -14975,7 +14975,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Hi-Score",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -15211,8 +15211,8 @@
     "name": "Hotdrop",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Hotdrop",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Hotdrop",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -15467,8 +15467,8 @@
     "name": "Howl 1",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Howl%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Howl%201",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -15552,8 +15552,8 @@
     "name": "Hydra",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Hydra",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Hydra",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -15575,8 +15575,8 @@
     "name": "Hydrate",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Hydrate",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Hydrate",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -15598,8 +15598,8 @@
     "name": "Hyper",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Hyper",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Hyper",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -15645,7 +15645,7 @@
     "type": "CHEST",
     "rarity": "EPIC",
     "renderUrl": "https://kirka.io/assets/img/__chest-2__.2de0a07c.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ice",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2021-06-15T15:58:48.884Z",
@@ -15795,8 +15795,8 @@
     "name": "Imagine",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Imagine",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Imagine",
     "parent": {
       "name": "M60",
       "type": "WEAPON_1"
@@ -15880,8 +15880,8 @@
     "name": "Indigo",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Indigo",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Indigo",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -15969,8 +15969,8 @@
     "name": "Infinite",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Infinite",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Infinite",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -16049,8 +16049,8 @@
     "name": "Insert-Coin",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Insert-Coin",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Insert-Coin",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -16093,7 +16093,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Intrepid",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -16328,8 +16328,8 @@
     "name": "Jade 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Jade%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Jade%201",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -16461,7 +16461,7 @@
     "name": "Jangle",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Jangle",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Jangle",
     "parent": null,
     "salePrice": 0,
@@ -16506,8 +16506,8 @@
     "name": "Jawbreaker",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Jawbreaker",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Jawbreaker",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -16733,7 +16733,7 @@
     "name": "Jingle Jana",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Jingle%20Jana",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Jingle%20Jana",
     "parent": null,
     "salePrice": 0,
@@ -16764,8 +16764,8 @@
     "name": "Jingubang",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Jingubang",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Jingubang",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -16960,8 +16960,8 @@
     "name": "Juju",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Juju",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Juju",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -17054,8 +17054,8 @@
     "name": "Kalaka",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Kalaka",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Kalaka",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -17071,8 +17071,8 @@
     "name": "Karen",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Karen",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Karen",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -17137,8 +17137,8 @@
     "name": "Kazeic",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Kazeic",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Kazeic",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -17220,8 +17220,8 @@
     "name": "Kebab",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Kebab",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Kebab",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -17911,8 +17911,8 @@
     "name": "Lashes 1",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Lashes%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Lashes%201",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -17977,8 +17977,8 @@
     "name": "Leafed",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Leafed",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Leafed",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -18279,8 +18279,8 @@
     "name": "Lilac",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Lilac",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Lilac",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -18387,8 +18387,8 @@
     "name": "Lizazil",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Lizazil",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Lizazil",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -18430,8 +18430,8 @@
     "name": "Lneon Rose",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Lneon%20Rose",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Lneon%20Rose",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -18705,8 +18705,8 @@
     "name": "LSD",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/LSD",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/LSD",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -18996,8 +18996,8 @@
     "name": "Luxury",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Luxury",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Luxury",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -19478,8 +19478,8 @@
     "name": "manipulation",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/manipulation",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/manipulation",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -19686,8 +19686,8 @@
     "name": "Martian",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Martian",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Martian",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -19829,7 +19829,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Maverick",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -19922,8 +19922,8 @@
     "name": "Medallion",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Medallion",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Medallion",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -20160,8 +20160,8 @@
     "name": "Mesmer",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Mesmer",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Mesmer",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -20323,8 +20323,8 @@
     "name": "Migraine",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Migraine",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Migraine",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -20414,8 +20414,8 @@
     "name": "Milly",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Milly",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Milly",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -20914,8 +20914,8 @@
     "name": "Mo Bling",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Mo%20Bling",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Mo%20Bling",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -21259,8 +21259,8 @@
     "name": "Moss",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Moss",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Moss",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -21544,8 +21544,8 @@
     "name": "nameChange",
     "type": "OTHER",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/nameChange",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/nameChange",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2025-06-21T09:40:42.901Z",
@@ -21578,8 +21578,8 @@
     "name": "Nano",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Nano",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Nano",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -21928,8 +21928,8 @@
     "name": "Night light",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Night%20light",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Night%20light",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -21974,8 +21974,8 @@
     "name": "Nihilum",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Nihilum",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Nihilum",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -22678,8 +22678,8 @@
     "name": "Olympian",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Olympian",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Olympian",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -22718,8 +22718,8 @@
     "name": "Omninum",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Omninum",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Omninum",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -22883,8 +22883,8 @@
     "name": "Orbital",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Orbital",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Orbital",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -22929,8 +22929,8 @@
     "name": "Origin",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Origin",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Origin",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -22972,8 +22972,8 @@
     "name": "Orleli",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Orleli",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Orleli",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -23012,8 +23012,8 @@
     "name": "Ornaments 1",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ornaments%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ornaments%201",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -23076,7 +23076,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ostern%201",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -23153,7 +23153,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Overcharge",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -23175,8 +23175,8 @@
     "name": "Overflow",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Overflow",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Overflow",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -23198,8 +23198,8 @@
     "name": "Overheated",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Overheated",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Overheated",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -23221,8 +23221,8 @@
     "name": "Overpower",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Overpower",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Overpower",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -23503,7 +23503,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Parasitoid",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -23526,7 +23526,7 @@
     "type": "CHARACTER_CARD",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/__questions__.a6c748fd.png",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Party",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2021-06-15T15:59:14.405Z",
@@ -23681,8 +23681,8 @@
     "name": "Peak",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Peak",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Peak",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -23742,7 +23742,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Pearly",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -23938,7 +23938,7 @@
     "type": "CHARACTER_CARD",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/__questions__.a6c748fd.png",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Periodic",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2024-04-08T04:50:45.068Z",
@@ -23972,7 +23972,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Perwinkle",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -24012,7 +24012,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Petal%201",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -24034,8 +24034,8 @@
     "name": "Petal Power",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Petal%20Power",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Petal%20Power",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -24312,8 +24312,8 @@
     "name": "PinkyBlue",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/PinkyBlue",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/PinkyBlue",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -24519,7 +24519,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Pointless",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -24763,8 +24763,8 @@
     "name": "Popcap",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Popcap",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Popcap",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -24806,8 +24806,8 @@
     "name": "Posh",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Posh",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Posh",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -24829,8 +24829,8 @@
     "name": "Postdate",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Postdate",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Postdate",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -25309,8 +25309,8 @@
     "name": "Purplee",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Purplee",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Purplee",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -25420,8 +25420,8 @@
     "name": "Quagga",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Quagga",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Quagga",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -25463,8 +25463,8 @@
     "name": "Quantum",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Quantum",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Quantum",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -25627,7 +25627,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Raffle",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -25700,8 +25700,8 @@
     "name": "Rainbow Unicorn",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Rainbow%20Unicorn",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Rainbow%20Unicorn",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -26375,8 +26375,8 @@
     "name": "Rapture",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Rapture",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Rapture",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -26472,8 +26472,8 @@
     "name": "Ravage",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ravage",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ravage",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -26495,8 +26495,8 @@
     "name": "Rave",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Rave",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Rave",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -26518,8 +26518,8 @@
     "name": "Razer",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Razer",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Razer",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -26564,8 +26564,8 @@
     "name": "Reactor 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Reactor%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Reactor%201",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -26644,8 +26644,8 @@
     "name": "Rebel 1",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Rebel%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Rebel%201",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -26667,8 +26667,8 @@
     "name": "Rebel 2",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Rebel%202",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Rebel%202",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -26690,8 +26690,8 @@
     "name": "Rebel 3",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Rebel%203",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Rebel%203",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -26733,8 +26733,8 @@
     "name": "Red Dragon",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Red%20Dragon",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Red%20Dragon",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -26794,7 +26794,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Redline%20Shark",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -26810,8 +26810,8 @@
     "name": "Redline Vita",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Redline%20Vita",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Redline%20Vita",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -26884,8 +26884,8 @@
     "name": "Red Reaper 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Red%20Reaper%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Red%20Reaper%201",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -26955,8 +26955,8 @@
     "name": "Refill",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Refill",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Refill",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -27109,8 +27109,8 @@
     "name": "Reliable",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Reliable",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Reliable",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -27198,8 +27198,8 @@
     "name": "Resolute",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Resolute",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Resolute",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -27417,8 +27417,8 @@
     "name": "Roast",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Roast",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Roast",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -27651,8 +27651,8 @@
     "name": "Rubis",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Rubis",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Rubis",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -27842,8 +27842,8 @@
     "name": "Ruthless",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ruthless",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ruthless",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -28110,8 +28110,8 @@
     "name": "Sand Ripples",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sand%20Ripples",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sand%20Ripples",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -28352,8 +28352,8 @@
     "name": "Savage 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Savage%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Savage%201",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -28375,8 +28375,8 @@
     "name": "Savant",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Savant",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Savant",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -28498,8 +28498,8 @@
     "name": "Scarlet 1",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Scarlet%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Scarlet%201",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -28814,8 +28814,8 @@
     "name": "Shaded",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Shaded",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Shaded",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -28837,8 +28837,8 @@
     "name": "Shadent",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Shadent",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Shadent",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -28860,8 +28860,8 @@
     "name": "Shaderer",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Shaderer",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Shaderer",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -28943,7 +28943,7 @@
     "name": "Shark",
     "type": "WEAPON_2",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Shark",
     "textureUrl": "https://kirka.io/assets/img/texture.6c8a6582.webp",
     "parent": null,
     "salePrice": 0,
@@ -29063,8 +29063,8 @@
     "name": "Shit LAR 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Shit%20LAR%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Shit%20LAR%201",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -29341,8 +29341,8 @@
     "name": "Showdown",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Showdown",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Showdown",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -29461,8 +29461,8 @@
     "name": "Sigil",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sigil",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sigil",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -29708,8 +29708,8 @@
     "name": "Skewer",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Skewer",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Skewer",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -29921,8 +29921,8 @@
     "name": "Slice",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Slice",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Slice",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -29945,7 +29945,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Slick",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -29999,7 +29999,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sloshed",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -30021,8 +30021,8 @@
     "name": "Sludge",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sludge",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sludge",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -30104,8 +30104,8 @@
     "name": "Smooch",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Smooch",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Smooch",
     "parent": {
       "name": "M60",
       "type": "WEAPON_1"
@@ -30201,8 +30201,8 @@
     "name": "Snapped",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Snapped",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Snapped",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -30224,8 +30224,8 @@
     "name": "Snipergecko",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Snipergecko",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Snipergecko",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -30241,8 +30241,8 @@
     "name": "Snorkle",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Snorkle",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Snorkle",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -30495,7 +30495,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Solar%201",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -30538,7 +30538,7 @@
     "type": "CHARACTER_CARD",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/__questions__.a6c748fd.png",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Soldiers",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2021-06-15T15:59:15.000Z",
@@ -30585,8 +30585,8 @@
     "name": "Sorbet",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sorbet",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sorbet",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -30608,8 +30608,8 @@
     "name": "Sour",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sour",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sour",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -30779,8 +30779,8 @@
     "name": "Spectral",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Spectral",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Spectral",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -30944,8 +30944,8 @@
     "name": "Splintered",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Splintered",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Splintered",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -30987,8 +30987,8 @@
     "name": "Sploot",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sploot",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sploot",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -31073,8 +31073,8 @@
     "name": "Spooky 1",
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Spooky%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Spooky%201",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -31144,8 +31144,8 @@
     "name": "Spray",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Spray",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Spray",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -31204,8 +31204,8 @@
     "name": "Sprinkles",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sprinkles",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sprinkles",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -31258,8 +31258,8 @@
     "name": "Stalwart",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Stalwart",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Stalwart",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -31281,8 +31281,8 @@
     "name": "Starborn",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Starborn",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Starborn",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -31304,8 +31304,8 @@
     "name": "Starcore",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Starcore",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Starcore",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -31358,8 +31358,8 @@
     "name": "Stargazer",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Stargazer",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Stargazer",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -31598,7 +31598,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sterling",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -31620,8 +31620,8 @@
     "name": "Stinger",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Stinger",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Stinger",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -31697,8 +31697,8 @@
     "name": "Stormfront",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Stormfront",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Stormfront",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -31760,8 +31760,8 @@
     "name": "Strawberry Shortcake",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Strawberry%20Shortcake",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Strawberry%20Shortcake",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -31926,8 +31926,8 @@
     "name": "SUGAR-9",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/SUGAR-9",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/SUGAR-9",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -32048,8 +32048,8 @@
     "name": "Sunbathe",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sunbathe",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sunbathe",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -32091,8 +32091,8 @@
     "name": "Sunblock",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sunblock",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sunblock",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -32137,8 +32137,8 @@
     "name": "Sundrop",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sundrop",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sundrop",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -32280,8 +32280,8 @@
     "name": "Sunshower",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Sunshower",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Sunshower",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -32303,8 +32303,8 @@
     "name": "Suntan",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Suntan",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Suntan",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -32473,8 +32473,8 @@
     "name": "Swashbuckle",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Swashbuckle",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Swashbuckle",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -32496,8 +32496,8 @@
     "name": "Swatch",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Swatch",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Swatch",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -32672,8 +32672,8 @@
     "name": "Symbiote",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Symbiote",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Symbiote",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -32732,8 +32732,8 @@
     "name": "Synth",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Synth",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Synth",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -32795,8 +32795,8 @@
     "name": "Tactical B",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tactical%20B",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tactical%20B",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -32818,8 +32818,8 @@
     "name": "Tactical G",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tactical%20G",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tactical%20G",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -32841,8 +32841,8 @@
     "name": "Tactical M",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tactical%20M",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tactical%20M",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -32864,8 +32864,8 @@
     "name": "Tactical P",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tactical%20P",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tactical%20P",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -32887,8 +32887,8 @@
     "name": "Tactical R",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tactical%20R",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tactical%20R",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -32910,8 +32910,8 @@
     "name": "Tactical Y",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tactical%20Y",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tactical%20Y",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -32933,8 +32933,8 @@
     "name": "Taffy",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Taffy",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Taffy",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -33062,7 +33062,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Taurus%201",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -33084,8 +33084,8 @@
     "name": "Tax Evasion",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tax%20Evasion",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tax%20Evasion",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -33141,8 +33141,8 @@
     "name": "Team Red",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Team%20Red",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Team%20Red",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -33304,7 +33304,7 @@
     "name": "Terra",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Terra",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Terra",
     "parent": null,
     "salePrice": 0,
@@ -33540,8 +33540,8 @@
     "name": "Tie-Dye",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tie-Dye",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tie-Dye",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -33620,8 +33620,8 @@
     "name": "Titanium",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Titanium",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Titanium",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -33694,7 +33694,7 @@
     "name": "Tombstone",
     "type": "BODY_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tombstone",
     "textureUrl": "https://api2.kirka.io/api/skin-texture/Tombstone",
     "parent": null,
     "salePrice": 0,
@@ -33722,8 +33722,8 @@
     "name": "Torrent",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Torrent",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Torrent",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -33745,8 +33745,8 @@
     "name": "Touchscreen",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Touchscreen",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Touchscreen",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -33839,8 +33839,8 @@
     "name": "Tradition 1",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Tradition%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Tradition%201",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -33876,8 +33876,8 @@
     "name": "Treble",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Treble",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Treble",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -33899,8 +33899,8 @@
     "name": "Triangular",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Triangular",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Triangular",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -34008,8 +34008,8 @@
     "name": "Trouble",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Trouble",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Trouble",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -34031,8 +34031,8 @@
     "name": "TRUCK",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/TRUCK",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/TRUCK",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -34208,8 +34208,8 @@
     "name": "Twinkle",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Twinkle",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Twinkle",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -34314,8 +34314,8 @@
     "name": "UCP",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/UCP",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/UCP",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -34428,8 +34428,8 @@
     "name": "Unchlorinated",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Unchlorinated",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Unchlorinated",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -34451,8 +34451,8 @@
     "name": "Uncivil",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Uncivil",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Uncivil",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -34508,8 +34508,8 @@
     "name": "Undertaker",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Undertaker",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Undertaker",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -34611,8 +34611,8 @@
     "name": "Ursa",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Ursa",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Ursa",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -34634,8 +34634,8 @@
     "name": "Useless",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Useless",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Useless",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -34865,8 +34865,8 @@
     "name": "Vendetta",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Vendetta",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Vendetta",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -34939,8 +34939,8 @@
     "name": "Verdigris",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Verdigris",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Verdigris",
     "parent": {
       "name": "Tomahawk",
       "type": "WEAPON_3"
@@ -34982,8 +34982,8 @@
     "name": "Verxanth",
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Verxanth",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Verxanth",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -35076,8 +35076,8 @@
     "name": "Vice",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Vice",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Vice",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -35100,7 +35100,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Victor",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -35145,8 +35145,8 @@
     "name": "Villain",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Villain",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Villain",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -35231,8 +35231,8 @@
     "name": "Vio",
     "type": "WEAPON_SKIN",
     "rarity": "EPIC",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Vio",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Vio",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -35271,8 +35271,8 @@
     "name": "Violet-45",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Violet-45",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Violet-45",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -35328,8 +35328,8 @@
     "name": "Viridian AR-9",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Viridian%20AR-9",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Viridian%20AR-9",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -35351,8 +35351,8 @@
     "name": "Viridian LAR",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Viridian%20LAR",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Viridian%20LAR",
     "parent": {
       "name": "LAR",
       "type": "WEAPON_1"
@@ -35374,8 +35374,8 @@
     "name": "Viridian M60",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Viridian%20M60",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Viridian%20M60",
     "parent": {
       "name": "M60",
       "type": "WEAPON_1"
@@ -35397,8 +35397,8 @@
     "name": "Viridian MAC-10",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Viridian%20MAC-10",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Viridian%20MAC-10",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -35420,8 +35420,8 @@
     "name": "Viridian SCAR",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Viridian%20SCAR",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Viridian%20SCAR",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -35443,8 +35443,8 @@
     "name": "Viridian Vita",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Viridian%20Vita",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Viridian%20Vita",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -35561,7 +35561,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Vivid-Shark",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -35947,8 +35947,8 @@
     "name": "Voodoo",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Voodoo",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Voodoo",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -36073,8 +36073,8 @@
     "name": "Warped",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Warped",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Warped",
     "parent": {
       "name": "Weatie",
       "type": "WEAPON_1"
@@ -36171,7 +36171,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Watergun",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -36216,8 +36216,8 @@
     "name": "Watermelon 1",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Watermelon%201",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Watermelon%201",
     "parent": {
       "name": "Revolver",
       "type": "WEAPON_1"
@@ -36376,8 +36376,8 @@
     "name": "Wedge",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Wedge",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Wedge",
     "parent": {
       "name": "Bayonet",
       "type": "WEAPON_3"
@@ -36459,8 +36459,8 @@
     "name": "Wib Wob",
     "type": "WEAPON_SKIN",
     "rarity": "MYTHICAL",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Wib%20Wob",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Wib%20Wob",
     "parent": {
       "name": "AR-9",
       "type": "WEAPON_1"
@@ -36560,7 +36560,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Win98%20Shark",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -36743,8 +36743,8 @@
     "name": "Wizard",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Wizard",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Wizard",
     "parent": {
       "name": "VITA",
       "type": "WEAPON_1"
@@ -36807,7 +36807,7 @@
     "type": "CHEST",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/__chest-1__.2fe7c327.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Wood",
     "parent": null,
     "salePrice": 0,
     "createdAt": "2021-06-15T15:58:47.090Z",
@@ -36881,7 +36881,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Worn%20Between",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -36903,8 +36903,8 @@
     "name": "Worn in",
     "type": "WEAPON_SKIN",
     "rarity": "COMMON",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Worn%20in",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Worn%20in",
     "parent": {
       "name": "SCAR",
       "type": "WEAPON_1"
@@ -37216,7 +37216,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "LEGENDARY",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Xanthian",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
@@ -37408,8 +37408,8 @@
     "name": "Yellow",
     "type": "WEAPON_SKIN",
     "rarity": "RARE",
-    "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "renderUrl": "https://api2.kirka.io/api/skin-render/Yellow",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/Yellow",
     "parent": {
       "name": "MAC-10",
       "type": "WEAPON_1"
@@ -37747,7 +37747,7 @@
     "type": "WEAPON_SKIN",
     "rarity": "PARANORMAL",
     "renderUrl": "https://kirka.io/assets/img/render-mini.0ec8ea84.webp",
-    "textureUrl": "https://kirka.io",
+    "textureUrl": "https://api2.kirka.io/api/skin-texture/ZG-MAR102",
     "parent": {
       "name": "Shark",
       "type": "WEAPON_2"
