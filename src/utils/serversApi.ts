@@ -75,16 +75,16 @@ export async function fetchRegionRooms(regionKey: string = 'india'): Promise<Liv
   if (!Array.isArray(rawRooms)) return [];
 
   return rawRooms.map((r: any) => {
-    const meta = r.WwwMWn || {};
-    const mode = r.name || meta.wMWNwm || 'TDM';
-    const map = meta.wWwMnWmN || 'Shipment';
-    const players = typeof r.WmwwMWnN === 'number' ? r.WmwwMWnN : 0;
-    const maxPlayers = typeof meta.wWnmwNW === 'number' ? meta.wWnmwNW : 8;
-    const code = r.WMwnWNmw || r.WwMmWnNw || 'LOBBY';
+    const meta = r.WnWwwMmN || r.WwwMWn || {};
+    const mode = r.name || meta.wMNmWnWw || meta.wMWNwm || 'TDM';
+    const map = meta.wWwNW || meta.wWnWm || meta.wWwMnWmN || 'Shipment';
+    const players = typeof r.WNMWm === 'number' ? r.WNMWm : (typeof r.WmwwMWnN === 'number' ? r.WmwwMWnN : 0);
+    const maxPlayers = typeof meta.wWnMmWw === 'number' ? meta.wWnMmWw : (typeof meta.wWnmwNW === 'number' ? meta.wWnmwNW : 8);
+    const code = meta.wWMnwWm || r.WWMNmww || r.WMwnWNmw || r.WwMmWnNw || 'LOBBY';
     const tag = `${reg.id.toUpperCase()}~${code}`;
 
     return {
-      id: r.WwMmWnNw || code,
+      id: meta.wWMnwWm || r.WWMNmww || r.WwMmWnNw || code,
       code,
       tag,
       region: reg.id,
