@@ -51,6 +51,36 @@ function cacheDay(file: string, rows: unknown[]) {
   dayCache.set(file, rows);
 }
 
+/** One trade-history file, with retries. The host's 502s come in short bursts, so back off between tries.
+ *  Past days are cached; dailyTrades.json changes every 15 minutes, so it never is. */
+async function fetchDayFile(file: string, signal: AbortSignal): Promise<any[] | null> {
+  if (file !== 'dailyTrades.json') {
+    const hit = dayCache.get(file);
+    if (hit) return hit as any[];
+  }
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const res = await fetch(`/trade-api/tradehistory/${file}`, { signal });
+      if (!res.ok) throw new Error(String(res.status));
+      const rows = await res.json();
+      if (Array.isArray(rows)) {
+        if (file !== 'dailyTrades.json') cacheDay(file, rows);
+        return rows;
+      }
+      return null;
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return null;
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 300 * 2 ** attempt));
+    }
+  }
+  return null;
+}
+
+/** Kirka reuses trade IDs (they stay under 100,000 and wrap), so an ID alone is not a trade: in October
+ *  2026 alone 396 IDs belonged to two different trades. A trade is its ID, completion time and players. */
+const tradeKey = (t: { tradeId: number; updatedAt: string; offerer: string; accepter: string }) =>
+  `${t.tradeId}|${t.updatedAt}|${t.offerer}|${t.accepter}`;
+
 interface HistoryTradeItem {
   name: string;
   rarity: string;
@@ -128,6 +158,11 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
   const [historyProgress, setHistoryProgress] = useState<{ done: number; total: number; failed: number; capped: boolean } | null>(null);
   // identifies the in-flight history load, so a superseded one cannot write stale results
   const historyRunRef = useRef(0);
+  // Where the main stream stopped when it hit the memory cap, and the trades it already holds, so a
+  // search can carry on through the older files without loading them all into memory.
+  const streamedRef = useRef<{ seen: Set<string>; next: number } | null>(null);
+  const [deepMatches, setDeepMatches] = useState<HistoryTrade[]>([]);
+  const [deepProgress, setDeepProgress] = useState<{ done: number; total: number; found: number } | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [ignoreEscrow, setIgnoreEscrow] = useState(true);
@@ -179,8 +214,21 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     let cancelled = false;
     setLoadingHistory(true);
 
-    fetch('/trade-api/tradehistory/snapshots.json')
-      .then((r) => r.json())
+    // The trade host intermittently answers 502. Without a retry here a single bad response left
+    // Trade History empty until the page was reloaded, since nothing asked for the index again.
+    const fetchIndex = async () => {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          const res = await fetch('/trade-api/tradehistory/snapshots.json');
+          if (res.ok) return await res.json();
+        } catch { /* retry below */ }
+        if (cancelled) return null;
+        await new Promise((r) => setTimeout(r, 400 * 2 ** attempt));
+      }
+      throw new Error('trade index unavailable after 4 attempts');
+    };
+
+    fetchIndex()
       .then((data) => {
         if (cancelled || !Array.isArray(data)) return;
         const snapFiles = data
@@ -211,6 +259,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     const files = snapshotIndex;
 
     setHistoryTrades([]);
+    streamedRef.current = null;
     setVisibleHistoryCount(40);
     setHistoryProgress({ done: 0, total: files.length, failed: 0, capped: false });
 
@@ -221,36 +270,13 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     }
     setLoadingHistory(true);
 
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     const collected: HistoryTrade[] = [];
     let done = 0;
     let failed = 0;
     let capped = false;
 
-    const loadFile = async (file: string): Promise<any[] | null> => {
-      // dailyTrades.json is dynamic (refreshes every 15m), so never read it from static cache
-      if (file !== 'dailyTrades.json') {
-        const hit = dayCache.get(file);
-        if (hit) return hit as any[];
-      }
-
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const res = await fetch(`/trade-api/tradehistory/${file}`, { signal: controller.signal });
-          if (!res.ok) throw new Error(String(res.status));
-          const rows = await res.json();
-          if (Array.isArray(rows)) {
-            if (file !== 'dailyTrades.json') cacheDay(file, rows);
-            return rows;
-          }
-          return null;
-        } catch (err: any) {
-          if (err?.name === 'AbortError') return null;
-          if (attempt === 0) await new Promise((r) => setTimeout(r, 300));
-        }
-      }
-      return null;
-    };
+    const loadFile = (file: string) => fetchDayFile(file, controller.signal);
 
     const BATCH = BATCH_SIZE;
     const tsOf = (t: HistoryTrade) => t._ts ?? 0;
@@ -274,8 +300,11 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           for (const rows of results) {
             if (rows === null) { failed++; continue; }
             for (const t of rows) {
-              if (!t || !t.tradeId || seen.has(t.tradeId)) continue;
-              seen.add(t.tradeId);
+              if (!t || !t.tradeId) continue;
+              // the same trade repeats across overlapping day files
+              const key = tradeKey(t);
+              if (seen.has(key)) continue;
+              seen.add(key);
               t._ts = Date.parse(t.updatedAt);
               collected.push(t);
             }
@@ -290,7 +319,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
           setHistoryProgress({ done, total: files.length, failed, capped });
           if (capped || performance.now() - lastPublish > PUBLISH_MS) publish();
-          if (capped) break;
+          if (capped) { streamedRef.current = { seen, next: i + BATCH }; break; }
 
           // Yield to browser event loop between batches so UI stays silky smooth
           await new Promise((r) => setTimeout(r, 60));
@@ -306,6 +335,63 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
     return () => { controller.abort(); };
   }, [snapshotIndex]);
+
+  // 4. Search past the cap. The page holds the newest SAFE_TRADES_CAP trades; a search should still find
+  //    an older trade, so it streams the remaining day files and keeps only the trades that match.
+  const [deepQuery, setDeepQuery] = useState('');
+  useEffect(() => {
+    const id = setTimeout(() => setDeepQuery([searchQuery, appliedOffered, appliedWanted].map((q) => q.trim().toLowerCase()).join('\u0000')), 450);
+    return () => clearTimeout(id);
+  }, [searchQuery, appliedOffered, appliedWanted]);
+
+  useEffect(() => {
+    setDeepMatches([]);
+    setDeepProgress(null);
+    const [q, off, want] = deepQuery.split('\u0000');
+    const streamed = streamedRef.current;
+    if (activeSubTab !== 'history' || loadingHistory || !streamed || !(q || off || want)) return;
+
+    const files = snapshotIndex.slice(streamed.next);
+    if (!files.length) return;
+    const controller = new AbortController();
+    const names = (items?: HistoryTradeItem[]) => (items || []).map((i) => i.name.toLowerCase());
+    const matches = (t: HistoryTrade) => {
+      const offered = names(t.trade?.offered?.items), wanted = names(t.trade?.wanted?.items);
+      if (q && !(t.offerer.toLowerCase().includes(q) || t.accepter.toLowerCase().includes(q) || String(t.tradeId).includes(q) ||
+        offered.some((n) => n.includes(q)) || wanted.some((n) => n.includes(q)))) return false;
+      if (off && !offered.some((n) => n.includes(off))) return false;
+      if (want && !wanted.some((n) => n.includes(want))) return false;
+      return true;
+    };
+
+    (async () => {
+      const found: HistoryTrade[] = [];
+      const local = new Set<string>();
+      let done = 0;
+      setDeepProgress({ done, total: files.length, found: 0 });
+      for (let i = 0; i < files.length; i += BATCH_SIZE) {
+        const results = await Promise.all(files.slice(i, i + BATCH_SIZE).map((f) => fetchDayFile(f, controller.signal)));
+        if (controller.signal.aborted) return;
+        for (const rows of results) {
+          for (const t of rows || []) {
+            if (!t || !t.tradeId || !matches(t)) continue;
+            const key = tradeKey(t);
+            if (streamed.seen.has(key) || local.has(key)) continue;
+            local.add(key);
+            t._ts = Date.parse(t.updatedAt);
+            found.push(t);
+          }
+        }
+        done += results.length;
+        setDeepProgress({ done, total: files.length, found: found.length });
+        setDeepMatches([...found]);
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      if (!controller.signal.aborted) setDeepProgress(null);
+    })();
+
+    return () => controller.abort();
+  }, [deepQuery, activeSubTab, loadingHistory, snapshotIndex]);
 
   // Helper to map rarity codes (M, L, E, R, C) to full name & border styles
   const getRarityDetails = (code: string) => {
@@ -806,7 +892,8 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
   // Memoized filtered history trades
   const activeFilteredHistory = useMemo(() => {
-    let result = historyTrades;
+    // trades found past the memory cap by a search are older than everything loaded, so they go last
+    let result = deepMatches.length ? historyTrades.concat(deepMatches) : historyTrades;
     if (ignoreEscrow) {
       result = result.filter(
         (t) =>
@@ -845,7 +932,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       );
     }
     return result;
-  }, [historyTrades, ignoreEscrow, ignoreWoodTrades, searchQuery, appliedOffered, appliedWanted]);
+  }, [historyTrades, deepMatches, ignoreEscrow, ignoreWoodTrades, searchQuery, appliedOffered, appliedWanted]);
 
   // Fast O(1) date range calculation since historyTrades is already sorted descending
   const historyDateRangeInfo = useMemo(() => {
@@ -1182,6 +1269,16 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                 {historyProgress?.capped && (
                   <span className="text-amber-300/90 text-[11px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
                     Safe memory cap ({SAFE_TRADES_CAP.toLocaleString()} trades)
+                  </span>
+                )}
+                {deepProgress && (
+                  <span className="text-purple-300">
+                    Searching older trades: day {deepProgress.done} of {deepProgress.total}, {deepProgress.found.toLocaleString()} more found
+                  </span>
+                )}
+                {!deepProgress && deepMatches.length > 0 && (
+                  <span className="text-slate-400">
+                    {deepMatches.length.toLocaleString()} older {deepMatches.length === 1 ? 'trade' : 'trades'} found past the cap
                   </span>
                 )}
                 {!loadingHistory && !!historyProgress?.failed && (
