@@ -88,7 +88,25 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Real text for anyone (or any crawler) reading the page before the app starts. React replaces
+           this the moment it mounts; it says the same things the app does. -->
+      <div style="max-width:760px;margin:0 auto;padding:48px 20px;color:#A0A0A0;font:16px/1.7 Inter,system-ui,sans-serif;background:#0B0B0B">
+        <h1 style="color:#EDEDED;font:400 48px/1 Anton,Inter,sans-serif;text-transform:uppercase;margin:0 0 16px">Kirka Hub</h1>
+        <p style="color:#EDEDED;font-size:18px">A free tracker for the browser game Kirka.io. Look up any player&rsquo;s profile, their inventory and what it is worth, and what they have been trading.</p>
+        <ul>
+          <li><a href="/" style="color:#EDEDED">Player search</a>: profiles, inventories, loadouts and match history, with every skin valued.</li>
+          <li><a href="/prices" style="color:#EDEDED">Skins and prices</a>: every skin in the game with its Hub value and a 3D render.</li>
+          <li><a href="/trades" style="color:#EDEDED">Trades</a>: live trade offers and the full history of completed trades.</li>
+          <li><a href="/daily" style="color:#EDEDED">Daily leaderboard</a> and <a href="/ranked" style="color:#EDEDED">ranked standings</a>.</li>
+          <li><a href="/clans" style="color:#EDEDED">Clans</a>: the clan registry and members.</li>
+          <li><a href="/chat" style="color:#EDEDED">Kirka chat</a>, live lobbies, 3D fits and the <a href="/bot" style="color:#EDEDED">Discord bot</a>.</li>
+        </ul>
+        <p>Kirka Hub is a fan project and is not affiliated with Kirka.io.
+          <a href="/about.html" style="color:#EDEDED">About</a> &middot; <a href="/contact.html" style="color:#EDEDED">Contact</a> &middot;
+          <a href="/privacy.html" style="color:#EDEDED">Privacy Policy</a> &middot; <a href="/terms.html" style="color:#EDEDED">Terms</a></p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "969729ec3a504a0fb1ffeac69534b1fb"}'></script><!-- End Cloudflare Web Analytics -->
   </body>

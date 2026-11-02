@@ -601,7 +601,14 @@ function App() {
             {/* 5. Sleek footer */}
             <footer className="py-6 border-t border-obsidian-border/50 text-center text-xs text-slate-600 font-mono flex-shrink-0">
               <div className="max-w-7xl mx-auto px-4">
-                <span>© 2026 XPERT TRACKER • Kirka.io Community Tool • Valuation Index: Hub Valuation • <a href="/privacy.html" className="hover:text-slate-400 underline">Privacy Policy</a></span>
+                <span>© 2026 XPERT TRACKER • Kirka.io Community Tool • Valuation Index: Hub Valuation</span>
+                {/* the pages a visitor (and an ad reviewer) looks for, as real links on every screen */}
+                <nav className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1" aria-label="About this site">
+                  <a href="/about.html" className="hover:text-slate-400 underline">About</a>
+                  <a href="/contact.html" className="hover:text-slate-400 underline">Contact</a>
+                  <a href="/privacy.html" className="hover:text-slate-400 underline">Privacy Policy</a>
+                  <a href="/terms.html" className="hover:text-slate-400 underline">Terms</a>
+                </nav>
               </div>
             </footer>
           </div>

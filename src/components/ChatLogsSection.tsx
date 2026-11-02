@@ -188,7 +188,7 @@ export const ChatLogsSection: React.FC = () => {
         <h1 className="display text-4xl sm:text-5xl text-[#EDEDED]">Chat <span className="mark text-obsidian-deep" style={{ ["--mark-color" as string]: "var(--color-spray-cyan)" }}>archive</span></h1>
         <p className="mt-3 text-[15px] text-slate-400 leading-relaxed max-w-[52ch]">
           Kirka only shows the last 50 messages of global chat, so a trade or coinflip dispute has nothing to
-          point at. This keeps them.
+          point at. This keeps them for 30 days.
         </p>
       </header>
 
