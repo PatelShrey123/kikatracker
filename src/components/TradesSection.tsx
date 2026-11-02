@@ -27,71 +27,28 @@ interface OpenTrade {
   updatedAt: string;
 }
 
-const ALL_TIME = '__all__';
-// 880 snapshots is roughly 300,000 trades and several hundred megabytes; all-time stops well short
-// of that, at more than anyone can scroll but little enough that a phone survives it.
-const ALL_TIME_CAP = 30000;
-
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'];
+// Safe cap on total trades kept in memory to prevent browser memory exhaustion / tab crash
+const SAFE_TRADES_CAP = 30000;
+const BATCH_SIZE = 8;
 
 /**
  * Day files already fetched, kept for the life of the page.
  *
- * These are static archives - a file dated in the past never changes - so re-fetching them when
- * you switch months and come back was pure waste. Only today's file can still gain rows, and it
- * is re-fetched each time the month is opened.
+ * These are static archives - a file dated in the past never changes - so re-fetching them
+ * was pure waste. Only dailyTrades.json is dynamic (updates every 15 min), so it is excluded from cache.
  *
- * Capped so browsing every month cannot grow without bound; oldest entries are dropped first.
+ * Capped so browsing cannot grow without bound; oldest entries are dropped first.
  */
 const dayCache = new Map<string, unknown[]>();
-const DAY_CACHE_MAX = 120;
+const DAY_CACHE_MAX = 200;
 
 function cacheDay(file: string, rows: unknown[]) {
+  if (file === 'dailyTrades.json') return;
   if (dayCache.size >= DAY_CACHE_MAX) {
     const oldest = dayCache.keys().next().value;
     if (oldest !== undefined) dayCache.delete(oldest);
   }
   dayCache.set(file, rows);
-}
-
-/** "2026-09" for a trade timestamp, or '' when it cannot be read. */
-function monthKeyOf(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-
-/** Every month the snapshot index covers, newest first. Filenames look like 20260925_025958.json. */
-function monthsFromSnapshots(files: string[]): { key: string; label: string; days: number }[] {
-  const counts = new Map<string, number>();
-  for (const f of files) {
-    const m = f.match(/^(\d{4})(\d{2})\d{2}_/);
-    if (!m) continue;
-    const key = `${m[1]}-${m[2]}`;
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[0].localeCompare(a[0]))
-    .map(([key, days]) => {
-      const [y, mo] = key.split('-');
-      return { key, label: `${MONTH_NAMES[Number(mo) - 1]} ${y}`, days };
-    });
-}
-
-/**
- * Snapshots needed to cover a month. A snapshot dated D contains trades updated over roughly the
- * previous four days, so trades from the last days of a month only show up in the first snapshots
- * of the next one - the window runs to the 4th of the following month.
- */
-function snapshotsForMonth(files: string[], monthKey: string): string[] {
-  const [y, mo] = monthKey.split('-').map(Number);
-  const start = y * 10000 + mo * 100 + 1;
-  const next = mo === 12 ? (y + 1) * 10000 + 104 : y * 10000 + (mo + 1) * 100 + 4;
-  return files.filter((f) => {
-    const n = Number(f.slice(0, 8));
-    return Number.isFinite(n) && n >= start && n <= next;
-  });
 }
 
 interface HistoryTradeItem {
@@ -166,11 +123,9 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
   const [loadingLive, setLoadingLive] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
-  // Month browsing. The API has no range endpoint - trade history is one static file per day - so a
-  // month means fetching that month's snapshots and streaming them in as they land.
+  // Trade History archive browsing: all-time history loaded newest first.
   const [snapshotIndex, setSnapshotIndex] = useState<string[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [monthProgress, setMonthProgress] = useState<{ done: number; total: number; failed: number; capped: boolean } | null>(null);
+  const [historyProgress, setHistoryProgress] = useState<{ done: number; total: number; failed: number; capped: boolean } | null>(null);
   // identifies the in-flight history load, so a superseded one cannot write stale results
   const historyRunRef = useRef(0);
 
@@ -216,8 +171,9 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     };
   }, []);
 
-  // 2. Fetch the snapshot index on-demand when the user opens Trade History, then load the newest
-  //    month. The index is just a list of filenames like 20260925_025958.json.
+  // 2. Fetch the snapshot index on-demand when the user opens Trade History.
+  //    ALWAYS include 'dailyTrades.json' at the very beginning (refreshed every 15m with today's live trades),
+  //    followed by all snapshot archive files sorted in reverse chronological order (newest first).
   useEffect(() => {
     if (activeSubTab !== 'history' || historyLoaded) return;
     let cancelled = false;
@@ -227,13 +183,15 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       .then((r) => r.json())
       .then((data) => {
         if (cancelled || !Array.isArray(data)) return;
-        const files = data
+        const snapFiles = data
           .filter((s) => typeof s === 'string' && /^\d{8}_\d+\.json$/.test(s))
-          .sort();
+          .sort()
+          .reverse();
+
+        // Place dailyTrades.json at the front so today's live completed trades load first!
+        const files = ['dailyTrades.json', ...snapFiles];
         setSnapshotIndex(files);
         setHistoryLoaded(true);
-        const months = monthsFromSnapshots(files);
-        if (months.length) setSelectedMonth(months[0].key);
       })
       .catch((err) => console.error('Failed to load snapshots index:', err))
       .finally(() => { if (!cancelled) setLoadingHistory(false); });
@@ -241,33 +199,24 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return () => { cancelled = true; };
   }, [activeSubTab, historyLoaded]);
 
-  // 3. Load the selected month (or everything, for "All time").
-  //
-  //    A snapshot dated D holds trades updated over the previous few days, so trades from the end of
-  //    a month only appear in the first snapshots of the next one; the window reaches four days past
-  //    the month end and the results are filtered back to the month actually asked for.
+  // 3. Load all-time trade history, newest first.
+  //    Streams archives progressively in batches so the page renders in <1s and never crashes or freezes.
   useEffect(() => {
-    if (!selectedMonth || !snapshotIndex.length) return;
+    if (!snapshotIndex.length) return;
 
-    // Switching months must not let the previous load write into the new one. A token identifies
-    // this run, and the controller aborts the requests it left in flight - without that, two months'
-    // worth of requests compete and results arrive against the wrong month.
     const runId = ++historyRunRef.current;
     const controller = new AbortController();
     const isStale = () => runId !== historyRunRef.current;
 
-    const allTime = selectedMonth === ALL_TIME;
-    const files = allTime
-      ? [...snapshotIndex].reverse()                       // newest first, so useful data lands early
-      : snapshotsForMonth(snapshotIndex, selectedMonth);
+    const files = snapshotIndex;
 
     setHistoryTrades([]);
     setVisibleHistoryCount(40);
-    setMonthProgress({ done: 0, total: files.length, failed: 0, capped: false });
+    setHistoryProgress({ done: 0, total: files.length, failed: 0, capped: false });
 
     if (!files.length) {
       setLoadingHistory(false);
-      setMonthProgress(null);
+      setHistoryProgress(null);
       return;
     }
     setLoadingHistory(true);
@@ -278,14 +227,12 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     let failed = 0;
     let capped = false;
 
-    // One retry, because a failed day used to be swallowed as an empty array - which is what made
-    // months look randomly empty when several requests were throttled at once.
-    // Today's archive is still being written to, so it is never served from cache.
-    const todayFile = snapshotIndex[snapshotIndex.length - 1];
-
     const loadFile = async (file: string): Promise<any[] | null> => {
-      const hit = dayCache.get(file);
-      if (hit && file !== todayFile) return hit as any[];
+      // dailyTrades.json is dynamic (refreshes every 15m), so never read it from static cache
+      if (file !== 'dailyTrades.json') {
+        const hit = dayCache.get(file);
+        if (hit) return hit as any[];
+      }
 
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
@@ -293,30 +240,21 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           if (!res.ok) throw new Error(String(res.status));
           const rows = await res.json();
           if (Array.isArray(rows)) {
-            cacheDay(file, rows);
+            if (file !== 'dailyTrades.json') cacheDay(file, rows);
             return rows;
           }
           return null;
         } catch (err: any) {
           if (err?.name === 'AbortError') return null;
-          if (attempt === 0) await new Promise((r) => setTimeout(r, 400));
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 300));
         }
       }
       return null;
     };
 
-    const BATCH = 8;
-
-    // Sorting by `new Date(x).getTime()` inside the comparator re-parsed both date strings on
-    // every comparison. Parsing once per trade, at the point it is collected, turns the whole
-    // sort into integer subtraction.
+    const BATCH = BATCH_SIZE;
     const tsOf = (t: HistoryTrade) => t._ts ?? 0;
-
-    // Re-sorting and re-rendering the full list after each of ~110 batches was the real cost on
-    // "All time": the array grows to tens of thousands, so the work per batch grows with it and
-    // the newest trades kept getting shuffled in late. Publishing on an interval keeps the page
-    // filling in progressively without paying for it every batch.
-    const PUBLISH_MS = 400;
+    const PUBLISH_MS = 500;
     let lastPublish = 0;
 
     const publish = () => {
@@ -336,8 +274,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           for (const rows of results) {
             if (rows === null) { failed++; continue; }
             for (const t of rows) {
-              if (!t || seen.has(t.tradeId)) continue;
-              if (!allTime && monthKeyOf(t.updatedAt) !== selectedMonth) continue;
+              if (!t || !t.tradeId || seen.has(t.tradeId)) continue;
               seen.add(t.tradeId);
               t._ts = Date.parse(t.updatedAt);
               collected.push(t);
@@ -345,26 +282,30 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           }
           done += batch.length;
 
-          // All time spans 880 days; holding every trade would run a phone out of memory, so it
-          // stops once there is more than any device can usefully scroll.
-          if (allTime && collected.length >= ALL_TIME_CAP) capped = true;
+          // Crash prevention: stop auto-streaming once safe trade cap is reached.
+          // This keeps memory low on mobile devices and prevents tab freeze.
+          if (collected.length >= SAFE_TRADES_CAP) {
+            capped = true;
+          }
 
-          setMonthProgress({ done, total: files.length, failed, capped });
+          setHistoryProgress({ done, total: files.length, failed, capped });
           if (capped || performance.now() - lastPublish > PUBLISH_MS) publish();
           if (capped) break;
+
+          // Yield to browser event loop between batches so UI stays silky smooth
+          await new Promise((r) => setTimeout(r, 60));
         }
       } finally {
-        // always clears, even if a fetch throws or the month is switched mid-flight
         if (!isStale()) {
-          publish();                 // the last batches may not have hit the interval
+          publish();
           setLoadingHistory(false);
-          setMonthProgress(failed || capped ? { done, total: files.length, failed, capped } : null);
+          setHistoryProgress(failed || capped ? { done, total: files.length, failed, capped } : null);
         }
       }
     })();
 
     return () => { controller.abort(); };
-  }, [selectedMonth, snapshotIndex]);
+  }, [snapshotIndex]);
 
   // Helper to map rarity codes (M, L, E, R, C) to full name & border styles
   const getRarityDetails = (code: string) => {
@@ -906,8 +847,6 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return result;
   }, [historyTrades, ignoreEscrow, ignoreWoodTrades, searchQuery, appliedOffered, appliedWanted]);
 
-  const availableMonths = useMemo(() => monthsFromSnapshots(snapshotIndex), [snapshotIndex]);
-
   // Fast O(1) date range calculation since historyTrades is already sorted descending
   const historyDateRangeInfo = useMemo(() => {
     if (!historyTrades || historyTrades.length === 0) {
@@ -1163,7 +1102,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         <div className="flex flex-col items-center justify-center py-40 space-y-3">
           <RefreshCw className="w-8 h-8 text-gold-primary animate-spin" />
           <span className="text-xs font-mono text-slate-500 uppercase tracking-widest">
-            {activeSubTab === 'live' ? 'Loading live trades...' : 'Merging snap files...'}
+            {activeSubTab === 'live' ? 'Loading live trades...' : 'Loading newest trade archives...'}
           </span>
         </div>
       ) : activeSubTab === 'live' ? (
@@ -1201,52 +1140,57 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Month picker. The API serves one file per day, so a month is fetched as a batch and
-                streamed in; the progress line below reports how far through it is. */}
-            {availableMonths.length > 0 && (
-              <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono font-extrabold tracking-wider uppercase text-slate-300">
-                    Month
-                  </span>
-                  <select
-                    value={selectedMonth ?? ''}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="bg-obsidian-card border border-white/10 rounded-md px-3 py-1.5 text-sm text-white font-semibold cursor-pointer hover:border-purple-400/40 focus:outline-none focus:border-purple-400/60"
-                  >
-                    <option value={ALL_TIME}>All time (newest first)</option>
-                    {availableMonths.map((m) => (
-                      <option key={m.key} value={m.key}>{m.label}</option>
-                    ))}
-                  </select>
-                  <span className="text-[11px] font-mono text-slate-600 hidden sm:inline">
-                    {availableMonths.length} months available
+            {/* All-Time Stream Status Banner */}
+            <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-mono font-extrabold tracking-wider uppercase text-slate-200">
+                    All-Time History
                   </span>
                 </div>
-
-                <div className="text-xs font-mono flex flex-wrap items-center gap-x-3 gap-y-1">
-                  {loadingHistory && monthProgress ? (
-                    <span className="text-purple-300">
-                      Loading day {Math.min(monthProgress.done, monthProgress.total)} of {monthProgress.total} ·{' '}
-                      <strong className="text-white">{historyTrades.length.toLocaleString()}</strong> trades so far
-                    </span>
-                  ) : (
-                    <span className="text-slate-500">
-                      <strong className="text-purple-400 font-bold">{historyTrades.length.toLocaleString()}</strong>{' '}
-                      completed trades {selectedMonth === ALL_TIME ? 'loaded' : 'this month'}
-                    </span>
-                  )}
-                  {monthProgress?.capped && (
-                    <span className="text-amber-300">stopped at {ALL_TIME_CAP.toLocaleString()} — pick a month for older trades</span>
-                  )}
-                  {!loadingHistory && !!monthProgress?.failed && (
-                    <span className="text-red-300">
-                      {monthProgress.failed} {monthProgress.failed === 1 ? 'day' : 'days'} failed to load
-                    </span>
-                  )}
-                </div>
+                <span className="text-[11px] font-mono text-gold-bright bg-gold-primary/10 border border-gold-primary/20 px-2 py-0.5 rounded font-bold">
+                  Newest First
+                </span>
+                <button
+                  onClick={() => {
+                    dayCache.delete('dailyTrades.json');
+                    setHistoryLoaded(false);
+                  }}
+                  title="Refresh latest trades"
+                  className="p-1 hover:bg-white/10 rounded transition-colors text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingHistory ? 'animate-spin' : ''}`} />
+                </button>
               </div>
-            )}
+
+              <div className="text-xs font-mono flex flex-wrap items-center gap-x-3 gap-y-1">
+                {loadingHistory && historyProgress ? (
+                  <span className="text-purple-300 flex items-center space-x-1.5">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>
+                      Streaming archives: day {Math.min(historyProgress.done, historyProgress.total)} of {historyProgress.total} ·{' '}
+                      <strong className="text-white">{historyTrades.length.toLocaleString()}</strong> trades loaded
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-slate-400">
+                    <strong className="text-purple-400 font-bold">{historyTrades.length.toLocaleString()}</strong>{' '}
+                    completed trades loaded
+                  </span>
+                )}
+                {historyProgress?.capped && (
+                  <span className="text-amber-300/90 text-[11px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                    Safe memory cap ({SAFE_TRADES_CAP.toLocaleString()} trades)
+                  </span>
+                )}
+                {!loadingHistory && !!historyProgress?.failed && (
+                  <span className="text-red-300">
+                    {historyProgress.failed} {historyProgress.failed === 1 ? 'day' : 'days'} failed to load
+                  </span>
+                )}
+              </div>
+            </div>
 
             {/* Completed Trade History Dynamic Header Banner */}
             {(() => {
