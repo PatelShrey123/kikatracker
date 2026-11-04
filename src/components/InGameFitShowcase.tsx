@@ -78,6 +78,11 @@ function findCatalogItem(catalog: any[], name: string, predicate?: (item: any) =
 
 function slotRenderUrl(item: LoadoutItem | null, catalog: any[]): string | null {
   if (!item) return null;
+  // Base weapons (no skin, e.g. the default Shark) resolve to Kirka's own render there; the catalog
+  // entry for them points at an api2 render that doesn't exist, so skip the lookups below
+  if (!item.parent?.name || cleanName(item.name).toUpperCase() === cleanName(item.parent.name).toUpperCase()) {
+    return getSkinRenderUrl({ ...item, parent: null });
+  }
   if (item.renderUrl && !isPlaceholderUrl(item.renderUrl)) return cleanTextureUrl(item.renderUrl);
   const match = findCatalogItem(catalog, item.name, (c) => !item.parent?.name || cleanName(c.parent?.name).toUpperCase() === cleanName(item.parent?.name).toUpperCase());
   if (match?.renderUrl && !isPlaceholderUrl(match.renderUrl)) return cleanTextureUrl(match.renderUrl);

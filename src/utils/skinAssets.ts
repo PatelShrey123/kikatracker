@@ -175,7 +175,9 @@ export function getSkinRenderUrl(itemOrName: any): string {
   // 0. A base weapon with no skin equipped (the default Shark, Bayonet...) uses Kirka's own render
   //    for it. The Shark one is filtered as a placeholder below because Kirka reuses it for hundreds
   //    of skins, and api2 has no render for a base weapon, so the slot used to come up empty.
-  if (typeof itemOrName === 'object' && !itemOrName.parent && !isCharacterSkin(itemOrName.type)) {
+  const parentName = typeof itemOrName === 'object' ? (itemOrName.parent?.name || '').replace(/^_+/, '').trim() : '';
+  const isBaseWeapon = !parentName || parentName.toUpperCase() === cleanName.toUpperCase();
+  if (typeof itemOrName === 'object' && isBaseWeapon && !isCharacterSkin(itemOrName.type)) {
     const base = BASE_WEAPON_RENDERS[cleanName.toUpperCase()];
     if (base) return base;
   }
