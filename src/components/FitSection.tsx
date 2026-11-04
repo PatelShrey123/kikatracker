@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Shirt, AlertCircle, Loader2, Download, Link2, Check, RotateCcw, Shuffle } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Search, Shirt, AlertCircle, Loader2, Download, Link2, Check, RotateCcw, Shuffle, ImagePlus, X } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import { fetchUserProfile, fetchUserInventory } from '../utils/api';
 import { InGameFitShowcase } from './InGameFitShowcase';
@@ -75,6 +75,12 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [combo, setCombo] = useState<Combo>(PLAYER_COMBO);
+  // Custom background: a local image the visitor picks. It stays in their browser as an object URL
+  // and is never uploaded anywhere.
+  const [customBg, setCustomBg] = useState<string | null>(null);
+  const [bgError, setBgError] = useState<string | null>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => () => { if (customBg) URL.revokeObjectURL(customBg); }, [customBg]);
 
   const skinsByParent = useMemo(() => {
     const map = new Map<string, any[]>();
@@ -212,12 +218,48 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
     }
   };
 
-  const saveRender = () => {
+  const pickBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // so picking the same file again still fires
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setBgError('That file is not an image.');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setBgError('Image is too big, keep it under 15 MB.');
+      return;
+    }
+    setBgError(null);
+    setCustomBg(URL.createObjectURL(file));
+  };
+
+  const saveRender = async () => {
     const canvas = document.querySelector<HTMLCanvasElement>('#fit-showcase canvas');
     if (!canvas || !profile) return;
+    let out = canvas;
+    if (customBg) {
+      // The 3D canvas is transparent, so put the background behind it, cropped like the page does (cover)
+      const bg = new Image();
+      bg.src = customBg;
+      try {
+        await bg.decode();
+        out = document.createElement('canvas');
+        out.width = canvas.width;
+        out.height = canvas.height;
+        const ctx = out.getContext('2d')!;
+        const scale = Math.max(out.width / bg.naturalWidth, out.height / bg.naturalHeight);
+        const w = bg.naturalWidth * scale;
+        const h = bg.naturalHeight * scale;
+        ctx.drawImage(bg, (out.width - w) / 2, (out.height - h) / 2, w, h);
+        ctx.drawImage(canvas, 0, 0);
+      } catch {
+        out = canvas;
+      }
+    }
     const link = document.createElement('a');
     link.download = `${profile.name}-fit.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = out.toDataURL('image/png');
     link.click();
   };
 
@@ -268,7 +310,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
         <div className="space-y-4">
           <div className="flex flex-col xl:flex-row gap-6 items-start justify-center">
             <div id="fit-showcase" className="w-full xl:w-[690px] flex-shrink-0">
-              <InGameFitShowcase profile={profile} inventory={inventory} catalog={catalog} overrides={overrides} onInspectItem={onInspectItem} />
+              <InGameFitShowcase profile={profile} inventory={inventory} catalog={catalog} overrides={overrides} background={customBg} onInspectItem={onInspectItem} />
             </div>
 
             {/* Combo builder */}
@@ -333,7 +375,8 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-2">
+          {bgError && <p className="text-center text-xs text-rose-300">{bgError}</p>}
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={saveRender}
               className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
@@ -341,6 +384,23 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
               <Download className="w-3.5 h-3.5" />
               <span>Save render</span>
             </button>
+            <input ref={bgInputRef} type="file" accept="image/*" onChange={pickBackground} className="hidden" />
+            <button
+              onClick={() => bgInputRef.current?.click()}
+              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+            >
+              <ImagePlus className="w-3.5 h-3.5" />
+              <span>{customBg ? 'Change background' : 'Custom background'}</span>
+            </button>
+            {customBg && (
+              <button
+                onClick={() => setCustomBg(null)}
+                title="Remove custom background"
+                className="btn-interactive flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold text-slate-400 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
             <button
               onClick={copyLink}
               className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"

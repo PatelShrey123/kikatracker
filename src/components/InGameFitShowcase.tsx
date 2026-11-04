@@ -26,6 +26,8 @@ interface InGameFitShowcaseProps {
   inventory: UserInventoryItem[];
   catalog?: any[];
   overrides?: FitOverrides;
+  /** Image URL shown behind the character instead of the default backdrop */
+  background?: string | null;
   onInspectItem?: (name: string, type?: string, amount?: number, textureUrl?: string | null) => void;
 }
 
@@ -102,7 +104,7 @@ function loadCharacterTexture(url: string): Promise<THREE.Texture | null> {
   });
 }
 
-export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, inventory, catalog = [], overrides = {}, onInspectItem }) => {
+export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, inventory, catalog = [], overrides = {}, background = null, onInspectItem }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pose, setPose] = useState<FitPose>('pose1');
   const [loading, setLoading] = useState(true);
@@ -172,14 +174,31 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio * 2, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
+    // Lit like a studio shot rather than a flat ambient wash: sky/ground fill so block tops are
+    // brighter than undersides, a key from the right that casts real shadows (gun on chest, arms
+    // on body), a soft fill from the left, and a cool rim from behind to lift the silhouette off
+    // the blue background.
     const scene = new THREE.Scene();
-    scene.add(new THREE.AmbientLight(0xffffff, 1.9));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
-    keyLight.position.set(1.5, 3, 4);
+    scene.add(new THREE.HemisphereLight(0xe8eeff, 0x2b3150, 1.4));
+    const keyLight = new THREE.DirectionalLight(0xfff4e8, 2.6);
+    keyLight.position.set(3.6, 4, 3.6);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    Object.assign(keyLight.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 20 });
+    keyLight.shadow.bias = -0.0005;
+    keyLight.shadow.normalBias = 0.03;
     scene.add(keyLight);
+    const fillLight = new THREE.DirectionalLight(0xc9d6ff, 0.45);
+    fillLight.position.set(-4, 2, 3);
+    scene.add(fillLight);
+    const rimLight = new THREE.DirectionalLight(0x9db8ff, 2.2);
+    rimLight.position.set(-2.5, 3.5, -5);
+    scene.add(rimLight);
 
     // Orthographic camera like the kirka.io lobby
     const frustumHeight = 4.1;
@@ -219,10 +238,21 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
     );
     shadow.rotation.x = -Math.PI / 2;
     shadow.position.y = 0.28;
+    shadow.material.opacity = 0.7;
+
+    // Invisible floor that only shows the key light's shadow, under the soft contact blob
+    const shadowCatcher = new THREE.Mesh(
+      new THREE.PlaneGeometry(6, 6),
+      new THREE.ShadowMaterial({ color: 0x0a0e1a, opacity: 0.35 })
+    );
+    shadowCatcher.rotation.x = -Math.PI / 2;
+    shadowCatcher.position.y = 0.281;
+    shadowCatcher.receiveShadow = true;
 
     // Turntable: drag to spin the character
     const turntable = new THREE.Group();
     turntable.add(shadow);
+    turntable.add(shadowCatcher);
     scene.add(turntable);
     let dragging = false;
     let lastX = 0;
@@ -292,6 +322,8 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
           const mesh = child as THREE.Mesh;
           if (!mesh.isMesh) return;
           mesh.frustumCulled = false;
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
           mesh.material = new THREE.MeshStandardMaterial({
             map: charTexture,
             color: charTexture ? 0xffffff : 0x2a3148,
@@ -316,6 +348,8 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
         weaponModel.traverse((child) => {
           const mesh = child as THREE.Mesh;
           if (!mesh.isMesh) return;
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
           mesh.material = new THREE.MeshStandardMaterial({
             map: weaponTexture,
             color: weaponTexture ? 0xffffff : 0x4b5468,
@@ -358,6 +392,8 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
       shadowTex.dispose();
+      shadowCatcher.geometry.dispose();
+      (shadowCatcher.material as THREE.Material).dispose();
       renderer.dispose();
     };
     // pose changes are applied through sceneApiRef without rebuilding the scene
@@ -378,7 +414,11 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
     <div className="w-full max-w-[690px] mx-auto rounded-md overflow-hidden select-none shadow-2xl border border-[#2c3653]" style={{ fontFamily: '"Exo 2", Outfit, Inter, system-ui, sans-serif' }}>
       <div
         className="relative w-full h-[440px] sm:h-[620px]"
-        style={{ background: 'radial-gradient(ellipse at 50% 45%, #2a3450 0%, #222a42 55%, #1c2338 100%)' }}
+        style={
+          background
+            ? { backgroundImage: `url("${background}")`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#1c2338' }
+            : { background: 'radial-gradient(ellipse at 50% 45%, #2a3450 0%, #222a42 55%, #1c2338 100%)' }
+        }
       >
         {/* Level + name banner */}
         <div className="absolute top-8 sm:top-[78px] inset-x-0 z-10 flex items-center justify-center gap-2 pointer-events-none px-4">
