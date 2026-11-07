@@ -395,7 +395,11 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                       loading="lazy"
                       onError={(e) => {
                         const target = e.currentTarget;
-                        if (!target.dataset.fallback) {
+                        const cleanSkin = (item.name || '').replace(/^_+/, '').trim();
+                        if (!target.dataset.fallbackApi2 && cleanSkin) {
+                          target.dataset.fallbackApi2 = 'true';
+                          target.src = `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanSkin)}`;
+                        } else if (!target.dataset.fallback) {
                           target.dataset.fallback = 'true';
                           if (isChar) {
                             target.src = 'https://kirka.io/assets/img/render.b8016858.png';

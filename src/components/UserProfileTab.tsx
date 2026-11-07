@@ -556,12 +556,16 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                         alt={profile.activeBodySkin.name}
                         className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
                         onError={(e) => {
-                          const target = e.currentTarget;
-                          if (!target.dataset.fallback) {
-                            target.dataset.fallback = 'true';
-                            target.src = 'https://kirka.io/assets/img/render.b8016858.png';
-                          }
-                        }}
+                        const target = e.currentTarget;
+                        const cleanSkin = (profile.activeBodySkin?.name || '').replace(/^_+/, '').trim();
+                        if (!target.dataset.fallbackApi2 && cleanSkin) {
+                          target.dataset.fallbackApi2 = 'true';
+                          target.src = `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanSkin)}`;
+                        } else if (!target.dataset.fallback) {
+                          target.dataset.fallback = 'true';
+                          target.src = 'https://kirka.io/assets/img/render.b8016858.png';
+                        }
+                      }}
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center text-slate-600 opacity-20">
@@ -797,8 +801,9 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                                 const target = e.currentTarget;
                                 if (!target.dataset.fallback) {
                                   target.dataset.fallback = 'true';
-                                  if (item.type === 'BODY_SKIN') {
-                                    target.src = 'https://kirka.io/assets/img/render.b8016858.png';
+                                  const cleanSkin = (item.name || '').replace(/^_+/, '').trim();
+                                    if (item.type === 'BODY_SKIN') {
+                                      target.src = `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanSkin)}`;
                                   } else {
                                     target.src = getBaseWeaponRender(item.parent?.name || item.type);
                                   }

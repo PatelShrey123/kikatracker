@@ -308,8 +308,12 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                         onError={(e) => {
                           const target = e.currentTarget;
                           const isChar = (item.type || '').toLowerCase() === 'character';
+                          const cleanSkin = (item.skinName || '').replace(/^_+/, '').trim();
 
-                          if (!target.dataset.triedFallback) {
+                          if (!target.dataset.triedApi2 && cleanSkin) {
+                            target.dataset.triedApi2 = 'true';
+                            target.src = `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanSkin)}`;
+                          } else if (!target.dataset.triedFallback) {
                             target.dataset.triedFallback = 'true';
                             if (isChar) {
                               target.src = 'https://kirka.io/assets/img/render.b8016858.png';

@@ -16,7 +16,7 @@ interface SkinPickerProps {
   disabled?: boolean;
 }
 
-const MAX_VISIBLE = 200;
+const MAX_VISIBLE = 1500;
 
 // Searchable dropdown for catalogs with hundreds of skins
 export const SkinPicker: React.FC<SkinPickerProps> = ({ label, options, value, onChange, disabled }) => {

@@ -214,9 +214,7 @@ export function getSkinRenderUrl(itemOrName: any): string {
   );
   if (isChar || ownWeapon === 'CHARACTER' || cachedWeapon === 'CHARACTER') {
     if (cleanName) {
-      const safeName = cleanName.replace(/[^a-zA-Z0-9_-]/g, '_');
-      const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-      return `${base}/renders/characters/${safeName}.png`;
+      return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
     }
     return 'https://kirka.io/assets/img/render.b8016858.png';
   }

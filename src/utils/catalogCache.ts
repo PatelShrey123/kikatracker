@@ -2,7 +2,7 @@
 // Stores renderUrl and textureUrl locally in user's browser (localStorage / IndexedDB)
 // Avoids repeated API hits and never stores private data in the GitHub repo!
 
-const CACHE_KEY = 'kikatracker_catalog_cache_v4';
+const CACHE_KEY = 'kikatracker_catalog_cache_v5';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 Hours
 
 export interface CachedItem {
