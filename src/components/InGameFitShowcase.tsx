@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { Crosshair, Loader2 } from 'lucide-react';
+import { Crosshair, Loader2, Minus, Plus } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import {
   getProxiedTextureUrl,
@@ -113,7 +113,22 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
   const containerRef = useRef<HTMLDivElement>(null);
   const [pose, setPose] = useState<FitPose>('pose1');
   const [loading, setLoading] = useState(true);
-  const sceneApiRef = useRef<{ setPose: (pose: FitPose) => void } | null>(null);
+  const [weaponScale, setWeaponScale] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('kikatracker_fit_weapon_scale');
+      if (saved) {
+        const parsed = parseFloat(saved);
+        if (Number.isFinite(parsed) && parsed >= 0.4 && parsed <= 2.0) return parsed;
+      }
+    } catch {}
+    return 1.0;
+  });
+  const weaponScaleRef = useRef<number>(weaponScale);
+  weaponScaleRef.current = weaponScale;
+  const sceneApiRef = useRef<{
+    setPose: (pose: FitPose) => void;
+    setWeaponScale: (multiplier: number) => void;
+  } | null>(null);
 
   // 1. Equipped character skin texture
   const charTextureUrl = useMemo(() => {
@@ -299,7 +314,15 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
       currentPose = target;
       attachWeapon(target);
     };
-    sceneApiRef.current = { setPose: applyPose };
+    const applyWeaponScale = (multiplier: number) => {
+      if (!weapon) return;
+      const baseScale = WEAPON_SCALE[modelFile] ?? 3;
+      const currentScale = baseScale * multiplier;
+      weapon.scale.setScalar(currentScale);
+      const lever = weapon.getObjectByName('Lever');
+      if (lever) weapon.position.copy(lever.position).multiplyScalar(-currentScale);
+    };
+    sceneApiRef.current = { setPose: applyPose, setWeaponScale: applyWeaponScale };
 
     const primary = loadout.primary;
     const weaponName = cleanName(primary?.parent?.name) || 'SCAR';
@@ -363,10 +386,11 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
             side: THREE.DoubleSide,
           });
         });
-        const scale = WEAPON_SCALE[modelFile] ?? 3;
+        const baseScale = WEAPON_SCALE[modelFile] ?? 3;
+        const initialScale = baseScale * weaponScaleRef.current;
         const lever = weaponModel.getObjectByName('Lever');
-        weaponModel.scale.setScalar(scale);
-        if (lever) weaponModel.position.copy(lever.position).multiplyScalar(-scale);
+        weaponModel.scale.setScalar(initialScale);
+        if (lever) weaponModel.position.copy(lever.position).multiplyScalar(-initialScale);
         weapon = weaponModel;
 
         const initial = actions[currentPose];
@@ -409,6 +433,17 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
     sceneApiRef.current?.setPose(next);
   };
 
+  const changeWeaponScale = (next: number) => {
+    const rounded = Math.round(next * 100) / 100;
+    const clamped = Math.max(0.5, Math.min(1.6, rounded));
+    setWeaponScale(clamped);
+    weaponScaleRef.current = clamped;
+    sceneApiRef.current?.setWeaponScale(clamped);
+    try {
+      localStorage.setItem('kikatracker_fit_weapon_scale', clamped.toString());
+    } catch {}
+  };
+
   const slots: { label: string; item: LoadoutItem | null }[] = [
     { label: 'Primary', item: loadout.primary },
     { label: 'Secondary', item: loadout.secondary },
@@ -436,6 +471,71 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
         </div>
 
         <div ref={containerRef} className="absolute inset-0 cursor-grab active:cursor-grabbing" />
+
+        {/* Gun size controls */}
+        <div
+          className="absolute top-3 left-3 z-10 flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-1 rounded border border-white/10 text-xs font-mono select-none"
+          data-html2canvas-ignore
+        >
+          <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mr-0.5">Gun</span>
+          <button
+            type="button"
+            title="Shrink gun (-10%)"
+            onClick={() => changeWeaponScale(weaponScale - 0.1)}
+            className="w-5 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/20 text-slate-300 hover:text-white transition cursor-pointer"
+          >
+            <Minus className="w-3 h-3" />
+          </button>
+          <button
+            type="button"
+            title="Reset gun size (100%)"
+            onClick={() => changeWeaponScale(1.0)}
+            className="px-1 py-0.5 text-[11px] font-bold text-[#f5a623] hover:underline cursor-pointer min-w-[34px] text-center"
+          >
+            {Math.round(weaponScale * 100)}%
+          </button>
+          <button
+            type="button"
+            title="Enlarge gun (+10%)"
+            onClick={() => changeWeaponScale(weaponScale + 0.1)}
+            className="w-5 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/20 text-slate-300 hover:text-white transition cursor-pointer"
+          >
+            <Plus className="w-3 h-3" />
+          </button>
+
+          <div className="h-3 w-px bg-white/20 mx-0.5" />
+
+          <button
+            type="button"
+            title="Slim size (75%)"
+            onClick={() => changeWeaponScale(0.75)}
+            className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition cursor-pointer ${
+              Math.abs(weaponScale - 0.75) < 0.04 ? 'bg-[#f5a623] text-[#1a2031]' : 'bg-black/20 text-slate-300 hover:text-white'
+            }`}
+          >
+            Slim
+          </button>
+          <button
+            type="button"
+            title="Default size (100%)"
+            onClick={() => changeWeaponScale(1.0)}
+            className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition cursor-pointer ${
+              Math.abs(weaponScale - 1.0) < 0.04 ? 'bg-[#f5a623] text-[#1a2031]' : 'bg-black/20 text-slate-300 hover:text-white'
+            }`}
+          >
+            Default
+          </button>
+          <button
+            type="button"
+            title="Chunky size (125%)"
+            onClick={() => changeWeaponScale(1.25)}
+            className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition cursor-pointer ${
+              Math.abs(weaponScale - 1.25) < 0.04 ? 'bg-[#f5a623] text-[#1a2031]' : 'bg-black/20 text-slate-300 hover:text-white'
+            }`}
+          >
+            Chunky
+          </button>
+        </div>
 
         {/* Pose switcher */}
         <div className="absolute top-3 right-3 z-10 flex gap-1" data-html2canvas-ignore>
