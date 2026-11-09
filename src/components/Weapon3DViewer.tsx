@@ -219,7 +219,9 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0.1, 1.75); // Pre-zoomed weapon view
+    // Pre-zoomed weapon view, framed for a 2:1 stage. A narrower stage backs off to keep the same
+    // width in view, or a long gun's barrel and stock run off the sides.
+    camera.position.set(0, 0.1, 1.75 * Math.max(1, 2 / (width / height)));
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({

@@ -549,12 +549,12 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                     )}
                   </div>
 
-                  <div className="w-full h-24 flex items-center justify-center my-3 relative">
+                  <div className="w-full h-64 flex items-center justify-center my-3 relative">
                     {profile.activeBodySkin && getItemRenderUrl(profile.activeBodySkin) ? (
                       <img
                         src={getItemRenderUrl(profile.activeBodySkin) || ''}
                         alt={profile.activeBodySkin.name}
-                        className="max-h-20 max-w-full object-contain filter drop-shadow-lg"
+                        className="max-h-60 max-w-full object-contain filter drop-shadow-lg"
                         onError={(e) => {
                         const target = e.currentTarget;
                         const cleanSkin = (profile.activeBodySkin?.name || '').replace(/^_+/, '').trim();
@@ -625,12 +625,12 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                     )}
                   </div>
 
-                  <div className="w-full h-24 flex items-center justify-center my-3 relative">
+                  <div className="w-full h-64 flex items-center justify-center my-3 relative">
                     {profile.activeWeapon1Skin && getItemRenderUrl(profile.activeWeapon1Skin) ? (
                       <img
                         src={getItemRenderUrl(profile.activeWeapon1Skin) || ''}
                         alt={profile.activeWeapon1Skin.name}
-                        className="max-h-20 max-w-full object-contain filter drop-shadow-lg"
+                        className="max-h-60 max-w-full object-contain filter drop-shadow-lg"
                         onError={(e) => {
                           const target = e.currentTarget;
                           if (!target.dataset.fallback) {
@@ -790,13 +790,13 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                           x{invItem.amount}
                         </span>
 
-                        <div className="w-full h-24 flex items-center justify-center my-3 relative">
+                        <div className="w-full h-44 flex items-center justify-center my-3 relative">
                           {renderUrl ? (
                             <img
                               src={renderUrl}
                               alt={item.name}
                               loading="lazy"
-                              className="max-h-20 max-w-full object-contain filter drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+                              className="max-h-40 max-w-full object-contain filter drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
                                 const target = e.currentTarget;
                                 if (!target.dataset.fallback) {

@@ -607,18 +607,18 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-28 sm:h-24 bg-obsidian-deep/50 border border-slate-800 flex items-center justify-center p-1 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-full max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <span className="text-[15px] font-bold text-white block leading-tight mb-1">{item.name}</span>
                       <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
-                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                        <span className={`text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[13px] font-mono font-bold text-gold-bright">
                           {item.price > 0 ? formatValue(item.price) : 'no price'}
                         </span>
                       </div>
@@ -668,18 +668,18 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-28 sm:h-24 bg-obsidian-deep/50 border border-slate-800 flex items-center justify-center p-1 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-full max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <span className="text-[15px] font-bold text-white block leading-tight mb-1">{item.name}</span>
                       <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
-                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                        <span className={`text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[13px] font-mono font-bold text-gold-bright">
                           {item.price > 0 ? formatValue(item.price) : 'no price'}
                         </span>
                       </div>
@@ -765,18 +765,18 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-28 sm:h-24 bg-obsidian-deep/50 border border-slate-800 flex items-center justify-center p-1 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-full max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <span className="text-[15px] font-bold text-white block leading-tight mb-1">{item.name}</span>
                       <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
-                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                        <span className={`text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[13px] font-mono font-bold text-gold-bright">
                           {item.price > 0 ? formatValue(item.price) : 'no price'}
                         </span>
                       </div>
@@ -826,18 +826,18 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all duration-200 hover:scale-[1.01] ${item.rar.border}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-28 sm:h-24 bg-obsidian-deep/50 border border-slate-800 flex items-center justify-center p-1 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-full max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-white block leading-none mb-1">{item.name}</span>
+                      <span className="text-[15px] font-bold text-white block leading-tight mb-1">{item.name}</span>
                       <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                        <span className={`text-[8px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded border border-current ${item.rar.color}`}>{item.rar.name}</span>
-                        <span className="text-[9px] font-mono font-bold text-gold-bright">
+                        <span className={`text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 border border-current ${item.rar.color}`}>{item.rar.name}</span>
+                        <span className="text-[13px] font-mono font-bold text-gold-bright">
                           {item.price > 0 ? formatValue(item.price) : 'no price'}
                         </span>
                       </div>
