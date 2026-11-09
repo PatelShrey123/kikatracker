@@ -61,7 +61,7 @@ const ClanMemberCard: React.FC<{
       onClick={() => onSelectPlayer(member.user.id, false)}
       className={`group cursor-pointer flex items-center justify-between p-4 rounded-md border transition-all duration-300 select-none ${
         vip
-          ? 'bg-[#130b24]/60 border-purple-500/40 hover:border-purple-400 hover:'
+          ? 'bg-obsidian-card border-purple-500/40 hover:border-purple-400 hover:'
           : isLeader
           ? 'bg-red-500/5 border-red-500/25 hover:border-red-500/55 hover:'
           : isOfficer
@@ -77,14 +77,14 @@ const ClanMemberCard: React.FC<{
             : isLeader
             ? 'bg-red-950/80 border-red-500/40 text-red-400'
             : isOfficer
-            ? 'bg-[#29220c]/80 border-gold-primary/40 text-gold-bright'
+            ? 'bg-obsidian-card border-gold-primary/40 text-gold-bright'
             : 'bg-obsidian-deep border-slate-800 text-slate-400'
         }`}>
           {croppedAvatarUrl ? (
             <img
               src={croppedAvatarUrl}
               alt={member.user.name}
-              className="w-7.5 h-7.5 object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+              className="w-7.5 h-7.5 object-contain filter drop-shadow-lg"
             />
           ) : (
             /* Retro pixelated block head profile photo fallback */
@@ -252,7 +252,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
           /* Roster presentation page */
           <div className="space-y-8 select-text">
             {/* Header info bar */}
-            <div className="bg-gradient-to-br from-obsidian-card to-[#12141D] border border-obsidian-border rounded-md p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+            <div className="bg-obsidian-card border border-obsidian-border rounded-md p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-gold-bright uppercase tracking-widest bg-gold-primary/10 border border-gold-primary/25 px-2.5 py-0.5 rounded font-mono w-fit block">
                   ACTIVE CLAN REGISTRY
@@ -282,7 +282,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
             </div>
 
             {/* Performance Stats Panel */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-[#090A0F]/65 p-4 rounded-md border border-obsidian-border/60 text-xs font-mono text-slate-500">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-obsidian-card p-4 rounded-md border border-obsidian-border/60 text-xs font-mono text-slate-500">
               <div className="px-2">
                 <span className="block text-[9px] uppercase tracking-wider">Championship Score</span>
                 <strong className="text-gold-bright text-lg font-black mt-0.5 block">
@@ -345,7 +345,7 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl text-[#EDEDED] flex items-center gap-3">
+          <h2 className="text-2xl sm:text-3xl text-slate-100 flex items-center gap-3">
             <Users className="w-7 h-7 text-spray-cyan shrink-0" />
             <span>Clans <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>Hub</span></span>
           </h2>
@@ -387,10 +387,10 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
               <div
                 key={clan.clanId}
                 onClick={() => onSelectClan(clan.name)}
-                className="card-interactive group cursor-pointer bg-gradient-to-br from-obsidian-card to-[#141621] hover:to-[#191c2b] border border-obsidian-border hover:border-gold-primary/20 p-5 rounded-md relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] overflow-hidden"
+                className="card-interactive group cursor-pointer bg-obsidian-card hover:to-obsidian-hover border border-obsidian-border hover:border-gold-primary/20 p-5 rounded-md relative shadow-sm hover:shadow-lg overflow-hidden"
               >
                 {/* Gold Glow hover lines */}
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-primary to-gold-bright scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300" />
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gold-primary scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300" />
                 
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
@@ -399,12 +399,12 @@ export const ClansSection: React.FC<ClansSectionProps> = ({
                       {clan.name}
                     </h3>
                   </div>
-                  <span className="text-[10px] font-mono font-bold bg-[#090A0F]/70 text-gold-bright border border-gold-primary/20 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-mono font-bold bg-obsidian-card text-gold-bright border border-gold-primary/20 px-2 py-0.5 rounded">
                     CLAN
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4 bg-[#090A0F]/45 p-3 rounded-md border border-obsidian-border/50 text-xs font-mono text-slate-400">
+                <div className="grid grid-cols-2 gap-4 mt-4 bg-obsidian-card p-3 rounded-md border border-obsidian-border/50 text-xs font-mono text-slate-400">
                   <div>
                     <span className="text-[9px] text-slate-500 block uppercase mb-0.5">Members</span>
                     <span className="font-bold text-white text-sm">{clan.membersCount} / 100</span>

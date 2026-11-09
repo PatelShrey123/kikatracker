@@ -19,6 +19,8 @@ interface RendersSectionProps {
   marketPrices: Map<string, MarketItem>;
   fallbackRenders: Record<string, any>;
   allItemData?: any[];
+  /** Open straight into this skin's full-screen 3D view. */
+  openItem?: any | null;
 }
 
 const WEAPON_CATEGORIES = [
@@ -54,8 +56,9 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
   marketPrices = new Map(),
   fallbackRenders = {},
   allItemData = [],
+  openItem = null,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(openItem?.name ?? '');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedRarity, setSelectedRarity] = useState('ALL');
   const [visibleCount, setVisibleCount] = useState(24);
@@ -63,8 +66,8 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
   const [isCachedSource, setIsCachedSource] = useState(false);
 
   // Full-Screen 3D Maximizer / Theater State
-  const [maximizedItem, setMaximizedItem] = useState<any | null>(null);
-  const [maximizedIndex, setMaximizedIndex] = useState<number>(-1);
+  const [maximizedItem, setMaximizedItem] = useState<any | null>(openItem);
+  const [maximizedIndex, setMaximizedIndex] = useState<number>(openItem ? 0 : -1);
 
   // 1. Sync & Cache Catalog in Browser Storage
   useEffect(() => {
@@ -255,7 +258,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
       {/* Top Banner Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
         <div>
-          <h1 className="display text-2xl sm:text-3xl text-[#EDEDED]">
+          <h1 className="display text-2xl sm:text-3xl text-slate-100">
             3D <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>renders</span>
           </h1>
           <p className="text-[13px] text-slate-400 mt-2 max-w-[60ch]">
@@ -299,7 +302,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
 
         {/* Search Bar & Rarity Dropdown */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
-          <div className="flex items-center bg-black/50 border border-white/10 rounded-md px-3 py-2 w-full sm:w-80 focus-within:border-cyan-400 transition-all shadow-inner">
+          <div className="flex items-center bg-obsidian-dark border border-white/10 rounded-md px-3 py-2 w-full sm:w-80 focus-within:border-cyan-400 transition-all shadow-inner">
             <Search className="w-4 h-4 text-slate-400 mr-2.5" />
             <input
               type="text"
@@ -321,7 +324,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                 setSelectedRarity(e.target.value);
                 setVisibleCount(24);
               }}
-              className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-xs font-mono text-slate-200 outline-none cursor-pointer hover:border-white/20 transition-all"
+              className="bg-obsidian-dark border border-white/10 rounded-md px-3 py-2 text-xs font-mono text-slate-200 outline-none cursor-pointer hover:border-white/20 transition-all"
             >
               <option value="ALL">All Rarities</option>
               <option value="MYTHICAL">Mythical (Red)</option>
@@ -362,7 +365,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
               <div
                 key={`${item.name}-${weaponType}-${idx}`}
                 onClick={() => handleOpenMaximizer(item, idx)}
-                className={`group relative rounded-md border ${rarityStyle.border} bg-gradient-to-b from-[#0e121a]/90 to-[#07090e]/95 p-4 flex flex-col justify-between transition-all duration-300 hover:scale-102 hover:shadow-2xl cursor-pointer overflow-hidden backdrop-blur-sm`}
+                className={`group relative rounded-md border ${rarityStyle.border} bg-obsidian-card p-4 flex flex-col justify-between transition-all duration-300 hover:scale-102 hover:shadow-2xl cursor-pointer overflow-hidden backdrop-blur-sm`}
                 style={{
                   boxShadow: `0 4px 20px -2px ${rarityStyle.glow}`,
                 }}
@@ -391,7 +394,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                     <img
                       src={renderUrl}
                       alt={item.name}
-                      className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] group-hover:scale-115 transition-transform duration-500 ease-out"
+                      className="max-h-full max-w-full object-contain filter drop-shadow-lg group-hover:scale-115 transition-transform duration-500 ease-out"
                       loading="lazy"
                       onError={(e) => {
                         const target = e.currentTarget;
@@ -421,7 +424,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
                   )}
 
                   {/* Hover "Launch 3D Theater" overlay pill */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-opacity duration-300 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-obsidian-dark opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-opacity duration-300 flex items-center justify-center">
                     <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-md bg-cyan-500 text-black font-mono font-bold text-xs shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                       <Maximize2 className="w-3.5 h-3.5" />
                       <span>Launch 3D Theater</span>
@@ -469,7 +472,7 @@ export const RendersSection: React.FC<RendersSectionProps> = ({
       {/* FULL-SCREEN / FULL-PAGE 3D THEATER MAXIMIZER OVERLAY */}
       {/* ===================================================================== */}
       {maximizedItem && (
-        <div className="fixed inset-0 z-50 bg-[#04060a]/95 backdrop-blur-xl flex flex-col animate-in fade-in duration-200">
+        <div className="night fixed inset-0 z-50 bg-[var(--stage)] flex flex-col animate-in fade-in duration-200">
           {/* Top Theater Header Bar */}
           <div className="flex items-center justify-between px-6 py-3 border-b border-white/10 bg-black/60 z-20 flex-shrink-0">
             {/* Left: Skin Details */}

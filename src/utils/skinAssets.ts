@@ -118,30 +118,17 @@ export function getBaseWeaponRender(weaponType?: string | null): string {
   return BASE_WEAPON_RENDERS[normalized] || `${import.meta.env.BASE_URL}render-mini.webp`;
 }
 
-export function isPlaceholderUrl(url: string | null | undefined, weaponType?: string | null): boolean {
+export function isPlaceholderUrl(url: string | null | undefined, _weaponType?: string | null): boolean {
   if (!url || typeof url !== 'string') return true;
   const t = url.trim();
   if (t === '' || t === 'https://kirka.io' || t === 'https://kirka.io/' || t === '/render') return true;
   if (t.endsWith('/render-mini.webp') || t === 'render-mini.webp') return true;
   if (t.includes('render.0e1d4800') || t.includes('render.d8456ef7')) return true;
   if (t.includes('__questions__')) return true;
-  // Shark render hash (render-mini.0ec8ea84.webp) is mistakenly applied to 645 non-Shark skins in Kirka API!
-  if (t.includes('render-mini.0ec8ea84') || t.includes('0ec8ea84')) {
-    const w = (weaponType || '').trim().toUpperCase();
-    if (w !== 'SHARK') return true;
-  }
-  return false;
-}
-
-// Kirka's catalog sometimes points a skin at another weapon's base render as a stand-in: 48 skins
-// across Bayonet, VITA, MAC-10, character and more are served the base Shark image
-// (render-mini.0ec8ea84.webp). Showing a Shark for a Bayonet skin is worse than showing that
-// skin's own weapon, so treat "this is some other weapon's base render" as no art at all.
-function borrowedFromAnotherWeapon(url: string, weapon: string | null): boolean {
-  if (!url || !weapon) return false;
-  if (url.includes('render-mini.0ec8ea84') && weapon.toUpperCase() !== 'SHARK') {
-    return true;
-  }
+  // Kirka's catalog points about 900 skins at the plain Shark render (render-mini.0ec8ea84.webp) as a
+  // stand-in, 56 of them actual Shark skins, so even on a Shark it says nothing about what the skin
+  // looks like. The base Shark itself gets this image from BASE_WEAPON_RENDERS instead.
+  if (t.includes('0ec8ea84')) return true;
   return false;
 }
 
@@ -183,7 +170,7 @@ export function getSkinRenderUrl(itemOrName: any): string {
   }
 
   // 1. If valid renderUrl is provided, return direct CDN URL or local character render
-  if (cleaned && !isPlaceholderUrl(cleaned, ownWeapon) && !borrowedFromAnotherWeapon(cleaned, ownWeapon)) {
+  if (cleaned && !isPlaceholderUrl(cleaned, ownWeapon)) {
     return formatRenderPath(cleaned);
   }
 
@@ -197,8 +184,7 @@ export function getSkinRenderUrl(itemOrName: any): string {
           ? 'CHARACTER'
           : found.parent?.name || null;
         const foundClean = cleanTextureUrl(found.renderUrl);
-        const foundWeapon = cachedWeapon || ownWeapon;
-        if (foundClean && !isPlaceholderUrl(foundClean, foundWeapon) && !borrowedFromAnotherWeapon(foundClean, foundWeapon)) {
+        if (foundClean && !isPlaceholderUrl(foundClean)) {
           return formatRenderPath(foundClean);
         }
       }
@@ -219,11 +205,31 @@ export function getSkinRenderUrl(itemOrName: any): string {
     return 'https://kirka.io/assets/img/render.b8016858.png';
   }
 
-  // 4. Live api2 render endpoint fallback for weapons before generic base weapon\n  if (cleanName && (!ownWeapon || ownWeapon.toUpperCase() !== 'SHARK')) {\n    return https://api2.kirka.io/api/skin-render/;\n  }\n\n  // 5. Weapon skins fallback to base weapon model render
+  // 4. Kirka's own render for the skin, by name. Most skins with a stand-in in the catalog have one;
+  //    the few that don't return 404, which fallBackToBaseRender below deals with.
+  if (cleanName) {
+    return `https://api2.kirka.io/api/skin-render/${encodeURIComponent(cleanName)}`;
+  }
+
+  // 5. Weapon skins fallback to base weapon model render
   const weaponKey = (typeof itemOrName === 'object' ? (itemOrName.parent?.name || ownWeapon) : ownWeapon) || cachedWeapon;
   if (weaponKey) {
     return getBaseWeaponRender(weaponKey);
   }
 
   return `${import.meta.env.BASE_URL}render-mini.webp`;
+}
+
+/**
+ * onError for an <img> showing a skin render: Kirka has no render for a few skins, so show the plain
+ * weapon rather than a broken image. If that fails as well, hide it.
+ */
+export function fallBackToBaseRender(event: { currentTarget: HTMLImageElement }, weapon?: string | null): void {
+  const img = event.currentTarget;
+  if (img.dataset.fellBack) {
+    img.style.visibility = 'hidden';
+    return;
+  }
+  img.dataset.fellBack = 'true';
+  img.src = getBaseWeaponRender(weapon);
 }

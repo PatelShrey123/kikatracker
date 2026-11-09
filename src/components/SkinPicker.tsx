@@ -58,14 +58,14 @@ export const SkinPicker: React.FC<SkinPickerProps> = ({ label, options, value, o
           setQuery('');
           setOpen((o) => !o);
         }}
-        className="w-full flex items-center justify-between gap-2 bg-[#090A0F]/80 border border-obsidian-border hover:border-gold-primary/40 rounded-md px-3 py-2.5 text-sm text-left text-white disabled:opacity-50 cursor-pointer"
+        className="w-full flex items-center justify-between gap-2 bg-obsidian-card border border-obsidian-border hover:border-gold-primary/40 rounded-md px-3 py-2.5 text-sm text-left text-white disabled:opacity-50 cursor-pointer"
       >
         <span className="truncate">{selected ? selected.label : 'Select…'}</span>
         <ChevronDown className={`w-4 h-4 text-slate-500 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-1.5 w-full min-w-[220px] bg-[#0b0d14] border border-obsidian-border rounded-md shadow-2xl overflow-hidden">
+        <div className="absolute z-30 mt-1.5 w-full min-w-[220px] bg-obsidian-card border border-obsidian-border rounded-md shadow-2xl overflow-hidden">
           <div className="relative border-b border-slate-800">
             <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input

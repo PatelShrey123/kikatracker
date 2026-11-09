@@ -286,13 +286,13 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
                 if (error) setError(null);
               }}
               placeholder="#SHORTID or UUID"
-              className="w-full bg-[#090A0F]/80 border border-obsidian-border focus:border-gold-primary/50 outline-none rounded-md pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600"
+              className="w-full bg-obsidian-card border border-obsidian-border focus:border-gold-primary/50 outline-none rounded-md pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="btn-interactive px-5 py-2.5 rounded-md text-xs font-black uppercase tracking-wider bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep disabled:opacity-60"
+            className="btn-interactive px-5 py-2.5 rounded-md text-xs font-black uppercase tracking-wider bg-gold-primary text-obsidian-deep disabled:opacity-60"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Show Fit'}
           </button>
@@ -314,7 +314,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
             </div>
 
             {/* Combo builder */}
-            <div className="w-full xl:max-w-sm bg-[#0b0c13]/80 border border-obsidian-border rounded-md p-5 space-y-4">
+            <div className="w-full xl:max-w-sm bg-obsidian-card border border-obsidian-border rounded-md p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-wider text-white">Build a combo</h3>
@@ -325,7 +325,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
                     type="button"
                     onClick={randomize}
                     title="Random combo"
-                    className="p-2 rounded-md border border-white/10 bg-black/30 text-slate-400 hover:text-gold-bright cursor-pointer"
+                    className="p-2 rounded-md border border-white/10 bg-obsidian-dark text-slate-400 hover:text-gold-bright cursor-pointer"
                   >
                     <Shuffle className="w-3.5 h-3.5" />
                   </button>
@@ -333,7 +333,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
                     type="button"
                     onClick={() => setCombo(PLAYER_COMBO)}
                     title="Reset to player's fit"
-                    className="p-2 rounded-md border border-white/10 bg-black/30 text-slate-400 hover:text-white cursor-pointer"
+                    className="p-2 rounded-md border border-white/10 bg-obsidian-dark text-slate-400 hover:text-white cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
@@ -379,7 +379,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
           <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={saveRender}
-              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-obsidian-card border border-white/10"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Save render</span>
@@ -387,7 +387,7 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
             <input ref={bgInputRef} type="file" accept="image/*" onChange={pickBackground} className="hidden" />
             <button
               onClick={() => bgInputRef.current?.click()}
-              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-obsidian-card border border-white/10"
             >
               <ImagePlus className="w-3.5 h-3.5" />
               <span>{customBg ? 'Change background' : 'Custom background'}</span>
@@ -396,14 +396,14 @@ export const FitSection: React.FC<FitSectionProps> = ({ initialPlayerId, catalog
               <button
                 onClick={() => setCustomBg(null)}
                 title="Remove custom background"
-                className="btn-interactive flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold text-slate-400 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+                className="btn-interactive flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold text-slate-400 hover:text-white bg-obsidian-card border border-white/10"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
             <button
               onClick={copyLink}
-              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-[#1b1c26]/60 border border-white/10"
+              className="btn-interactive flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-slate-300 hover:text-white bg-obsidian-card border border-white/10"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Link2 className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copied' : 'Copy link'}</span>

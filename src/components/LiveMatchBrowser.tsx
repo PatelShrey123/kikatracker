@@ -126,8 +126,8 @@ export const LiveMatchBrowser: React.FC = () => {
               onClick={() => setActiveRegion(reg.id)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer ${
                 isSelected
-                  ? 'bg-slate-800 text-white font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  ? 'bg-obsidian-hover text-white font-semibold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-obsidian-dark'
               }`}
             >
               <span>{reg.flag}</span>
@@ -152,20 +152,20 @@ export const LiveMatchBrowser: React.FC = () => {
               placeholder="Filter by map name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#11131a] border border-slate-800 rounded px-8 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-slate-600 transition-colors"
+              className="w-full bg-obsidian-card border border-slate-800 rounded px-8 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-slate-600 transition-colors"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-[#11131a] border border-slate-800 rounded px-2.5 py-1.5">
+          <div className="flex items-center gap-1.5 bg-obsidian-card border border-slate-800 rounded px-2.5 py-1.5">
             <SlidersHorizontal className="w-3 h-3 text-slate-500" />
             <select
               value={selectedMode}
               onChange={(e) => setSelectedMode(e.target.value)}
               className="bg-transparent text-xs text-slate-300 outline-none border-0 ring-0 cursor-pointer"
             >
-              <option value="ALL" className="bg-[#11131a]">All Modes</option>
+              <option value="ALL" className="bg-obsidian-card">All Modes</option>
               {availableModes.map((mode) => (
-                <option key={mode} value={mode} className="bg-[#11131a]">
+                <option key={mode} value={mode} className="bg-obsidian-card">
                   {mode}
                 </option>
               ))}
@@ -191,7 +191,7 @@ export const LiveMatchBrowser: React.FC = () => {
           <button
             onClick={() => loadRooms(activeRegion, true)}
             disabled={loadingRooms}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-800 bg-obsidian-card hover:bg-slate-800 text-xs text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-40"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-800 bg-obsidian-card hover:bg-obsidian-hover text-xs text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-40"
           >
             <RefreshCw className={`w-3 h-3 ${loadingRooms ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -217,7 +217,7 @@ export const LiveMatchBrowser: React.FC = () => {
       ) : (
         <div className="border border-slate-800/80 rounded-md overflow-hidden bg-obsidian-card">
           {/* Table Header (hidden on mobile, visible on desktop) */}
-          <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-2.5 bg-slate-900/60 border-b border-slate-800 text-[11px] text-slate-400 font-medium">
+          <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-2.5 bg-obsidian-dark border-b border-slate-800 text-[11px] text-slate-400 font-medium">
             <div className="col-span-4">Map &amp; Mode</div>
             <div className="col-span-2">Status</div>
             <div className="col-span-3">Players</div>
@@ -233,7 +233,7 @@ export const LiveMatchBrowser: React.FC = () => {
               return (
                 <div
                   key={room.tag}
-                  className="p-3 sm:px-4 sm:py-3 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-3 items-center hover:bg-slate-900/30 transition-colors"
+                  className="p-3 sm:px-4 sm:py-3 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-3 items-center hover:bg-obsidian-dark transition-colors"
                 >
                   {/* Map & Mode */}
                   <div className="col-span-4 flex items-center gap-2.5 min-w-0">
@@ -259,7 +259,7 @@ export const LiveMatchBrowser: React.FC = () => {
                     <span className={`text-xs tabular-nums font-mono ${isFull ? 'text-red-400' : 'text-slate-300'}`}>
                       {room.players}/{room.maxPlayers}
                     </span>
-                    <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden shrink-0">
+                    <div className="w-16 h-1 bg-obsidian-hover rounded-full overflow-hidden shrink-0">
                       <div
                         className={`h-full ${isFull ? 'bg-red-400' : occupancy > 0.75 ? 'bg-amber-400' : 'bg-emerald-400'}`}
                         style={{ width: `${Math.min(100, Math.round(occupancy * 100))}%` }}
@@ -272,7 +272,7 @@ export const LiveMatchBrowser: React.FC = () => {
                     <button
                       onClick={() => handleCopyCode(room.tag)}
                       title="Copy server tag"
-                      className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                      className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-slate-400 hover:text-white hover:bg-obsidian-hover transition-colors cursor-pointer"
                     >
                       {copiedCode === room.tag ? (
                         <>
@@ -292,7 +292,7 @@ export const LiveMatchBrowser: React.FC = () => {
                       disabled={isFull}
                       className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
                         isFull
-                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+                          ? 'bg-obsidian-hover text-slate-500 cursor-not-allowed opacity-50'
                           : 'bg-white hover:bg-slate-200 text-black shadow-sm'
                       }`}
                     >

@@ -310,7 +310,7 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
         <div
-          className={`relative rounded-md border bg-gradient-to-b from-[#1b1e27] to-[#0d0f14] overflow-hidden aspect-[16/10] transition-colors ${dragging ? 'border-indigo-400' : 'border-white/10'}`}
+          className={`night relative rounded-md border-2 bg-[var(--stage)] overflow-hidden aspect-[16/10] transition-colors ${dragging ? 'border-indigo-400' : 'border-white/10'}`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => { e.preventDefault(); setDragging(false); pickFile(e.dataTransfer.files?.[0]); }}
@@ -322,27 +322,27 @@ export const ReloadLab: React.FC<ReloadLabProps> = ({ catalog }) => {
             </div>
           )}
           <div className="absolute left-3 bottom-3 right-3 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setPlaying((p) => !p)} className="px-3 py-2 rounded-md bg-black/50 border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
+            <button type="button" onClick={() => setPlaying((p) => !p)} className="px-3 py-2 rounded-md bg-obsidian-dark border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
               {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}{playing ? 'Pause' : 'Play'}
             </button>
-            <button type="button" onClick={restart} className="px-3 py-2 rounded-md bg-black/50 border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
+            <button type="button" onClick={restart} className="px-3 py-2 rounded-md bg-obsidian-dark border border-white/15 text-white text-sm font-semibold flex items-center gap-1.5">
               <RotateCcw className="w-4 h-4" />Restart
             </button>
             <div className="flex rounded-md overflow-hidden border border-white/15">
               {SPEEDS.map((sp) => (
-                <button key={sp} type="button" onClick={() => setSpeed(sp)} className={`px-3 py-2 text-sm font-semibold ${speed === sp ? 'bg-indigo-500 text-white' : 'bg-black/50 text-slate-300'}`}>
+                <button key={sp} type="button" onClick={() => setSpeed(sp)} className={`px-3 py-2 text-sm font-semibold ${speed === sp ? 'bg-indigo-500 text-white' : 'bg-obsidian-dark text-slate-300'}`}>
                   {sp === 1 ? '1×' : sp === 0.5 ? '½×' : '¼×'}
                 </button>
               ))}
             </div>
             <div className="flex rounded-md overflow-hidden border border-white/15">
               {(['hands', 'side'] as View[]).map((v) => (
-                <button key={v} type="button" onClick={() => setView(v)} className={`px-3 py-2 text-sm font-semibold ${view === v ? 'bg-indigo-500 text-white' : 'bg-black/50 text-slate-300'}`}>
+                <button key={v} type="button" onClick={() => setView(v)} className={`px-3 py-2 text-sm font-semibold ${view === v ? 'bg-indigo-500 text-white' : 'bg-obsidian-dark text-slate-300'}`}>
                   {v === 'hands' ? 'In hand' : 'Side'}
                 </button>
               ))}
             </div>
-            <span className="ml-auto font-mono text-xs text-slate-300 bg-black/50 rounded-md px-2 py-1 tabular-nums">
+            <span className="ml-auto font-mono text-xs text-slate-300 bg-obsidian-dark rounded-md px-2 py-1 tabular-nums">
               {time.t.toFixed(2)}s / {time.d.toFixed(2)}s
             </span>
           </div>

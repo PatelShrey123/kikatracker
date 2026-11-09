@@ -36,7 +36,7 @@ const Stat: React.FC<{ label: string; value: React.ReactNode; accent?: string }>
     <span className="block text-[11px] text-slate-500 mb-1.5">{label}</span>
     <span
       className="display block text-2xl sm:text-[28px] leading-none tabular-nums"
-      style={{ color: accent ?? '#EDEDED' }}
+      style={{ color: accent ?? 'var(--color-slate-100)' }}
     >
       {value}
     </span>
@@ -46,7 +46,7 @@ const Stat: React.FC<{ label: string; value: React.ReactNode; accent?: string }>
 /** Section heading with a sprayed edge, matching the cards elsewhere on the site. */
 const StatGroup: React.FC<{ title: string; can: string; children: React.ReactNode }> = ({ title, can, children }) => (
   <section>
-    <h3 className="display text-lg text-[#EDEDED] mb-3 pl-2.5 border-l-[3px]" style={{ borderColor: can }}>
+    <h3 className="display text-lg text-slate-100 mb-3 pl-2.5 border-l-[3px]" style={{ borderColor: can }}>
       {title}
     </h3>
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">{children}</div>
@@ -276,7 +276,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
       case 'RARE':
         return { card: 'skin-card bg-rarity-rare/[0.07] hover:bg-rarity-rare/[0.13] border-slate-800 border-t-[3px] border-t-rarity-rare', badge: 'border-rarity-rare/40 bg-rarity-rare/10 text-rarity-rare' };
       default:
-        return { card: 'skin-card bg-obsidian-card hover:bg-obsidian-hover border-slate-800 border-t-[3px] border-t-rarity-common', badge: 'border-slate-700 bg-slate-800/40 text-slate-400' };
+        return { card: 'skin-card bg-obsidian-card hover:bg-obsidian-hover border-slate-800 border-t-[3px] border-t-rarity-common', badge: 'border-slate-700 bg-obsidian-hover text-slate-400' };
     }
   };
 
@@ -319,7 +319,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
       </div>
 
       {/* Profile Header Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-obsidian-card to-[#161925] border border-obsidian-border rounded-md p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
+      <div className="relative overflow-hidden bg-obsidian-card border border-obsidian-border rounded-md p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
         {vipBackground && (
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <img 
@@ -327,8 +327,8 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
               alt="Custom Background" 
               className="w-full h-full object-cover opacity-35 filter brightness-95 contrast-125 scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f17] via-[#0d0f17]/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0d0f17]/80 via-transparent to-[#0d0f17]/80" />
+            <div className="absolute inset-0 bg-gradient-to-t from-obsidian-card via-obsidian-card to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-obsidian-card via-transparent to-obsidian-card" />
           </div>
         )}
         {/* Subtle background glow */}
@@ -352,18 +352,18 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                   src={croppedHeadUrl}
                   alt={profile.activeBodySkin?.name || profile.name}
                   onError={() => setAvatarError(true)}
-                  className="w-14 h-14 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [image-rendering:pixelated]"
+                  className="w-14 h-14 object-contain filter drop-shadow-lg [image-rendering:pixelated]"
                 />
               ) : profile.activeBodySkin && !avatarError ? (
                 <img
                   src={getItemRenderUrl(profile.activeBodySkin) || getSkinRenderUrl(profile.activeBodySkin)}
                   alt={profile.activeBodySkin.name}
                   onError={() => setAvatarError(true)}
-                  className="w-14 h-14 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                  className="w-14 h-14 object-contain filter drop-shadow-lg"
                 />
               ) : (
                 /* Classic Kirka Pixel Block Character Head Fallback */
-                <svg viewBox="0 0 8 8" className="w-14 h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] [image-rendering:pixelated]">
+                <svg viewBox="0 0 8 8" className="w-14 h-14 drop-shadow-lg [image-rendering:pixelated]">
                   {/* Base head skin tone */}
                   <rect width="8" height="8" fill="#f6c297" />
                   {/* Hair top & sides */}
@@ -434,7 +434,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
         </div>
 
         {/* Quick KLO / Stats Card */}
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 bg-[#090A0F]/85 border border-obsidian-border p-4 rounded-md">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 bg-obsidian-card border border-obsidian-border p-4 rounded-md">
           <div className="text-center px-4 border-r border-obsidian-border/50">
             <span className="text-[10px] text-slate-500 tracking-wider font-mono uppercase block">S&D Rating</span>
             <span className="text-lg font-bold text-white block mt-0.5">{profile.kloSAD ? profile.kloSAD.toFixed(1) : '—'}</span>
@@ -528,7 +528,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                       onInspectItem(profile.activeBodySkin.name, 'character', 1);
                     }
                   }}
-                  className="card-interactive bg-[#0b0c13] border border-obsidian-border/80 p-5 rounded-md flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
+                  className="card-interactive bg-obsidian-card border border-obsidian-border/80 p-5 rounded-md flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -545,7 +545,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                       )}
                     </div>
                     {profile.activeBodySkin && (
-                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-[#161825] px-2 py-1 rounded border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
+                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-obsidian-card px-2 py-1 rounded border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
                     )}
                   </div>
 
@@ -554,7 +554,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                       <img
                         src={getItemRenderUrl(profile.activeBodySkin) || ''}
                         alt={profile.activeBodySkin.name}
-                        className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                        className="max-h-20 max-w-full object-contain filter drop-shadow-lg"
                         onError={(e) => {
                         const target = e.currentTarget;
                         const cleanSkin = (profile.activeBodySkin?.name || '').replace(/^_+/, '').trim();
@@ -599,7 +599,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                       );
                     }
                   }}
-                  className="card-interactive bg-[#0b0c13] border border-obsidian-border/80 p-5 rounded-md flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
+                  className="card-interactive bg-obsidian-card border border-obsidian-border/80 p-5 rounded-md flex flex-col justify-between min-h-[220px] cursor-pointer hover:border-gold-primary/30 hover:shadow-gold-glow group"
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -621,7 +621,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                       )}
                     </div>
                     {profile.activeWeapon1Skin && (
-                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-[#161825] px-2 py-1 rounded border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
+                      <span className="text-[9px] font-mono text-slate-500 uppercase bg-obsidian-card px-2 py-1 rounded border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">Inspect</span>
                     )}
                   </div>
 
@@ -630,7 +630,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                       <img
                         src={getItemRenderUrl(profile.activeWeapon1Skin) || ''}
                         alt={profile.activeWeapon1Skin.name}
-                        className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                        className="max-h-20 max-w-full object-contain filter drop-shadow-lg"
                         onError={(e) => {
                           const target = e.currentTarget;
                           if (!target.dataset.fallback) {
@@ -707,7 +707,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
               <Database className="w-4 h-4 text-gold-primary" />
               <span>Kirka Inventory Valuation & Net Worth Calculator</span>
             </h2>
-            <div className="bg-gradient-to-r from-obsidian-card to-[#151825] border border-gold-primary/10 rounded-md p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-obsidian-card border border-gold-primary/10 rounded-md p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                 {/* Net Worth Block */}
                 <div className="flex items-center space-x-3">
@@ -740,7 +740,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
               <div className="flex items-center gap-3 self-start md:self-auto">
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright hover:shadow-gold-glow text-obsidian-deep px-4 py-2.5 rounded-md font-bold hover:scale-[1.02] transition-all cursor-pointer text-xs"
+                  className="flex items-center space-x-2 bg-gold-primary hover:shadow-gold-glow text-obsidian-deep px-4 py-2.5 rounded-md font-bold hover:scale-[1.02] transition-all cursor-pointer text-xs"
                 >
                   <Camera className="w-4 h-4" />
                   <span>Share Inventory</span>
@@ -786,7 +786,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                         )}
                         className={`relative flex flex-col justify-between border p-4.5 rounded-md cursor-pointer group ${rarityStyles.card}`}
                       >
-                        <span className="absolute top-3 right-3 bg-[#11131e]/90 border border-slate-800 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
+                        <span className="absolute top-3 right-3 bg-obsidian-card border border-slate-800 text-[9px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded-md select-none">
                           x{invItem.amount}
                         </span>
 
@@ -796,7 +796,7 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
                               src={renderUrl}
                               alt={item.name}
                               loading="lazy"
-                              className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300"
+                              className="max-h-20 max-w-full object-contain filter drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
                                 const target = e.currentTarget;
                                 if (!target.dataset.fallback) {

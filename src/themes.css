@@ -1,0 +1,282 @@
+/* =========================================================================
+   Theme candidates. Same layout, different print: each one overrides the tokens
+   from index.css on <html data-theme="...">. Preview with ?theme=name in the URL.
+   ========================================================================= */
+
+/* Field Ops: a dossier from a supply tent. Olive card stock, stencil lettering, a map grid
+   instead of dots, and a stamp where the comic has a burst. */
+[data-theme="fieldops"] {
+  --ink: #0B0D08;
+  --accent: #D9B648;
+  --on-accent: #14160E;
+  --fill-1: #B8481C;
+  --on-fill-1: #F3EDD6;
+  --fill-2: #55672C;
+  --on-fill-2: #F3EDD6;
+  --logo: #D9B648;
+  --stage: #1B1F16;
+  --h1-shadow: none;
+  --display-tracking: 0.05em;
+  --page-image: linear-gradient(rgba(200, 200, 150, 0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 200, 150, 0.35) 1px, transparent 1px);
+  --page-size: 48px 48px;
+  --page-opacity: 0.13;
+  --burst-clip: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+
+  --color-white: #F1EBD4;
+  --color-black: #000000;
+  --color-obsidian-deep: #191C13;
+  --color-obsidian-dark: #12140D;
+  --color-obsidian-card: #2A2F20;
+  --color-obsidian-hover: #3A412C;
+  --color-obsidian-border: var(--ink);
+  --color-slate-50: #F7F2DF;
+  --color-slate-100: #F1EBD4;
+  --color-slate-200: #E2DCC5;
+  --color-slate-300: #D3CDB5;
+  --color-slate-400: #BDB79F;
+  --color-slate-500: #A9A38A;
+  --color-slate-600: #969078;
+  --color-slate-700: #6B6D57;
+  --color-slate-800: var(--ink);
+  --color-slate-900: #1F2318;
+  --color-slate-950: #12140D;
+  --color-red-400: #F0805A;
+  --color-red-500: #B8481C;
+  --color-indigo-500: #55672C;
+  --color-indigo-400: #A9BC6A;
+  --color-rarity-mythic: #F0705A;
+  --color-rarity-rare: #7FB4D6;
+
+  --font-display: "Saira Stencil One", "Saira", sans-serif;
+  --font-sans: "Saira Semi Condensed", "Saira", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, monospace;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+}
+[data-theme="fieldops"] .mark { padding: 0 0.3em; color: var(--on-accent) !important; }
+[data-theme="fieldops"] .mark::before { background: var(--accent); border: 0; box-shadow: none; transform: none; inset: 8% 0 4%; }
+[data-theme="fieldops"] [class*="rotate-"] { rotate: none; }
+[data-theme="fieldops"] .burst { rotate: -8deg; }
+[data-theme="fieldops"] .halftone::after {
+  background-image: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0 7px, transparent 7px 14px);
+  background-size: auto;
+  -webkit-mask-image: linear-gradient(315deg, #000 0%, transparent 40%);
+  mask-image: linear-gradient(315deg, #000 0%, transparent 40%);
+}
+
+/* LAN Party: a 2003 clan site. Gunmetal, raised bevels on everything, a squared-off headline
+   face, and small dense type like the forums it lived next to. No drop shadows existed yet. */
+[data-theme="lanparty"] {
+  --ink: #0A0D11;
+  --accent: #FFB000;
+  --on-accent: #141006;
+  --fill-1: #C0392B;
+  --on-fill-1: #FFFFFF;
+  --fill-2: #2A6DA8;
+  --on-fill-2: #FFFFFF;
+  --logo: #FFB000;
+  --stage: #12171D;
+  --h1-shadow: 2px 2px 0 #000000;
+  --display-tracking: 0.02em;
+  --page-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.5) 0 1px, transparent 1px 3px);
+  --page-size: auto;
+  --page-opacity: 0.025;
+  --burst-clip: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+
+  --color-white: #F2F5F8;
+  --color-black: #000000;
+  --color-obsidian-deep: #1A2028;
+  --color-obsidian-dark: #12171D;
+  --color-obsidian-card: #2D3641;
+  --color-obsidian-hover: #3D4957;
+  --color-obsidian-border: #0A0D11;
+  --color-slate-50: #F7F9FB;
+  --color-slate-100: #F2F5F8;
+  --color-slate-200: #DFE5EB;
+  --color-slate-300: #CCD4DC;
+  --color-slate-400: #B3BDC8;
+  --color-slate-500: #9DA8B4;
+  --color-slate-600: #8995A2;
+  --color-slate-700: #5B6672;
+  --color-slate-800: #0A0D11;
+  --color-slate-900: #1F262E;
+  --color-slate-950: #12171D;
+  --color-red-400: #FF7B6B;
+  --color-red-500: #C0392B;
+  --color-indigo-400: #7FB6E6;
+  --color-indigo-500: #2A6DA8;
+
+  --font-display: "Russo One", Tahoma, sans-serif;
+  --font-sans: Tahoma, Verdana, "Segoe UI", sans-serif;
+  --font-mono: "Lucida Console", Consolas, ui-monospace, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+}
+[data-theme="lanparty"] .bg-obsidian-card.border,
+[data-theme="lanparty"] [class*="border-[3px]"],
+[data-theme="lanparty"] .bg-gold-primary,
+[data-theme="lanparty"] .bg-spray-lime {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: #566372 #0A0D11 #0A0D11 #566372 !important;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.07) !important;
+}
+[data-theme="lanparty"] .night [class] { box-shadow: revert-layer; }
+[data-theme="lanparty"] [class*="shadow-["] { box-shadow: none; }
+[data-theme="lanparty"] .mark { padding: 0 0.2em; color: var(--on-accent) !important; }
+[data-theme="lanparty"] .mark::before { transform: none; border: 2px solid; border-color: #FFD980 #8A5F00 #8A5F00 #FFD980; box-shadow: none; inset: 4% 0; }
+[data-theme="lanparty"] [class*="rotate-"] { rotate: none; }
+[data-theme="lanparty"] .halftone::after { display: none; }
+[data-theme="lanparty"] .burst + .burst { background: var(--fill-1); }
+
+/* Sports Almanac: the back pages of a newspaper. The one light option, because a box score on
+   black paper isn't a box score. Serif headlines, hairline rules, no boxes around anything. */
+[data-theme="almanac"] {
+  --ink: #16140F;
+  --accent: #F2E3B3;
+  --on-accent: #16140F;
+  --fill-1: #A81E22;
+  --on-fill-1: #FBF7EC;
+  --fill-2: #16140F;
+  --on-fill-2: #FBF7EC;
+  --logo: #16140F;
+  --stage: #1A1D26;
+  --h1-shadow: none;
+  --display-tracking: -0.01em;
+  --display-case: none;
+  --page-image: none;
+  --page-opacity: 0;
+  --burst-clip: circle(50%);
+
+  --color-white: #16140F;
+  --color-black: #16140F;
+  --color-obsidian-deep: #F4EEDD;
+  --color-obsidian-dark: #EAE2CB;
+  --color-obsidian-card: #FBF7EC;
+  --color-obsidian-hover: #F2E3B3;
+  --color-obsidian-border: #16140F;
+  --color-gold-bright: #A81E22;
+  --color-slate-50: #16140F;
+  --color-slate-100: #16140F;
+  --color-slate-200: #221F18;
+  --color-slate-300: #2E2A21;
+  --color-slate-400: #3F3A2E;
+  --color-slate-500: #55503F;
+  --color-slate-600: #6A6450;
+  --color-slate-700: #16140F;
+  --color-slate-800: #16140F;
+  --color-slate-900: #EAE2CB;
+  --color-slate-950: #F4EEDD;
+  --color-spray-pink: #A81E22;
+  --color-spray-cyan: #1D4E79;
+  --color-spray-lime: #A81E22;
+  --color-spray-orange: #A8501E;
+  --color-spray-violet: #5B2C83;
+  --color-emerald-200: #1B6B3E; --color-emerald-300: #1B6B3E; --color-emerald-400: #1B6B3E; --color-emerald-500: #1B8A4E;
+  --color-red-200: #A81E22; --color-red-300: #A81E22; --color-red-400: #A81E22; --color-red-500: #A81E22;
+  --color-amber-200: #8A5A00; --color-amber-300: #8A5A00; --color-amber-400: #8A5A00;
+  --color-yellow-300: #7A6000; --color-yellow-400: #7A6000;
+  --color-indigo-200: #1D4E79; --color-indigo-300: #1D4E79; --color-indigo-400: #1D4E79; --color-indigo-500: #1D4E79;
+  --color-rarity-mythic: #B3152A;
+  --color-rarity-legendary: #9A6C00;
+  --color-rarity-epic: #6F2AB8;
+  --color-rarity-rare: #1558B0;
+  --color-rarity-common: #5F6672;
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: "Source Serif 4", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --radius-sm: 0; --radius-md: 0; --radius-lg: 0; --radius-xl: 0; --radius-2xl: 0;
+}
+[data-theme="almanac"] h1, [data-theme="almanac"] h2, [data-theme="almanac"] .display, [data-theme="almanac"] .stencil { font-weight: 800 !important; font-synthesis: none; }
+[data-theme="almanac"] .bg-obsidian-card.border,
+[data-theme="almanac"] [class*="border-[3px]"] { border-width: 1px !important; box-shadow: none !important; }
+[data-theme="almanac"] [class*="shadow-["],
+[data-theme="almanac"] .bg-gold-primary,
+[data-theme="almanac"] .bg-spray-lime,
+[data-theme="almanac"] .taped { box-shadow: none !important; }
+[data-theme="almanac"] .mark { padding: 0; color: var(--fill-1) !important; font-style: italic; }
+[data-theme="almanac"] .mark::before { display: none; }
+[data-theme="almanac"] [class*="rotate-"] { rotate: none; }
+[data-theme="almanac"] .halftone::after { display: none; }
+[data-theme="almanac"] .burst { rotate: 0deg; }
+
+/* Pixel Block: a game menu from the cartridge era, which suits a block game. A limited palette,
+   bitmap lettering, and bevels drawn the way sprites draw them: light top-left, dark bottom-right,
+   with the corners stepped off. */
+[data-theme="pixel"] {
+  --ink: #12131F;
+  --accent: #FFCD75;
+  --on-accent: #1A1C2C;
+  --fill-1: #B13E53;
+  --on-fill-1: #F4F4F4;
+  --fill-2: #3B5DC9;
+  --on-fill-2: #F4F4F4;
+  --logo: #FFCD75;
+  --stage: #1A1C2C;
+  --h1-shadow: 4px 4px 0 #B13E53;
+  --display-tracking: 0;
+  --page-image: linear-gradient(45deg, rgba(255, 255, 255, 0.5) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.5) 75%), linear-gradient(45deg, rgba(255, 255, 255, 0.5) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.5) 75%);
+  --page-size: 8px 8px;
+  --page-position: 0 0, 4px 4px;
+  --page-opacity: 0.018;
+  --burst-clip: polygon(0 20%, 10% 20%, 10% 10%, 20% 10%, 20% 0, 80% 0, 80% 10%, 90% 10%, 90% 20%, 100% 20%, 100% 80%, 90% 80%, 90% 90%, 80% 90%, 80% 100%, 20% 100%, 20% 90%, 10% 90%, 10% 80%, 0 80%);
+
+  --color-white: #F4F4F4;
+  --color-black: #000000;
+  --color-obsidian-deep: #1A1C2C;
+  --color-obsidian-dark: #14152A;
+  --color-obsidian-card: #333C57;
+  --color-obsidian-hover: #566C86;
+  --color-obsidian-border: #12131F;
+  --color-gold-bright: #FFCD75;
+  --color-slate-50: #F4F4F4;
+  --color-slate-100: #F4F4F4;
+  --color-slate-200: #E4E6EE;
+  --color-slate-300: #D3D8E4;
+  --color-slate-400: #BCC4D4;
+  --color-slate-500: #A7B0C4;
+  --color-slate-600: #94A0B6;
+  --color-slate-700: #566C86;
+  --color-slate-800: #12131F;
+  --color-slate-900: #29304A;
+  --color-slate-950: #14152A;
+  --color-emerald-400: #38B764; --color-emerald-500: #38B764;
+  --color-red-400: #EF7D57; --color-red-500: #B13E53;
+  --color-indigo-400: #73EFF7; --color-indigo-500: #3B5DC9;
+  --color-rarity-mythic: #EF5A6F;
+  --color-rarity-legendary: #FFCD75;
+  --color-rarity-epic: #C080F0;
+  --color-rarity-rare: #41A6F6;
+  --color-rarity-common: #94B0C2;
+
+  --font-display: "Pixelify Sans", monospace;
+  --font-sans: "VT323", ui-monospace, monospace;
+  --font-mono: "VT323", ui-monospace, monospace;
+  --text-xs: 1rem;
+  --text-xs--line-height: 1.15;
+  --text-sm: 1.125rem;
+  --text-sm--line-height: 1.2;
+  --text-base: 1.25rem;
+  --radius-sm: 0; --radius-md: 0; --radius-lg: 0; --radius-xl: 0; --radius-2xl: 0;
+}
+[data-theme="pixel"] body { font-size: 20px; -webkit-font-smoothing: none; }
+[data-theme="pixel"] h1, [data-theme="pixel"] h2, [data-theme="pixel"] .display { font-weight: 700 !important; }
+[data-theme="pixel"] .bg-obsidian-card.border,
+[data-theme="pixel"] [class*="border-[3px]"],
+[data-theme="pixel"] .bg-gold-primary,
+[data-theme="pixel"] .bg-spray-lime {
+  border: 3px solid var(--ink) !important;
+  box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.14), inset -3px -3px 0 rgba(0, 0, 0, 0.28) !important;
+}
+[data-theme="pixel"] .mark { padding: 0 0.28em; color: var(--on-accent) !important; }
+[data-theme="pixel"] .mark::before { transform: none; border: 3px solid var(--ink); box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.4), inset -3px -3px 0 rgba(0, 0, 0, 0.2); inset: 2% 0 0; }
+[data-theme="pixel"] [class*="rotate-"] { rotate: none; }
+[data-theme="pixel"] .halftone::after { display: none; }
+
+/* The wider faces need a smaller cover line, or "Hub" runs into the badge beside it. */
+[data-theme="fieldops"] section > h1.display,
+[data-theme="lanparty"] section > h1.display { font-size: clamp(3.2rem, 6.2vw, 5.1rem); }
+/* A white button's dark label is two inks on this theme, so it gets a real fill. */
+[data-theme="almanac"] .bg-white { background-color: var(--fill-2); color: var(--on-fill-2); }
+[data-theme="almanac"] .bg-white * { color: var(--on-fill-2); }

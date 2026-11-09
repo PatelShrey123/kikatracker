@@ -19,6 +19,7 @@ import { PlayerCountSection } from './components/PlayerCountSection';
 const RendersSection = lazy(() => import('./components/RendersSection').then(m => ({ default: m.RendersSection })));
 const FitSection = lazy(() => import('./components/FitSection').then(m => ({ default: m.FitSection })));
 const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ default: m.ReloadLab })));
+const SkinEditorSection = lazy(() => import('./components/SkinEditorSection').then(m => ({ default: m.SkinEditorSection })));
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
@@ -39,6 +40,8 @@ function App() {
   const [marketPrices, setMarketPrices] = useState<Map<string, MarketItem>>(new Map());
   const [publicItems, setPublicItems] = useState<any[]>(() => getCachedCatalog() || []);
   const [fallbackRenders] = useState<Record<string, any>>({});
+  // A skin picked on the home page, to open straight in the 3D Renders viewer.
+  const [rendersOpenItem, setRendersOpenItem] = useState<any | null>(null);
   const [allItemData, setAllItemData] = useState<any[]>(() => getCachedCatalog() || []);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -141,6 +144,9 @@ function App() {
     }
     if (cleanPath === '/reloadlab') {
       return { tab: 'reloadlab', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/skineditor' || cleanPath === '/skin-editor') {
+      return { tab: 'skineditor', player: null, clan: null, skin: null };
     }
     // unlisted: reachable by URL, deliberately absent from the navbar and the sitemap
     if (cleanPath === '/players' || cleanPath === '/playercount') {
@@ -337,6 +343,9 @@ function App() {
       case 'fit':
         document.title = 'Kirka 3D Fit Viewer — Flex Your Loadout | Kirka Hub';
         break;
+      case 'skineditor':
+        document.title = 'Free Skin Editor for 3px Slim Skins, in 3D | Kirka Hub';
+        break;
       case 'renders':
         document.title = 'Kirka 3D Weapon Skins & Character Renders | Kirka Hub';
         break;
@@ -413,6 +422,7 @@ function App() {
 
   // Select tab and clear sub-states
   const handleTabChange = (tab: string) => {
+    setRendersOpenItem(null);
     navigate(tab);
   };
 
@@ -421,7 +431,7 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen bg-obsidian-deep text-slate-100 flex flex-col md:flex-row selection:bg-gold-primary/30 selection:text-gold-bright">
+    <div className="relative min-h-screen text-slate-100 flex flex-col">
       {/* React Bits TargetCursor — visitors can swap back to their system pointer from the sidebar */}
       {isCustomCursor && (
         <TargetCursor
@@ -439,7 +449,9 @@ function App() {
 
       {!isLoading && (() => {
         // No ads in full-screen editing tools
-        const showAds = !['reloadlab'].includes(activeTab);
+        const showAds = !['reloadlab', 'skineditor'].includes(activeTab);
+        // The home page is just the film and the search box.
+        const isHomeFilm = activeTab === 'search' && !activeUserProfile;
         const adRouteKey = activeTab + (activeTab === 'search' ? (activeUserProfile ? '-profile' : '-input') : '') + (activeTab === 'fit' ? fitPlayerId ?? '' : '');
         return (
         <>
@@ -449,18 +461,18 @@ function App() {
             setActiveTab={handleTabChange}
             isCustomCursor={isCustomCursor}
             toggleCursorMode={toggleCursorMode}
+            onSearch={handlePlayerSearch}
+            isSearching={searchLoading}
+            searchError={searchError}
+            onClearSearchError={() => setSearchError(null)}
+            minimal={isHomeFilm}
           />
 
           {/* 4. Core Content Area with Left Padding on Desktop */}
-          <div className="flex-grow flex flex-col min-h-screen md:pl-60 pb-24 md:pb-0">
+          <div className="relative z-[1] flex-grow flex flex-col min-h-screen">
             
-            {/* The desktop header used to repeat the sidebar's logo and wordmark, alongside a
-                pulsing "Node Sync Online" dot that was not wired to anything. Both are gone: the
-                sidebar already says whose site this is, and a status light should only exist if
-                it can actually go red. */}
-
             {/* Ad: top banner, above page content (never inside profiles, skins or tools) */}
-            {showAds && <AdSlot key={`top-${adRouteKey}`} slot={AD_SLOTS.topBanner} className="pt-4 px-4" />}
+            {showAds && !isHomeFilm && <AdSlot key={`top-${adRouteKey}`} slot={AD_SLOTS.topBanner} className="pt-4 px-4" />}
 
             <main className="flex-grow">
               <AnimatePresence mode="wait">
@@ -500,7 +512,13 @@ function App() {
                           isLoading={searchLoading}
                           searchError={searchError}
                           onClearError={() => setSearchError(null)}
-                          onNavigateToPrices={() => handleTabChange('prices')}
+                          catalog={allItemData}
+                          marketPrices={marketPrices}
+                          onInspectItem={handleInspectItem}
+                          onOpenRender={(item) => {
+                            setRendersOpenItem(item);
+                            navigate('renders');
+                          }}
                           onNavigate={handleTabChange}
                         />
                       )}
@@ -578,6 +596,10 @@ function App() {
                     <ReloadLab catalog={allItemData} />
                   )}
 
+                  {activeTab === 'skineditor' && (
+                    <SkinEditorSection catalog={allItemData} />
+                  )}
+
                   {activeTab === 'changelogs' && <ChangelogsSection />}
 
                   {activeTab === 'chatlogs' && <ChatLogsSection />}
@@ -588,6 +610,7 @@ function App() {
                       marketPrices={marketPrices}
                       fallbackRenders={fallbackRenders}
                       allItemData={allItemData}
+                      openItem={rendersOpenItem}
                     />
                   )}
                   </Suspense>
@@ -598,18 +621,39 @@ function App() {
             {/* Ad: bottom banner, after all page content */}
             {showAds && <AdSlot key={`bottom-${adRouteKey}`} slot={AD_SLOTS.bottomBanner} className="py-4 px-4" />}
 
-            {/* 5. Sleek footer */}
-            <footer className="py-6 border-t border-obsidian-border/50 text-center text-xs text-slate-600 font-mono flex-shrink-0">
-              <div className="max-w-7xl mx-auto px-4">
-                <span>© 2026 XPERT TRACKER • Kirka.io Community Tool • Valuation Index: Hub Valuation</span>
-                {/* the pages a visitor (and an ad reviewer) looks for, as real links on every screen */}
-                <nav className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1" aria-label="About this site">
-                  <a href="/about.html" className="hover:text-slate-400 underline">About</a>
-                  <a href="/contact.html" className="hover:text-slate-400 underline">Contact</a>
-                  <a href="/privacy.html" className="hover:text-slate-400 underline">Privacy Policy</a>
-                  <a href="/terms.html" className="hover:text-slate-400 underline">Terms</a>
+            {/* 5. Footer: the pages a visitor (and an ad reviewer) looks for, as real links on every screen */}
+            <footer className="mt-10 border-t-[3px] border-[var(--ink)] bg-obsidian-card flex-shrink-0">
+              <div className="max-w-[1600px] mx-auto px-5 py-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+                <div>
+                  <p className="display text-[30px] leading-none text-[var(--logo)]">Kirka Hub</p>
+                  <p className="mt-2 text-[15px] text-slate-400 max-w-[38ch]">
+                    A free fan-made tracker for Kirka.io: players, skins, prices, trades and tools. Not affiliated with Kirka.io.
+                  </p>
+                </div>
+                {[
+                  { title: 'Explore', links: [['prices', 'Skins & Prices'], ['trades', 'Trades Portal'], ['daily', 'Daily Leaderboard'], ['clans', 'Clans Registry']] },
+                  { title: 'Make', links: [['skineditor', 'Skin Editor'], ['fit', '3D Fit'], ['renders', '3D Renders'], ['reloadlab', 'Reload Lab']] },
+                ].map((col) => (
+                  <nav key={col.title} aria-label={col.title}>
+                    <h2 className="display text-[20px] text-gold-bright leading-none mb-2">{col.title}</h2>
+                    <ul className="space-y-1 text-[15px] font-bold">
+                      {col.links.map(([id, label]) => (
+                        <li key={id}><button type="button" onClick={() => handleTabChange(id)} className="text-slate-300 hover:text-gold-bright hover:underline cursor-pointer">{label}</button></li>
+                      ))}
+                    </ul>
+                  </nav>
+                ))}
+                <nav aria-label="About this site">
+                  <h2 className="display text-[20px] text-gold-bright leading-none mb-2">The site</h2>
+                  <ul className="space-y-1 text-[15px] font-bold">
+                    <li><a href="/about.html" className="text-slate-300 hover:text-gold-bright underline">About</a></li>
+                    <li><a href="/contact.html" className="text-slate-300 hover:text-gold-bright underline">Contact</a></li>
+                    <li><a href="/privacy.html" className="text-slate-300 hover:text-gold-bright underline">Privacy Policy</a></li>
+                    <li><a href="/terms.html" className="text-slate-300 hover:text-gold-bright underline">Terms</a></li>
+                  </ul>
                 </nav>
               </div>
+              <p className="border-t-2 border-[var(--ink)] px-5 py-3 text-center text-[13px] font-bold text-slate-500">© 2026 Xpert Tracker · Valuation index: Hub Valuation</p>
             </footer>
           </div>
 

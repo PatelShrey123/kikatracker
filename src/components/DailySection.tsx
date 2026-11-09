@@ -30,7 +30,7 @@ export const DailySection: React.FC<DailySectionProps> = ({ onSelectPlayer }) =>
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl text-[#EDEDED] flex items-center gap-3">
+          <h2 className="text-2xl sm:text-3xl text-slate-100 flex items-center gap-3">
             <Trophy className="w-7 h-7 text-spray-orange shrink-0" />
             <span>Daily <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-orange)' }}>Leaderboard</span></span>
           </h2>
@@ -69,7 +69,7 @@ export const DailySection: React.FC<DailySectionProps> = ({ onSelectPlayer }) =>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-obsidian-border bg-[#090A0F]/55 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-obsidian-border bg-obsidian-card text-[10px] font-mono text-slate-500 uppercase tracking-wider">
                   <th className="py-4 px-6 font-semibold">Rank</th>
                   <th className="py-4 px-6 font-semibold">Player</th>
                   <th className="py-4 px-6 font-semibold text-right">Daily Score</th>

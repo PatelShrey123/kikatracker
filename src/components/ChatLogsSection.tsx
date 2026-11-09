@@ -26,7 +26,7 @@ const ROLE: Record<string, string> = {
   BOT: 'text-rarity-mythic',
   MODERATOR: 'text-rarity-rare',
   ADMIN: 'text-emerald-400',
-  OWNER: 'text-[#EDEDED]',
+  OWNER: 'text-slate-100',
 };
 
 const stamp = (iso: string) =>
@@ -185,7 +185,7 @@ export const ChatLogsSection: React.FC = () => {
   return (
     <section className="max-w-5xl mx-auto px-4 py-8 space-y-4">
       <header>
-        <h1 className="display text-4xl sm:text-5xl text-[#EDEDED]">Chat <span className="mark text-obsidian-deep" style={{ ["--mark-color" as string]: "var(--color-spray-cyan)" }}>archive</span></h1>
+        <h1 className="display text-4xl sm:text-5xl text-slate-100">Chat <span className="mark text-obsidian-deep" style={{ ["--mark-color" as string]: "var(--color-spray-cyan)" }}>archive</span></h1>
         <p className="mt-3 text-[15px] text-slate-400 leading-relaxed max-w-[52ch]">
           Kirka only shows the last 50 messages of global chat, so a trade or coinflip dispute has nothing to
           point at. This keeps them for 30 days.
@@ -209,7 +209,7 @@ export const ChatLogsSection: React.FC = () => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Search what was said..."
-            className="w-full h-10 bg-obsidian-card border border-slate-800 rounded-md pl-9 pr-3 text-sm text-[#EDEDED] placeholder:text-slate-600 focus:outline-none focus:border-gold-primary/70 transition-colors"
+            className="w-full h-10 bg-obsidian-card border border-slate-800 rounded-md pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-gold-primary/70 transition-colors"
           />
         </label>
         <label className="relative">
@@ -218,7 +218,7 @@ export const ChatLogsSection: React.FC = () => {
             value={who}
             onChange={(e) => setWho(e.target.value)}
             placeholder="Player name or ID..."
-            className="w-full h-10 bg-obsidian-card border border-slate-800 rounded-md pl-8 pr-3 text-sm text-[#EDEDED] placeholder:text-slate-600 focus:outline-none focus:border-gold-primary/70 transition-colors"
+            className="w-full h-10 bg-obsidian-card border border-slate-800 rounded-md pl-8 pr-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-gold-primary/70 transition-colors"
           />
         </label>
         <div className="flex h-10 rounded-md border border-slate-800 bg-obsidian-card overflow-hidden">

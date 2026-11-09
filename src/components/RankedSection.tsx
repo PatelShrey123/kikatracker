@@ -42,7 +42,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-obsidian-border pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl text-[#EDEDED] flex items-center gap-3">
+          <h2 className="text-2xl sm:text-3xl text-slate-100 flex items-center gap-3">
             <Swords className="w-7 h-7 text-spray-pink shrink-0" />
             <span>Ranked <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-pink)' }}>Arena</span></span>
           </h2>
@@ -52,12 +52,12 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
         </div>
 
         {/* Sub-Tabs */}
-        <div className="flex bg-[#090A0F]/80 p-1.5 rounded-md border border-obsidian-border w-fit">
+        <div className="flex bg-obsidian-card p-1.5 rounded-md border border-obsidian-border w-fit">
           <button
             onClick={() => setActiveSubTab('sad')}
             className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === 'sad'
-                ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
+                ? 'bg-gold-primary text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -67,7 +67,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
             onClick={() => setActiveSubTab('1v1')}
             className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === '1v1'
-                ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
+                ? 'bg-gold-primary text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -77,7 +77,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
             onClick={() => setActiveSubTab('2v2')}
             className={`btn-interactive px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === '2v2'
-                ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
+                ? 'bg-gold-primary text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -122,7 +122,7 @@ export const RankedSection: React.FC<RankedSectionProps> = ({ onSelectPlayer }) 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-obsidian-border bg-[#090A0F]/55 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-obsidian-border bg-obsidian-card text-[10px] font-mono text-slate-500 uppercase tracking-wider">
                   <th className="py-4 px-6 font-semibold">Rank</th>
                   <th className="py-4 px-6 font-semibold">Player</th>
                   <th className="py-4 px-6 font-semibold text-right">KLO Rating</th>

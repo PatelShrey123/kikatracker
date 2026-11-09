@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { fallBackToBaseRender } from '../utils/skinAssets';
 import { Crosshair, Loader2, Minus, Plus } from 'lucide-react';
 import type { UserProfile, UserInventoryItem } from '../utils/api';
 import {
@@ -451,7 +452,7 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
   ];
 
   return (
-    <div className="w-full max-w-[690px] mx-auto rounded-md overflow-hidden select-none shadow-2xl border border-[#2c3653]" style={{ fontFamily: '"Exo 2", Outfit, Inter, system-ui, sans-serif' }}>
+    <div className="night w-full max-w-[690px] mx-auto rounded-md overflow-hidden select-none border-2 border-[var(--ink)] shadow-[6px_6px_0_var(--ink)]" style={{ fontFamily: '"Exo 2", Outfit, Inter, system-ui, sans-serif' }}>
       <div
         className="relative w-full h-[440px] sm:h-[620px]"
         style={
@@ -581,7 +582,7 @@ export const InGameFitShowcase: React.FC<InGameFitShowcaseProps> = ({ profile, i
                     src={img}
                     alt={item ? cleanName(item.name) : label}
                     className="max-h-full max-w-[85%] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.45)] group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => ((e.currentTarget as HTMLImageElement).style.visibility = 'hidden')}
+                    onError={(e) => fallBackToBaseRender(e, item?.parent?.name)}
                   />
                 ) : (
                   <Crosshair className="w-6 h-6 text-slate-600 opacity-50" />

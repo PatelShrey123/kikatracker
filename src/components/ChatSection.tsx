@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Wifi, WifiOff, Coins, ShieldAlert, Users, ExternalLink, ArrowDown } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { getSkinRenderUrl } from '../utils/skinAssets';
+import { getSkinRenderUrl, fallBackToBaseRender } from '../utils/skinAssets';
 import { isVip } from '../utils/vip';
 
 interface ChatUser {
@@ -182,18 +182,19 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
         </span>
 
         {/* Hover Tooltip Overlay */}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 hidden group-hover/badge:flex flex-col bg-[#12141D] border border-obsidian-border rounded-md p-3 shadow-[0_10px_35px_rgba(0,0,0,0.5)] z-50 text-left pointer-events-none">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 hidden group-hover/badge:flex flex-col bg-obsidian-card border border-obsidian-border rounded-md p-3 shadow-lg z-50 text-left pointer-events-none">
           {/* Item Render Image */}
           {renderUrl ? (
             <div className="w-full h-20 flex items-center justify-center mb-2">
               <img
                 src={renderUrl}
+                onError={(e) => fallBackToBaseRender(e, isCharacter ? 'CHARACTER' : parentName)}
                 alt={displayName}
-                className="max-h-20 max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]"
+                className="max-h-20 max-w-full object-contain filter drop-shadow-lg"
               />
             </div>
           ) : (
-            <div className="w-full h-12 flex items-center justify-center mb-2 border border-slate-800 bg-[#090A0F]/50 rounded-md text-[9px] text-slate-500 font-mono">
+            <div className="w-full h-12 flex items-center justify-center mb-2 border border-slate-800 bg-obsidian-card rounded-md text-[9px] text-slate-500 font-mono">
               NO RENDER IMAGE
             </div>
           )}
@@ -264,7 +265,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             <Users className="w-5 h-5 text-gold-bright" />
           </div>
           <div>
-            <h2 className="text-2xl text-[#EDEDED]">Kirka <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-violet)' }}>Chat</span></h2>
+            <h2 className="text-2xl text-slate-100">Kirka <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-violet)' }}>Chat</span></h2>
             <p className="text-xs text-slate-500 font-mono mt-0.5">
               Live in-game lobby stream from the public WebSocket network.
             </p>
@@ -295,7 +296,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       {/* Messages Scroll Area with Floating Auto Scroll Control */}
       <div className="flex-1 relative flex flex-col min-h-0 mb-4 select-text">
         {/* Scroll viewport */}
-        <div className="flex-grow bg-[#090A0F]/80 border border-obsidian-border rounded-md p-5 overflow-y-auto space-y-3.5 min-h-0">
+        <div className="flex-grow bg-obsidian-card border border-obsidian-border rounded-md p-5 overflow-y-auto space-y-3.5 min-h-0">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-600 space-y-2">
               <div className="w-6 h-6 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
@@ -311,7 +312,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 return (
                   <div
                     key={msg.id}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-gold-primary/10 to-[#1b1911]/20 border border-gold-primary/25 p-3 rounded-md justify-center text-center text-xs font-mono text-gold-bright shadow-sm"
+                    className="flex items-center space-x-2 bg-gold-primary/10 border border-gold-primary/25 p-3 rounded-md justify-center text-center text-xs font-mono text-gold-bright shadow-sm"
                   >
                     <ShieldAlert className="w-4 h-4 text-gold-primary" />
                     <span>{msg.message}</span>
@@ -400,7 +401,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
           <button
             type="button"
             onClick={() => setAutoScroll(!autoScroll)}
-            className={`px-3 py-2 rounded-md border font-mono text-[9px] font-black tracking-widest uppercase transition-all duration-300 flex items-center space-x-2 shadow-[0_4px_15px_rgba(0,0,0,0.4)] ${
+            className={`px-3 py-2 rounded-md border font-mono text-[9px] font-black tracking-widest uppercase transition-all duration-300 flex items-center space-x-2 shadow-lg ${
               autoScroll
                 ? 'bg-gold-primary/20 border-gold-primary/40 text-gold-bright hover:bg-gold-primary/30'
                 : 'bg-obsidian-card border-obsidian-border text-slate-500 hover:text-slate-400'
@@ -432,7 +433,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
         <button
           type="button"
           disabled
-          className="flex items-center justify-center bg-slate-800 border border-obsidian-border text-slate-500 px-5 py-3.5 rounded-md font-bold cursor-not-allowed"
+          className="flex items-center justify-center bg-obsidian-hover border border-obsidian-border text-slate-500 px-5 py-3.5 rounded-md font-bold cursor-not-allowed"
         >
           <Send className="w-4 h-4" />
         </button>

@@ -27,7 +27,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => (
             alt=""
             className="w-7 h-7 rounded-md"
           />
-          <span className="text-[15px] font-semibold tracking-tight text-[#EDEDED]">XPERT</span>
+          <span className="display text-[34px] text-gold-primary">XPERT</span>
         </div>
       </motion.div>
     )}

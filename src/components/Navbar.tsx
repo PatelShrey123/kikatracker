@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users, Brush, Radio, ChevronDown, Loader2 } from 'lucide-react';
 import { supportsCustomCursor } from '../hooks/useCursorMode';
 
 interface NavbarProps {
@@ -8,233 +7,289 @@ interface NavbarProps {
   setActiveTab: (tab: string) => void;
   isCustomCursor: boolean;
   toggleCursorMode: () => void;
+  onSearch: (id: string, isShortId: boolean) => void;
+  isSearching: boolean;
+  searchError: string | null;
+  onClearSearchError: () => void;
+  /** The home page: no bar, only a way to open the full menu. */
+  minimal?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCustomCursor, toggleCursorMode }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // touch-only devices never see the fancy cursor, so hide the switch there
+interface NavItem {
+  id: string;
+  label: string;
+  hint: string;
+  icon: React.ElementType;
+  badge?: string;
+}
+
+// The twelve pages, sorted by what a visitor came to do.
+const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
+  {
+    label: 'Compete',
+    items: [
+      { id: 'daily', label: 'Daily Leaderboard', hint: 'Today\'s top scores', icon: Trophy },
+      { id: 'ranked', label: 'Ranked Arena', hint: 'S&D, 1v1 and 2v2 standings', icon: Swords },
+      { id: 'clans', label: 'Clans Registry', hint: 'Top clans and rosters', icon: Users },
+    ],
+  },
+  {
+    label: 'Market',
+    items: [
+      { id: 'prices', label: 'Skins & Prices', hint: 'Every skin and its Hub value', icon: Tag },
+      { id: 'trades', label: 'Trades Portal', hint: 'Live offers and trade history', icon: Repeat },
+      { id: 'renders', label: '3D Renders', hint: 'Every skin, in 3D', icon: Box },
+    ],
+  },
+  {
+    label: 'Create',
+    items: [
+      { id: 'skineditor', label: 'Skin Editor', hint: 'Paint 3px slim skins', icon: Brush, badge: 'NEW' },
+      { id: 'fit', label: '3D Fit', hint: 'Build and show off a loadout', icon: Shirt },
+      { id: 'reloadlab', label: 'Reload Lab', hint: 'Reloads on real weapon models', icon: Crosshair },
+    ],
+  },
+  {
+    label: 'Live',
+    items: [
+      { id: 'players', label: 'Live Lobbies', hint: 'Join a running match', icon: Radio, badge: 'LIVE' },
+      { id: 'chat', label: 'Kirka Chat', hint: 'The in-game chat, live', icon: MessageSquare },
+      { id: 'bot', label: 'Discord Bot', hint: 'Commands and invite', icon: Bot },
+    ],
+  },
+];
+
+/** Same rules as the home search: a 6-character short ID or a full UUID, with the # optional. */
+function parsePlayerId(raw: string): { id: string; isShortId: boolean } | null {
+  const id = raw.trim().replace(/^#/, '');
+  if (/^[a-zA-Z0-9]{6}$/.test(id)) return { id, isShortId: true };
+  if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id)) return { id, isShortId: false };
+  return null;
+}
+
+const Logo: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button type="button" onClick={onClick} className="flex items-center gap-2.5 cursor-pointer shrink-0" aria-label="Kirka Hub home">
+    <span className="relative w-12 h-12 flex items-center justify-center -rotate-6">
+      <span className="burst absolute inset-0 bg-[var(--ink)]" />
+      <span className="burst absolute inset-[3px] bg-[var(--accent)]" />
+      <img src={`${import.meta.env.BASE_URL}kikatracker_mascot.png`} alt="" className="relative w-6 h-6 object-cover" />
+    </span>
+    <span className="display text-[32px] leading-none text-[var(--logo)]">Xpert</span>
+  </button>
+);
+
+const CursorToggle: React.FC<{ on: boolean; onClick: () => void; className?: string }> = ({ on, onClick, className = '' }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={!on}
+    title={on ? 'Switch to your normal system cursor' : 'Switch back to the XPERT target cursor'}
+    className={`btn-interactive flex items-center gap-2 h-10 px-2.5 border-2 border-[var(--ink)] bg-obsidian-dark text-[13px] font-bold text-slate-300 cursor-pointer ${className}`}
+  >
+    {on ? <Crosshair className="w-4 h-4 text-gold-bright" /> : <MousePointer2 className="w-4 h-4" />}
+    {on ? 'Target cursor' : 'Normal cursor'}
+  </button>
+);
+
+const Badge: React.FC<{ text: string }> = ({ text }) => (
+  <span className="text-[10px] font-bold px-1 bg-[var(--fill-1)] text-[var(--on-fill-1)] leading-[1.5]">{text}</span>
+);
+
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCustomCursor, toggleCursorMode, onSearch, isSearching, searchError, onClearSearchError, minimal = false }) => {
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [formError, setFormError] = useState('');
+  const barRef = useRef<HTMLElement>(null);
   const showCursorToggle = supportsCustomCursor();
+  const onHome = activeTab === 'search';
 
-  const CursorToggle: React.FC<{ className?: string }> = ({ className = '' }) => (
-    <button
-      onClick={toggleCursorMode}
-      aria-pressed={!isCustomCursor}
-      title={isCustomCursor ? 'Switch to your normal system cursor' : 'Switch back to the XPERT target cursor'}
-      className={`w-full flex items-center justify-between px-3 py-2 rounded-md border text-[11px] font-semibold tracking-wide transition-colors cursor-pointer ${
-        isCustomCursor
-          ? 'bg-gold-primary/10 border-gold-primary/30 text-gold-bright hover:bg-gold-primary/15'
-          : 'bg-obsidian-card/50 border-white/10 text-slate-300 hover:text-white hover:border-white/20'
-      } ${className}`}
-    >
-      <span className="flex items-center space-x-2.5">
-        {isCustomCursor ? <Crosshair className="w-4 h-4" /> : <MousePointer2 className="w-4 h-4" />}
-        <span>{isCustomCursor ? 'Target Cursor' : 'Normal Cursor'}</span>
-      </span>
-      {/* little switch so the state reads at a glance */}
-      <span
-        className={`relative w-9 h-5 rounded-full transition-colors ${
-          isCustomCursor ? 'bg-gold-primary/40' : 'bg-white/10'
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
-            isCustomCursor ? 'left-[18px] bg-gold-bright' : 'left-0.5 bg-slate-400'
-          }`}
+  useEffect(() => {
+    if (!openGroup) return;
+    const onPointer = (e: PointerEvent) => {
+      if (!barRef.current?.contains(e.target as Node)) setOpenGroup(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenGroup(null);
+    };
+    window.addEventListener('pointerdown', onPointer);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', onPointer);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [openGroup]);
+
+  const go = (id: string) => {
+    setActiveTab(id);
+    setOpenGroup(null);
+    setMobileOpen(false);
+  };
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    onClearSearchError();
+    const parsed = parsePlayerId(query);
+    if (!parsed) {
+      setFormError('Use a 6-character ID like #HESHPY, or a full UUID.');
+      return;
+    }
+    setFormError('');
+    setMobileOpen(false);
+    onSearch(parsed.id, parsed.isShortId);
+  };
+
+  // The home page has its own big search box, and it shows these errors itself.
+  const shownError = formError || (!onHome ? searchError : null);
+
+  const searchForm = (
+    <form onSubmit={submitSearch} className="relative flex-1 min-w-0" role="search">
+      <div className="flex items-center h-10 border-2 border-[var(--ink)] bg-obsidian-dark focus-within:bg-obsidian-hover">
+        <Search className="w-4 h-4 text-slate-500 ml-2.5 shrink-0" />
+        <input
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setFormError('');
+          }}
+          placeholder="Find a player by short ID"
+          aria-label="Find a player by short ID"
+          spellCheck={false}
+          autoComplete="off"
+          className="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 text-[15px] text-slate-100"
         />
-      </span>
-    </button>
+        <button type="submit" disabled={isSearching} className="display h-full px-3 bg-[var(--fill-1)] text-[var(--on-fill-1)] text-[17px] cursor-pointer disabled:opacity-50 border-l-2 border-[var(--ink)]">
+          {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Go'}
+        </button>
+      </div>
+      {shownError && (
+        <p role="alert" className="absolute left-0 right-0 top-full mt-1 z-10 px-2 py-1 bg-[#3D1A20] border-2 border-[var(--ink)] text-[13px] font-bold text-red-300">
+          {shownError}
+        </p>
+      )}
+    </form>
   );
-
-  const navItems = [
-    { id: 'search', label: 'Search Portal', icon: Search },
-    { id: 'fit', label: '3D Fit', icon: Shirt, badge: 'NEW' },
-    { id: 'renders', label: '3D Renders', icon: Box, badge: '3D' },
-    { id: 'reloadlab', label: 'Reload Lab', icon: Crosshair, badge: 'NEW' },
-    { id: 'daily', label: 'Daily Leaderboard', icon: Trophy },
-    { id: 'ranked', label: 'Ranked Arena', icon: Swords },
-    { id: 'clans', label: 'Clans Registry', icon: Users },
-    { id: 'trades', label: 'Trades Portal', icon: Repeat },
-    { id: 'chat', label: 'Kirka Chat', icon: MessageSquare },
-    { id: 'players', label: 'Live Lobbies', icon: Swords, badge: 'LIVE' },
-    { id: 'prices', label: 'Skins & Prices', icon: Tag },
-    { id: 'bot', label: 'Discord Bot', icon: Bot },
-  ];
 
   return (
     <>
-      {/* 1. DESKTOP LEFT SIDEBAR (Hidden on mobile) */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 border-r border-slate-800 bg-obsidian-deep z-40 px-4 py-6 flex-col justify-between">
-        <div className="space-y-6 overflow-y-auto no-scrollbar">
-          {/* Logo Section */}
-          <div 
-            className="flex items-center space-x-3 cursor-pointer group" 
-            onClick={() => setActiveTab('search')}
-          >
-            <div className="w-8 h-8 rounded-md overflow-hidden shrink-0">
-              <img
-                src={`${import.meta.env.BASE_URL}kikatracker_mascot.png`}
-                alt="Logo"
-                className="w-full h-full rounded-md object-cover"
-              />
-            </div>
-            <div>
-              <span className="display text-[17px] text-[#EDEDED] leading-none block">
-                XPERT
-              </span>
-              <span className="text-[11px] text-slate-600 leading-none block mt-1">
-                Kirka tracker
-              </span>
-            </div>
-          </div>
+      {/* Home page: one word in the corner. The drawer below opens at any screen size here. */}
+      {minimal && (
+        <button
+          type="button"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-expanded={mobileOpen}
+          className="fixed top-4 right-4 sm:top-5 sm:right-[7vw] z-50 h-11 px-1 font-mono text-[15px] text-[#f4f1e8] hover:underline underline-offset-4 cursor-pointer"
+        >
+          {mobileOpen ? 'Close' : 'Menu'}
+        </button>
+      )}
 
-          {/* Navigation Items (Vertical List) */}
-          <nav className="flex flex-col gap-px">
-            {navItems.map((item) => {
-              const isActive = activeTab === item.id;
-              const Icon = item.icon;
-              
+      {/* Desktop masthead */}
+      <header ref={barRef} className={`${minimal ? 'hidden' : 'hidden lg:block'} sticky top-0 z-40 bg-obsidian-card border-b-[3px] border-[var(--ink)] shadow-[0_4px_0_var(--ink)]`}>
+        <div className="max-w-[1600px] mx-auto px-5 h-[68px] flex items-center gap-5">
+          <Logo onClick={() => go('search')} />
+
+          <nav className="flex items-center gap-1" aria-label="Main">
+            <button
+              type="button"
+              id="nav-tab-desktop-search"
+              onClick={() => go('search')}
+              aria-current={onHome ? 'page' : undefined}
+              className={`h-10 px-3 border-2 text-[15px] font-bold cursor-pointer transition-colors ${onHome ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)] shadow-[3px_3px_0_var(--ink)] -rotate-1' : 'border-transparent text-slate-200 hover:bg-obsidian-hover'}`}
+            >
+              Home
+            </button>
+            {NAV_GROUPS.map((group) => {
+              const current = group.items.some((i) => i.id === activeTab);
+              const open = openGroup === group.label;
               return (
-                <motion.button
-                  key={item.id}
-                  id={`nav-tab-desktop-${item.id}`}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center justify-between w-full pl-3 pr-2 py-[7px] rounded-md text-[13px] transition-colors duration-150 relative group cursor-pointer ${
-                    isActive
-                      ? 'bg-obsidian-hover text-[#EDEDED] font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.025]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    {/* Left Gold Active Indicator line */}
-                    {isActive && (
-                      <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-spray-lime" />
-                    )}
-
-                    {Icon ? (
-                      <Icon className={`w-4 h-4 shrink-0 transition-colors duration-150 ${
-                        isActive ? 'text-spray-lime' : 'text-slate-500 group-hover:text-slate-300'
-                      }`} />
-                    ) : null}
-
-                    <span>{item.label}</span>
-                  </div>
-
-                  {item.badge && (
-                    <span className={`text-[10px] font-bold shrink-0 ${isActive ? 'text-spray-lime' : 'text-slate-600'}`}>
-                      {item.badge}
-                    </span>
+                <div key={group.label} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroup(open ? null : group.label)}
+                    onMouseEnter={() => openGroup && setOpenGroup(group.label)}
+                    aria-expanded={open}
+                    className={`flex items-center gap-1 h-10 pl-3 pr-2 border-2 text-[15px] font-bold cursor-pointer transition-colors ${current ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)] shadow-[3px_3px_0_var(--ink)] -rotate-1' : `border-transparent text-slate-200 hover:bg-obsidian-hover ${open ? 'bg-obsidian-hover' : ''}`}`}
+                  >
+                    {group.label}
+                    <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+                  </button>
+                  {open && (
+                    <div className="absolute left-0 top-full mt-2 w-[290px] p-1.5 space-y-1 bg-obsidian-card border-2 border-[var(--ink)] shadow-[5px_5px_0_var(--ink)]">
+                      {group.items.map(({ id, label, hint, icon: Icon, badge }) => (
+                        <button
+                          key={id}
+                          type="button"
+                          id={`nav-tab-desktop-${id}`}
+                          onClick={() => go(id)}
+                          aria-current={activeTab === id ? 'page' : undefined}
+                          className={`w-full flex items-center gap-3 px-2.5 py-2 text-left cursor-pointer transition-colors ${activeTab === id ? 'bg-[var(--accent)] text-[var(--on-accent)]' : 'text-slate-200 hover:bg-obsidian-hover'}`}
+                        >
+                          <Icon className="w-5 h-5 shrink-0" />
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-1.5 text-[15px] font-bold leading-tight">{label}{badge && <Badge text={badge} />}</span>
+                            <span className={`block text-[13px] leading-snug ${activeTab === id ? 'text-[var(--on-accent)]' : 'text-slate-400'}`}>{hint}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </motion.button>
+                </div>
               );
             })}
           </nav>
-        </div>
 
-        {/* Sidebar Footer Info */}
-        <div className="pt-4 border-t border-slate-800 space-y-3">
-          {showCursorToggle && <CursorToggle />}
-          <span className="text-[11px] text-slate-700 block leading-relaxed">
-            © 2026 Xpert Tracker
-          </span>
-        </div>
-      </aside>
-
-      {/* 2. MOBILE TOP HEADER WITH 3-LINE HAMBURGER MENU (Hidden on desktop) */}
-      <div className="md:hidden">
-        {/* Mobile Header Bar */}
-        <header className="sticky top-0 z-50 w-full h-14 bg-obsidian-deep/95 backdrop-blur-sm border-b border-slate-800 flex items-center justify-between px-4">
-          <div 
-            className="flex items-center space-x-2.5 cursor-pointer" 
-            onClick={() => {
-              setActiveTab('search');
-              setMobileMenuOpen(false);
-            }}
-          >
-            <img
-              src={`${import.meta.env.BASE_URL}kikatracker_mascot.png`}
-              alt="Logo"
-              className="w-7 h-7 rounded-md"
-            />
-            <span className="display text-[15px] text-[#EDEDED]">XPERT</span>
-            <span className="text-[11px] text-slate-600">Hub</span>
+          <div className="flex-1 min-w-0 flex items-center justify-end gap-2">
+            {!onHome && <div className="w-full max-w-[340px] flex">{searchForm}</div>}
+            {showCursorToggle && <CursorToggle on={isCustomCursor} onClick={toggleCursorMode} className="shrink-0" />}
           </div>
+        </div>
+      </header>
 
-          {/* 3-line Hamburger Menu Toggle on Top */}
+      {/* Phones and tablets */}
+      <div className={minimal ? '' : 'lg:hidden sticky top-0 z-40'}>
+        <header className={`${minimal ? 'hidden' : 'flex'} h-[60px] px-3 items-center justify-between bg-obsidian-card border-b-[3px] border-[var(--ink)]`}>
+          <Logo onClick={() => go('search')} />
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex items-center justify-center p-2 -mr-2 text-slate-400 hover:text-[#EDEDED] transition-colors cursor-pointer"
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-expanded={mobileOpen}
             aria-label="Toggle navigation menu"
+            className="w-11 h-11 flex items-center justify-center border-2 border-[var(--ink)] bg-obsidian-dark text-slate-100 cursor-pointer"
           >
-            {mobileMenuOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </header>
-
-        {/* Full-Featured Animated Mobile Drawer / Menu Overlay */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="fixed inset-x-0 top-14 bottom-0 z-40 bg-[#05060b]/98 backdrop-blur-2xl border-b border-obsidian-border flex flex-col justify-between overflow-y-auto px-4 py-5 shadow-2xl"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-2 pb-2 text-[10px] font-mono uppercase tracking-widest text-slate-500 border-b border-slate-800">
-                  <span>Navigation Hub</span>
-                  <span>{navItems.length} Pages</span>
+        {mobileOpen && (
+          <div className={`fixed inset-x-0 bottom-0 z-40 overflow-y-auto bg-obsidian-card px-4 pb-8 space-y-5 ${minimal ? 'top-0 pt-16' : 'top-[60px] pt-4'}`}>
+            {!minimal && <div className="flex">{searchForm}</div>}
+            <button type="button" id="nav-tab-mobile-search" onClick={() => go('search')} className={`w-full text-left px-3 py-2.5 border-2 text-[16px] font-bold cursor-pointer ${onHome ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)]' : 'border-[var(--ink)] bg-obsidian-dark text-slate-100'}`}>
+              Home
+            </button>
+            {NAV_GROUPS.map((group) => (
+              <section key={group.label}>
+                <h2 className="display text-[22px] text-gold-bright leading-none mb-1.5">{group.label}</h2>
+                <div className="space-y-1">
+                  {group.items.map(({ id, label, icon: Icon, badge }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      id={`nav-tab-mobile-${id}`}
+                      onClick={() => go(id)}
+                      aria-current={activeTab === id ? 'page' : undefined}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 text-[16px] font-bold cursor-pointer ${activeTab === id ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)]' : 'border-[var(--ink)] bg-obsidian-dark text-slate-100'}`}
+                    >
+                      <Icon className="w-5 h-5 shrink-0" />
+                      <span className="flex-1 text-left">{label}</span>
+                      {badge && <Badge text={badge} />}
+                    </button>
+                  ))}
                 </div>
-
-                <div className="flex flex-col space-y-1.5 pt-2">
-                  {navItems.map((item) => {
-                    const isActive = activeTab === item.id;
-                    const Icon = item.icon;
-
-                    return (
-                      <button
-                        key={item.id}
-                        id={`nav-tab-mobile-${item.id}`}
-                        onClick={() => {
-                          setActiveTab(item.id);
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-md text-sm font-semibold transition-all cursor-pointer ${
-                          isActive
-                            ? 'bg-gradient-to-r from-gold-primary/20 via-gold-primary/10 to-transparent text-gold-bright border border-gold-primary/30'
-                            : 'text-slate-300 hover:text-white hover:bg-obsidian-card border border-transparent'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {Icon ? (
-                            <Icon className={`w-5 h-5 ${isActive ? 'text-spray-lime' : 'text-slate-400'}`} />
-                          ) : null}
-                          <span className="tracking-wide">{item.label}</span>
-                        </div>
-
-                        {item.badge && (
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-gold-primary/15 text-gold-bright border border-gold-primary/30 font-bold uppercase">
-                            {item.badge}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-slate-800 px-2 space-y-3">
-                {showCursorToggle && <CursorToggle />}
-                <span className="text-[10px] text-slate-500 font-mono block text-center">
-                  © 2026 XPERT TRACKER • Powered by Kirka Hub Valuation
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </section>
+            ))}
+            {showCursorToggle && <CursorToggle on={isCustomCursor} onClick={toggleCursorMode} className="w-full justify-center" />}
+          </div>
+        )}
       </div>
     </>
   );

@@ -402,7 +402,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 overflow-y-auto font-sans select-text">
-      <div className="relative max-w-6xl w-full bg-[#0b0c12] border border-obsidian-border rounded-md p-4 sm:p-6 flex flex-col lg:flex-row gap-6 max-h-[95vh] lg:max-h-[90vh] overflow-y-auto lg:overflow-hidden shadow-2xl">
+      <div className="relative max-w-6xl w-full bg-obsidian-card border border-obsidian-border rounded-md p-4 sm:p-6 flex flex-col lg:flex-row gap-6 max-h-[95vh] lg:max-h-[90vh] overflow-y-auto lg:overflow-hidden shadow-2xl">
         
         {/* Left Side: Customize Settings */}
         <div className="w-full lg:flex-1 flex flex-col overflow-visible lg:overflow-hidden">
@@ -426,27 +426,27 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
               placeholder="Search items by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#12141f] border border-obsidian-border rounded-md px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/45 focus:shadow-gold-glow transition-all"
+              className="w-full bg-obsidian-card border border-obsidian-border rounded-md px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/45 focus:shadow-gold-glow transition-all"
             />
             
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={selectAll}
-                className="flex items-center space-x-1 px-3 py-1.5 bg-[#171926] border border-slate-800 hover:bg-[#202336] rounded-md text-[10px] font-bold text-slate-300 transition-colors uppercase font-mono cursor-pointer"
+                className="flex items-center space-x-1 px-3 py-1.5 bg-obsidian-card border border-slate-800 hover:bg-obsidian-hover rounded-md text-[10px] font-bold text-slate-300 transition-colors uppercase font-mono cursor-pointer"
               >
                 <CheckSquare className="w-3 h-3 text-gold-primary" />
                 <span>Select Top 15</span>
               </button>
               <button
                 onClick={deselectAll}
-                className="flex items-center space-x-1 px-3 py-1.5 bg-[#171926] border border-slate-800 hover:bg-[#202336] rounded-md text-[10px] font-bold text-slate-300 transition-colors uppercase font-mono cursor-pointer"
+                className="flex items-center space-x-1 px-3 py-1.5 bg-obsidian-card border border-slate-800 hover:bg-obsidian-hover rounded-md text-[10px] font-bold text-slate-300 transition-colors uppercase font-mono cursor-pointer"
               >
                 <Square className="w-3 h-3 text-slate-500" />
                 <span>Deselect All</span>
               </button>
               <button
                 onClick={resetPrices}
-                className="flex items-center space-x-1 px-3 py-1.5 bg-[#171926] border border-slate-800 hover:bg-[#202336] rounded-md text-[10px] font-bold text-slate-300 transition-colors uppercase font-mono cursor-pointer ml-auto"
+                className="flex items-center space-x-1 px-3 py-1.5 bg-obsidian-card border border-slate-800 hover:bg-obsidian-hover rounded-md text-[10px] font-bold text-slate-300 transition-colors uppercase font-mono cursor-pointer ml-auto"
               >
                 <RefreshCw className="w-3 h-3 text-gold-primary" />
                 <span>Reset Settings</span>
@@ -461,7 +461,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
               return (
                 <div
                   key={itemObj.id}
-                  className={`flex items-center gap-4 bg-[#12141f]/40 border rounded-md p-3 hover:bg-[#12141f]/75 transition-all ${
+                  className={`flex items-center gap-4 bg-obsidian-card border rounded-md p-3 hover:bg-obsidian-hover transition-all ${
                     itemObj.enabled ? 'border-obsidian-border/80' : 'border-obsidian-border/20 opacity-50'
                   }`}
                 >
@@ -491,7 +491,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                     </span>
                   </div>
 
-                  <div className="w-32 flex items-center bg-[#0d0e15] border border-obsidian-border rounded-md px-2 py-1">
+                  <div className="w-32 flex items-center bg-obsidian-card border border-obsidian-border rounded-md px-2 py-1">
                     <img src={`${import.meta.env.BASE_URL}kirka_coin.png`} alt="Coin" className="w-3.5 h-3.5 object-contain mr-1 filter drop-" />
                     <input
                       type="text"
@@ -519,7 +519,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
             <div
               ref={previewRef}
               id="share-grid-capture"
-              className="w-full bg-[#121214] p-4 sm:p-5 rounded-md border border-slate-800 select-none"
+              className="w-full bg-obsidian-card p-4 sm:p-5 rounded-md border border-slate-800 select-none"
               style={{ contentVisibility: 'auto' }}
             >
               {/* Header Title in Screenshot */}
@@ -543,7 +543,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                   Select items from the list to show them here
                 </div>
               ) : (
-                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 bg-[#121214]">
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 bg-obsidian-card">
                   {enabledItems.map((itemObj) => {
                     const renderUrl = getItemRenderUrl(itemObj.item);
                     const color = getRarityColor(itemObj.item.rarity);
@@ -551,7 +551,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                     return (
                       <div
                         key={itemObj.id}
-                        className="relative flex flex-col justify-between bg-[#1c1c1f] rounded-md p-2 min-h-[96px] border-2 shadow-md transition-all duration-300 animate-fade-in"
+                        className="relative flex flex-col justify-between bg-obsidian-card rounded-md p-2 min-h-[96px] border-2 shadow-md transition-all duration-300 animate-fade-in"
                         style={{ borderColor: color }}
                       >
                         {/* Name at Top Center */}
@@ -568,7 +568,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
                               src={getProxiedImageUrl(renderUrl)}
                               alt={itemObj.name}
                               crossOrigin="anonymous"
-                              className="max-h-11 max-w-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                              className="max-h-11 max-w-full object-contain filter drop-shadow-lg"
                             />
                           ) : (
                             <div className="text-[7px] text-slate-600 font-bold uppercase font-mono">No skin</div>
@@ -601,7 +601,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
             <button
               onClick={handleCopyClipboard}
               disabled={enabledItems.length === 0 || isOverLimit}
-              className="flex-1 flex items-center justify-center space-x-2 bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep py-3 rounded-md font-bold hover:shadow-gold-glow disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer text-xs"
+              className="flex-1 flex items-center justify-center space-x-2 bg-gold-primary text-obsidian-deep py-3 rounded-md font-bold hover:shadow-gold-glow disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer text-xs"
             >
               <Camera className="w-4 h-4" />
               <span>{copyStatus || 'Copy to Clipboard'}</span>
@@ -610,7 +610,7 @@ export const ShareInventoryModal: React.FC<ShareInventoryModalProps> = ({
             <button
               onClick={handleDownload}
               disabled={enabledItems.length === 0 || downloading || isOverLimit}
-              className="flex items-center justify-center space-x-1.5 bg-[#171926] border border-slate-800 hover:bg-[#202336] text-white p-3 rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+              className="flex items-center justify-center space-x-1.5 bg-obsidian-card border border-slate-800 hover:bg-obsidian-hover text-white p-3 rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
               title="Download PNG Image"
             >
               {downloading ? (

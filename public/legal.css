@@ -1,39 +1,45 @@
-/* Shared style for the static pages (about, contact, privacy, terms). Same palette and type as the app,
-   so moving between them doesn't feel like leaving the site. */
+/* Shared style for the static pages (about, contact, privacy, terms). Same paper, ink and lettering as the
+   app, so moving between them doesn't feel like leaving the site. The reading column stays plain on purpose:
+   these pages are for reading. */
 :root {
   color-scheme: dark;
-  --bg: #0B0B0B;
-  --card: #161616;
-  --line: #2A2A2A;
-  --fg: #EDEDED;
-  --dim: #A0A0A0;
-  --mute: #6B6B6B;
-  --accent: #B8FF29;
+  --bg: #171925;
+  --card: #262A3C;
+  --line: #05060A;
+  --fg: #FFF6E0;
+  --dim: #E0D6C2;
+  --mute: #B3AA99;
+  --accent: #E3202E;
+  --accent-text: #FFD60A;
+  --caption: #FFD60A;
 }
 * { box-sizing: border-box; }
 html, body { overflow-x: clip; }
-body { margin: 0; background: var(--bg); color: var(--dim); font: 400 16px/1.7 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
-a { color: var(--fg); text-decoration: underline; text-decoration-color: #4A4A4A; text-underline-offset: 3px; }
-a:hover { text-decoration-color: var(--accent); }
-a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+body { margin: 0; background-color: var(--bg); background-image: radial-gradient(rgba(124, 132, 176, .2) 1.15px, transparent 1.35px); background-size: 9px 9px; color: var(--dim); font: 400 17px/1.65 "Comic Neue", "Comic Sans MS", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: var(--fg); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { color: var(--accent-text); }
+a:focus-visible { outline: 3px solid #FFD60A; outline-offset: 3px; }
 
-.bar { max-width: 1100px; margin: 0 auto; padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; border-bottom: 1px solid var(--line); }
-.bar .home { font: 400 22px/1 "Anton", "Inter", sans-serif; text-transform: uppercase; letter-spacing: 0.02em; color: var(--fg); text-decoration: none; }
+.bar { background: var(--card); border-bottom: 3px solid var(--line); padding: 14px max(20px, calc((100% - 1060px) / 2)); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.bar .home { font: 400 30px/1 "Bangers", "Comic Neue", sans-serif; text-transform: uppercase; letter-spacing: 0.035em; color: var(--fg); text-decoration: none; }
 .bar .home span { color: var(--accent); }
-.bar nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; }
+.bar nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 16px; }
 .bar nav a { color: var(--dim); text-decoration: none; }
-.bar nav a:hover, .bar nav a[aria-current="page"] { color: var(--fg); }
+.bar nav a:hover { color: var(--accent-text); }
+.bar nav a[aria-current="page"] { color: #15120E; background: var(--caption); border: 2px solid var(--line); padding: 0 6px; }
 
-main { max-width: 760px; margin: 0 auto; padding: 48px 20px 72px; }
-h1 { margin: 0; font: 400 clamp(2.4rem, 7vw, 3.6rem)/1 "Anton", "Inter", sans-serif; text-transform: uppercase; letter-spacing: 0.015em; color: var(--fg); }
-.updated { margin: 10px 0 0; font-size: 14px; color: var(--mute); }
-.lead { margin-top: 24px; font-size: 18px; color: var(--fg); }
-h2 { margin: 40px 0 10px; font: 700 20px/1.25 "Inter", sans-serif; color: var(--fg); }
+main { max-width: 800px; margin: 36px auto 56px; padding: 32px 28px 36px; background: var(--card); border: 3px solid var(--line); box-shadow: 6px 6px 0 var(--line); }
+@media (max-width: 860px) { main { margin: 20px 16px 40px; padding: 24px 18px 28px; } }
+h1 { margin: 0; font: 400 clamp(2.8rem, 8vw, 4.2rem)/1 "Bangers", "Comic Neue", sans-serif; text-transform: uppercase; letter-spacing: 0.035em; color: var(--fg); text-shadow: 3px 3px 0 var(--accent); }
+.updated { margin: 10px 0 0; font-size: 15px; color: var(--mute); }
+.lead { margin-top: 20px; font-size: 19px; font-weight: 700; color: var(--fg); }
+h2 { margin: 36px 0 8px; font: 400 28px/1.15 "Bangers", "Comic Neue", sans-serif; letter-spacing: 0.035em; text-transform: uppercase; color: var(--fg); }
 p, ul { margin: 0 0 14px; }
 ul { padding-left: 22px; }
 li { margin-bottom: 6px; }
-strong { color: var(--fg); font-weight: 600; }
-.button { display: inline-block; margin-top: 8px; padding: 12px 20px; border-radius: 6px; background: var(--accent); color: #0B0B0B; font-weight: 800; text-decoration: none; }
-.button:hover { background: #D4FF6B; }
-footer { max-width: 1100px; margin: 0 auto; padding: 22px 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--mute); display: flex; flex-wrap: wrap; gap: 8px 20px; }
+strong { color: var(--fg); font-weight: 700; }
+.button { display: inline-block; margin-top: 8px; padding: 10px 20px; background: var(--accent); color: #FFF6E0; border: 2px solid var(--line); box-shadow: 3px 3px 0 var(--line); font: 400 22px/1 "Bangers", "Comic Neue", sans-serif; letter-spacing: 0.035em; text-decoration: none; }
+.button:hover { background: #1F5AC4; color: #FFF6E0; }
+.button:active { transform: translate(3px, 3px); box-shadow: none; }
+footer { background: var(--card); border-top: 3px solid var(--line); padding: 18px max(20px, calc((100% - 1060px) / 2)); font-size: 15px; font-weight: 700; color: var(--mute); display: flex; flex-wrap: wrap; gap: 8px 20px; }
 footer a { color: var(--mute); }

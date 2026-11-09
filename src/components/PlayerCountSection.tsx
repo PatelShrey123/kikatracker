@@ -133,11 +133,11 @@ export const PlayerCountSection: React.FC = () => {
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8 select-text">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <h2 className="text-2xl sm:text-3xl text-[#EDEDED]">
+          <h2 className="text-2xl sm:text-3xl text-slate-100">
             Live <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>lobbies</span>
           </h2>
           <p className="text-[13px] text-slate-400 mt-2 max-w-[60ch]">
-            Active game servers across all 5 regions. Click join to launch directly into a match.
+            Active game servers across every region. Click join to launch directly into a match.
           </p>
         </div>
 
@@ -147,7 +147,7 @@ export const PlayerCountSection: React.FC = () => {
             onClick={() => setSubTab('lobbies')}
             className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
               subTab === 'lobbies'
-                ? 'bg-slate-800 text-white font-semibold'
+                ? 'bg-obsidian-hover text-white font-semibold'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -158,7 +158,7 @@ export const PlayerCountSection: React.FC = () => {
             onClick={() => setSubTab('trends')}
             className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
               subTab === 'trends'
-                ? 'bg-slate-800 text-white font-semibold'
+                ? 'bg-obsidian-hover text-white font-semibold'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -201,7 +201,7 @@ export const PlayerCountSection: React.FC = () => {
               <span className="block text-[11px] text-slate-500 mb-1">
                 {hover === null ? 'Online now' : 'At this moment'}
               </span>
-              <span className="display block text-6xl sm:text-7xl leading-none text-[#EDEDED] tabular-nums">
+              <span className="display block text-6xl sm:text-7xl leading-none text-slate-100 tabular-nums">
                 {totalOf(active).toLocaleString()}
               </span>
               <span className="block text-[12px] text-slate-600 mt-2 tabular-nums">
@@ -262,7 +262,7 @@ export const PlayerCountSection: React.FC = () => {
                   <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: r.colour }} />
                   {r.label}
                 </span>
-                <span className="display block text-2xl leading-none text-[#EDEDED] tabular-nums">
+                <span className="display block text-2xl leading-none text-slate-100 tabular-nums">
                   {(active[r.key] ?? 0).toLocaleString()}
                 </span>
               </div>

@@ -108,7 +108,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Header & Stats Summary Banner */}
-      <div className="bg-[#0e121d]/90 border border-white/10 rounded-md p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5 backdrop-blur-md">
+      <div className="bg-obsidian-card border border-white/10 rounded-md p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5 backdrop-blur-md">
         <div>
           <div className="flex items-center space-x-3">
             <h3 className="text-base sm:text-lg font-black tracking-wider text-white flex items-center space-x-2">
@@ -126,7 +126,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
 
         {/* Quick Stats Summary Badges */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
+          <div className="bg-obsidian-dark border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
             <Trophy className="w-4 h-4 text-emerald-400" />
             <div className="text-left">
               <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Win Rate</div>
@@ -134,7 +134,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
             </div>
           </div>
 
-          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
+          <div className="bg-obsidian-dark border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
             <Flame className="w-4 h-4 text-amber-400" />
             <div className="text-left">
               <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Victories</div>
@@ -142,7 +142,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
             </div>
           </div>
 
-          <div className="bg-black/50 border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
+          <div className="bg-obsidian-dark border border-white/10 px-3.5 py-2 rounded-md flex items-center space-x-2.5">
             <Skull className="w-4 h-4 text-red-400" />
             <div className="text-left">
               <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Defeats</div>
@@ -162,7 +162,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
       </div>
 
       {/* Filter Controls Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d101a]/80 p-3.5 rounded-md border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-obsidian-card p-3.5 rounded-md border border-slate-800">
         <div className="flex items-center space-x-2">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
           <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">Filter:</span>
@@ -219,12 +219,12 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
 
       {/* Match History List Rows */}
       {loading ? (
-        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-[#0d101a]/50 rounded-md border border-slate-800">
+        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-obsidian-card rounded-md border border-slate-800">
           <div className="w-8 h-8 rounded-full border-2 border-gold-primary border-t-transparent animate-spin" />
           <p className="text-xs font-mono text-slate-400 tracking-wider uppercase">Loading Match Records from Kirka API...</p>
         </div>
       ) : filteredMatches.length === 0 ? (
-        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-[#0d101a]/50 rounded-md border border-slate-800 text-slate-500">
+        <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-obsidian-card rounded-md border border-slate-800 text-slate-500">
           <Swords className="w-10 h-10 opacity-30 text-gold-primary" />
           <p className="text-sm font-mono">No match records found for this player.</p>
         </div>
@@ -238,7 +238,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
             return (
               <div
                 key={match.id}
-                className="group relative flex items-stretch bg-[#1a2136] hover:bg-[#1f2740] rounded-md overflow-hidden border border-slate-800 hover:border-white/20 transition-all duration-200 shadow-lg hover:shadow-2xl"
+                className="group relative flex items-stretch bg-obsidian-card hover:bg-obsidian-hover rounded-md overflow-hidden border border-slate-800 hover:border-white/20 transition-all duration-200 shadow-lg hover:shadow-2xl"
               >
                 {/* 1. Far Left Vertical Accent Stripe (Green for Win, Red for Defeat) */}
                 <div
@@ -248,7 +248,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
                 />
 
                 {/* 2. Map Image Background Container with Uppercase Map Label */}
-                <div className="relative w-40 sm:w-64 md:w-80 h-20 sm:h-24 overflow-hidden flex items-center justify-center flex-shrink-0 bg-black/40">
+                <div className="relative w-40 sm:w-64 md:w-80 h-20 sm:h-24 overflow-hidden flex items-center justify-center flex-shrink-0 bg-obsidian-dark">
                   <img
                     src={mapImgUrl}
                     alt={mapNameClean}
@@ -264,7 +264,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
 
                   {/* Centered Map Name Overlay */}
                   <span
-                    className="relative z-10 text-white font-black text-lg sm:text-2xl md:text-3xl tracking-wider uppercase drop-shadow-[0_3px_8px_rgba(0,0,0,0.95)] select-none px-2 text-center"
+                    className="relative z-10 text-white font-black text-lg sm:text-2xl md:text-3xl tracking-wider uppercase drop-shadow-lg select-none px-2 text-center"
                     style={{
                       textShadow: '0 2px 10px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8)'
                     }}
@@ -274,7 +274,7 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
                 </div>
 
                 {/* 3. Right Score & Date Information Panel */}
-                <div className="flex-1 flex flex-col justify-center items-end px-4 sm:px-8 py-2 bg-gradient-to-l from-[#192035] to-transparent">
+                <div className="flex-1 flex flex-col justify-center items-end px-4 sm:px-8 py-2 bg-gradient-to-l from-obsidian-card to-transparent">
                   {/* Big Score Text */}
                   <div
                     className={`font-mono font-black text-2xl sm:text-3xl md:text-4xl tracking-wider leading-none select-none ${

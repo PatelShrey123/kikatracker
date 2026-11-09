@@ -54,7 +54,56 @@ export const REGIONS: Record<string, { id: string; name: string; flag: string; h
     flag: '🇧🇷',
     host: 'sa.kirka.io',
   },
+  oceania: {
+    id: 'oceania',
+    name: 'Oceania',
+    flag: '🇦🇺',
+    host: 'oceania.kirka.io',
+  },
 };
+
+/**
+ * Kirka scrambles the key names in this feed and changes them whenever the game updates, which has
+ * zeroed every lobby here more than once. The order and shape of the values don't change, so a room
+ * is read by those. Top level, in order: locked, player count, created date, room capacity,
+ * metadata, name, process id, room id. In the metadata, the player count is followed by the match's
+ * player limit, and the map is the first text value that isn't the mode.
+ */
+function readRoom(r: any) {
+  if (!r || typeof r !== 'object') return null;
+  const mode = typeof r.name === 'string' ? r.name : '';
+  // A party waiting together, not a match anyone can join.
+  if (!mode || mode === 'LobbyRoom') return null;
+
+  const values = Object.values(r);
+  const numbers = values.filter((v): v is number => typeof v === 'number');
+  const texts = values.filter((v): v is string => typeof v === 'string');
+  const meta = (values.find((v) => v && typeof v === 'object' && !Array.isArray(v)) ?? {}) as Record<string, unknown>;
+  const metaValues = Object.values(meta);
+
+  const players = numbers[0] ?? 0;
+  const capacity = numbers[1] ?? 8;
+  const code = texts[texts.length - 1];
+  if (!code || code === mode) return null;
+
+  const metaNumbers = metaValues.filter((v): v is number => typeof v === 'number');
+  const countAt = metaNumbers.indexOf(players);
+  const limit = countAt >= 0 ? metaNumbers[countAt + 1] : undefined;
+  const maxPlayers = typeof limit === 'number' && limit >= Math.max(players, 1) && limit <= capacity ? limit : capacity;
+
+  const map = metaValues.find((v): v is string => typeof v === 'string' && v !== '' && v !== mode) ?? 'Unknown';
+
+  return {
+    mode,
+    map,
+    players,
+    maxPlayers,
+    code,
+    inRound: meta.inRound___METADATA !== false,
+    roundCreatedAt: typeof meta.roundCreatedAt___METADATA === 'number' ? meta.roundCreatedAt___METADATA : undefined,
+    isCustomMap: Boolean(meta.customMap___METADATA),
+  };
+}
 
 /**
  * Fetches live matches for a given server region
@@ -74,35 +123,30 @@ export async function fetchRegionRooms(regionKey: string = 'india'): Promise<Liv
   const rawRooms = await res.json();
   if (!Array.isArray(rawRooms)) return [];
 
-  return rawRooms.map((r: any) => {
-    const meta = r.WnWwwMmN || r.WwwMWn || {};
-    const mode = r.name || meta.wMNmWnWw || meta.wMWNwm || 'TDM';
-    const map = meta.wWwNW || meta.wWnWm || meta.wWwMnWmN || 'Shipment';
-    const players = typeof r.WNMWm === 'number' ? r.WNMWm : (typeof r.WmwwMWnN === 'number' ? r.WmwwMWnN : 0);
-    const maxPlayers = typeof meta.wWnMmWw === 'number' ? meta.wWnMmWw : (typeof meta.wWnmwNW === 'number' ? meta.wWnmwNW : 8);
-    const code = meta.wWMnwWm || r.WWMNmww || r.WMwnWNmw || r.WwMmWnNw || 'LOBBY';
-    const tag = `${reg.id.toUpperCase()}~${code}`;
-
-    return {
-      id: meta.wWMnwWm || r.WWMNmww || r.WwMmWnNw || code,
-      code,
+  return rawRooms.flatMap((r: any) => {
+    const room = readRoom(r);
+    if (!room) return [];
+    const tag = `${reg.id.toUpperCase()}~${room.code}`;
+    return [{
+      id: room.code,
+      code: room.code,
       tag,
       region: reg.id,
-      mode,
-      map,
-      players,
-      maxPlayers,
-      isFull: players >= maxPlayers,
-      inRound: meta.inRound___METADATA !== false,
-      roundCreatedAt: meta.roundCreatedAt___METADATA,
-      isCustomMap: Boolean(meta.customMap___METADATA),
+      mode: room.mode,
+      map: room.map,
+      players: room.players,
+      maxPlayers: room.maxPlayers,
+      isFull: room.players >= room.maxPlayers,
+      inRound: room.inRound,
+      roundCreatedAt: room.roundCreatedAt,
+      isCustomMap: room.isCustomMap,
       joinUrl: `https://kirka.io/games/${tag}`,
-    };
+    }];
   });
 }
 
 /**
- * Fetches stats across all 5 server regions concurrently
+ * Fetches stats across all the server regions concurrently
  */
 export async function fetchAllRegionsSummary(): Promise<RegionSummary[]> {
   const regionKeys = Object.keys(REGIONS);

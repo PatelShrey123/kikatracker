@@ -60,7 +60,7 @@ const FieldRow: React.FC<{ f: FieldChange }> = ({ f }) => (
 );
 
 const Card: React.FC<{ r: Record_ }> = ({ r }) => (
-  <div className="rounded-md border border-white/10 bg-[#11131a] overflow-hidden">
+  <div className="rounded-md border border-white/10 bg-obsidian-card overflow-hidden">
     <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 border-b border-slate-800 bg-white/[0.02]">
       <span className="text-emerald-300 font-bold">
         Skin: <span className="text-white">{r.name}</span>
@@ -174,7 +174,7 @@ export const ChangelogsSection: React.FC = () => {
   return (
     <section className="max-w-6xl mx-auto px-4 py-8 space-y-4 font-mono">
       {/* status bar */}
-      <div className="rounded-md border border-white/10 bg-[#11131a] px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+      <div className="rounded-md border border-white/10 bg-obsidian-card px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
         <span className="text-slate-300">Total Changes: <span className="text-white font-bold">{totals.all}</span></span>
         <span className="text-slate-300">Added: <span className="text-emerald-300 font-bold">{totals.added}</span></span>
         <span className="text-slate-300">Removed: <span className="text-red-300 font-bold">{totals.removed}</span></span>

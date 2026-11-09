@@ -381,7 +381,7 @@ export const Weapon3DViewer: React.FC<Weapon3DViewerProps> = ({
   };
 
   return (
-    <div className={`relative ${className} select-none overflow-hidden rounded-md bg-gradient-to-b from-[#0e1017]/80 to-[#07090e]/90 flex items-center justify-center`}>
+    <div className={`night relative ${className} select-none overflow-hidden rounded-md bg-[var(--stage)] flex items-center justify-center`}>
       {/* 3D Canvas Mounting point */}
       <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 

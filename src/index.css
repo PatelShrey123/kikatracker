@@ -1,89 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Exo+2:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Exo+2:wght@600;700;800&family=Saira+Stencil+One&family=Saira+Semi+Condensed:wght@400;600;700&family=Share+Tech+Mono&family=Russo+One&family=Playfair+Display:ital,wght@0,800;1,800&family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&family=Pixelify+Sans:wght@500;700&family=VT323&display=swap');
 
 @import "tailwindcss";
 
 /* =========================================================================
-   Palette: warm neutral dark.
+   The comic book, night edition.
 
-   Surfaces are warm charcoal rather than blue-black, so nothing reads as
-   "default dark theme". The accent is brass - the old gold pulled well down
-   in saturation so it can sit on a page without shouting. Token names are
-   unchanged (obsidian-*, gold-*) so every existing component inherits this.
+   A dark page, black ink for every line, and flat red, yellow and blue on top. No
+   gradients, no glows, no blur: print can't do any of those, which is what keeps
+   this looking drawn. Black lines don't show on black, so panels are a lighter
+   slate than the page and it's their ink edge and hard shadow that lift them off.
+
+   Token names are unchanged (obsidian-*, gold-*, slate-*) so all the components
+   inherit the theme from here. The .night scope keeps the 3D stages and the Kirka
+   fit card in the game's own colours.
    ========================================================================= */
 @theme {
-  --color-obsidian-deep: #0B0B0B;
-  --color-obsidian-dark: #111111;
-  --color-obsidian-card: #161616;
-  --color-obsidian-hover: #1F1F1F;
-  --color-obsidian-border: #2A2A2A;
+  --color-white: #FFF6E0;           /* cream: the strongest text colour */
+  --color-black: #000000;
 
-  --color-gold-primary: #B8FF29;
-  --color-gold-bright: #D4FF6B;
-  --color-gold-dark: #7FB300;
+  --color-obsidian-deep: #171925;   /* the page */
+  --color-obsidian-dark: #11121B;   /* insets, a shade under the page */
+  --color-obsidian-card: #262A3C;   /* a panel, lifted so its ink edge shows */
+  --color-obsidian-hover: #363B52;  /* hover and selected rows */
+  --color-obsidian-border: var(--ink);
 
-  /* Rarity still has to be readable at a glance, but neon was the loudest
-     thing on every page. These are the same hues at roughly half the chroma. */
-  --color-rarity-mythic: #FF2D46;
+  --color-gold-primary: var(--fill-1);    /* the red, for fills */
+  --color-gold-bright: var(--accent);     /* the yellow, for accent text: red is too dim to read small here */
+  --color-gold-dark: #8E0E18;
+
+  --color-rarity-mythic: #FF4D5A;
   --color-rarity-legendary: #FFC81E;
   --color-rarity-epic: #C46BFF;
-  --color-rarity-rare: #3BA9FF;
-  --color-rarity-common: #9CA3AF;
+  --color-rarity-rare: #4DA3FF;
+  --color-rarity-common: #A9B0BD;
 
+  --color-spray-pink: #FF4D5A;
+  --color-spray-cyan: #4DA3FF;
+  --color-spray-lime: var(--accent);
+  --color-spray-orange: #FF8A3D;
+  --color-spray-violet: #B57BFF;
 
-  /* ---------------------------------------------------------------------
-     Spray palette. Graffiti gets its punch from a few saturated colours
-     hitting a dull concrete ground - so these stay loud, and the surfaces
-     underneath stay flat and grey. Each one is used as a flat fill or a
-     hard edge, never as a gradient or a glow, which is the difference
-     between paint and neon.
-     --------------------------------------------------------------------- */
-  --color-spray-pink: #FF2D8E;
-  --color-spray-cyan: #22D3EE;
-  --color-spray-lime: #B8FF29;
-  --color-spray-orange: #FF7A1A;
-  --color-spray-violet: #A855F7;
-
-  --font-display: "Anton", "Inter", system-ui, sans-serif;
-
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Bangers", "Comic Neue", system-ui, sans-serif;
+  --font-sans: "Comic Neue", "Comic Sans MS", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Kept as tokens because components reference them, but they are now real
-     shadows - depth, not light emission. */
+  /* Comic panels are ruled, not rounded. */
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 4px;
+  --radius-2xl: 5px;
+  --radius-3xl: 6px;
 
-  /* ---------------------------------------------------------------------
-     Built-in scales, retinted.
+  --color-slate-50:  #FFF9EB;
+  --color-slate-100: #FFF6E0;
+  --color-slate-200: #F0E7D3;
+  --color-slate-300: #E0D6C2;
+  --color-slate-400: #CBC2B0;
+  --color-slate-500: #B3AA99;
+  --color-slate-600: #A0978A;
+  --color-slate-700: #6A6778;
+  --color-slate-800: var(--ink);
+  --color-slate-900: #1B1D2A;
+  --color-slate-950: #11121B;
 
-     602 slate and 182 indigo usages are spread across 36 components. Rather
-     than rewrite every className, the scales themselves are redefined: cool
-     grey becomes warm grey so text sits on the background instead of fighting
-     it, and indigo drops to a low-chroma blue-grey so it reads as a quiet
-     secondary rather than a second accent competing with the brass.
-
-     Purple and cyan are deliberately left alone - the VIP supporter styling
-     depends on them.
-     --------------------------------------------------------------------- */
-  --color-slate-50:  #FAFAFA;
-  --color-slate-100: #EDEDED;
-  --color-slate-200: #D4D4D4;
-  --color-slate-300: #C7C7C7;
-  --color-slate-400: #A0A0A0;
-  --color-slate-500: #828282;
-  --color-slate-600: #6B6B6B;
-  --color-slate-700: #4A4A4A;
-  --color-slate-800: #282828;
-  --color-slate-900: #161616;
-  --color-slate-950: #0D0D0D;
-
-  --color-indigo-200: #C7CEFF;
-  --color-indigo-300: #A8B4FF;
-  --color-indigo-400: #8492FF;
-  --color-indigo-500: #6172FF;
-  --color-indigo-600: #4A59E6;
-  --color-indigo-700: #3A47C4;
+  --color-indigo-200: #C7D8FF;
+  --color-indigo-300: #A8C4FF;
+  --color-indigo-400: #7FAAFF;
+  --color-indigo-500: #2F6FE0;
+  --color-indigo-600: #1F5AC4;
+  --color-indigo-700: #1A4CA6;
   --color-indigo-800: #32363F;
 
-  /* Semantic colour keeps its meaning, loses the neon. */
   --color-emerald-200: #A8F5D0;
   --color-emerald-300: #6EF2B0;
   --color-emerald-400: #2EE68F;
@@ -91,10 +79,10 @@
   --color-emerald-600: #0BA75F;
 
   --color-red-200: #FFC2C2;
-  --color-red-300: #FF8A8A;
-  --color-red-400: #FF5A5A;
-  --color-red-500: #FF2D46;
-  --color-red-600: #E01530;
+  --color-red-300: #FF9A9A;
+  --color-red-400: #FF6B6B;
+  --color-red-500: #E3202E;
+  --color-red-600: #C4121F;
 
   --color-amber-200: #FFE6B0;
   --color-amber-300: #FFD98A;
@@ -105,14 +93,86 @@
   --color-yellow-300: #FFE86B;
   --color-yellow-400: #FFDA1F;
 
-  --shadow-gold-glow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-gold-glow-bright: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-gold-glow: 3px 3px 0 var(--ink);
+  --shadow-gold-glow-bright: 4px 4px 0 var(--ink);
+
+  /* Print has no soft shadows and no blur, so the framework's scales are hard offsets and zero. */
+  --shadow-sm: 2px 2px 0 var(--ink);
+  --shadow-md: 3px 3px 0 var(--ink);
+  --shadow-lg: 4px 4px 0 var(--ink);
+  --shadow-xl: 5px 5px 0 var(--ink);
+  --shadow-2xl: 6px 6px 0 var(--ink);
+  --blur-xs: 0px;
+  --blur-sm: 0px;
+  --blur-md: 0px;
+  --blur-lg: 0px;
+  --blur-xl: 0px;
+  --blur-2xl: 0px;
+
+  /* Comic Neue has a small x-height, so the two small sizes sit a step up to stay readable. */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.35;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.4;
 }
 
+/* The comic's print colours and page texture. Everything theme-able reads these. */
+:root {
+  --ink: #05060A;
+  --accent: #FFD60A;
+  --on-accent: #15120E;
+  --fill-1: #E3202E;
+  --on-fill-1: #FFF6E0;
+  --fill-2: #1F5AC4;
+  --on-fill-2: #FFF6E0;
+  --logo: #FF4D5A;
+  --stage: #141a2b;
+  --h1-shadow: 3px 3px 0 #E3202E;
+  --display-tracking: 0.035em;
+  --display-case: uppercase;
+  --page-image: radial-gradient(#7C84B0 1.15px, transparent 1.35px);
+  --page-size: 9px 9px;
+  --page-position: 0 0;
+  --page-opacity: 0.2;
+  --burst-clip: polygon(50% 0%, 59% 15%, 75% 6%, 76% 24%, 94% 22%, 87% 39%, 100% 50%, 87% 61%, 94% 78%, 76% 76%, 75% 94%, 59% 85%, 50% 100%, 41% 85%, 25% 94%, 24% 76%, 6% 78%, 13% 61%, 0% 50%, 13% 39%, 6% 22%, 24% 24%, 25% 6%, 41% 15%);
+}
+
+/* The 3D stages and the Kirka fit card are drawn in the game's own dark colours. Everything
+   inside this class gets the old palette back, so white means white again. */
+.night {
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-obsidian-deep: #0B0B0B;
+  --color-obsidian-dark: #111111;
+  --color-obsidian-card: #161616;
+  --color-obsidian-hover: #1F1F1F;
+  --color-obsidian-border: #2A2A2A;
+  --color-gold-primary: #FFD60A;
+  --color-gold-bright: #FFE45C;
+  --color-slate-50: #FAFAFA;
+  --color-slate-100: #EDEDED;
+  --color-slate-200: #D4D4D4;
+  --color-slate-300: #C7C7C7;
+  --color-slate-400: #A0A0A0;
+  --color-slate-500: #828282;
+  --color-slate-600: #6B6B6B;
+  --color-slate-700: #4A4A4A;
+  --color-slate-800: #282828;
+  --color-slate-900: #161616;
+  --color-slate-950: #0D0D0D;
+  --color-emerald-400: #2EE68F;
+  --color-red-400: #FF5A5A;
+  --color-amber-400: #FFC247;
+  color: #EDEDED;
+  font-family: "Exo 2", system-ui, sans-serif;
+}
+.night h1 { text-shadow: none; }
+
 @layer base {
+  html { color-scheme: dark; }
   body {
     background-color: var(--color-obsidian-deep);
-    color: #EDEDED;
+    color: var(--color-slate-100);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -121,137 +181,167 @@
     padding: 0;
   }
 
-  /* Large text at default tracking is the giveaway of an untouched framework.
-     Headings tighten as they grow, the way set type actually behaves. */
-  /* Poster type across the whole site. Anton is condensed and heavy, so it wants
-     uppercase and a little tracking rather than the tight negative spacing a
-     grotesque would take. h3 and below stay in Inter so body copy stays readable. */
+  /* Bangers is a hand-lettered all-caps face, so it wants air between letters rather than
+     tightening. h3 and below stay in the body face so the small print stays readable. */
   h1, h2 {
     font-family: var(--font-display);
     font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.015em;
+    text-transform: var(--display-case);
+    letter-spacing: var(--display-tracking);
   }
-  h3 { letter-spacing: -0.01em; }
+  h1 { text-shadow: var(--h1-shadow); }
+  h3 { font-weight: 700; }
+
+  input, select, textarea {
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+  input::placeholder, textarea::placeholder { color: #A0978A; font-weight: 400; opacity: 1; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
-
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-obsidian-dark);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #2A2A2A;
-  border: 3px solid var(--color-obsidian-deep);
-  border-radius: 999px;
+  background: #4A4F68;
+  border: 3px solid var(--color-obsidian-dark);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3D3D3D;
-}
+/* -------------------------------------------------------------------------
+   Ink. A 1px line is a screen thing, so every rule on the page is drawn with a
+   heavier pen. Unlayered, so this wins over the utilities without !important.
+   ------------------------------------------------------------------------- */
+.border { border-width: 2px; }
+.border-b { border-bottom-width: 2px; }
+.border-t { border-top-width: 2px; }
+.border-l { border-left-width: 2px; }
+.border-r { border-right-width: 2px; }
+.night .border { border-width: 1px; }
+.night .border-b { border-bottom-width: 1px; }
+.night .border-t { border-top-width: 1px; }
+.night .border-l { border-left-width: 1px; }
+.night .border-r { border-right-width: 1px; }
 
-/* Panels are separated by a hairline and a shade of surface, not by blur.
-   Backdrop blur over a near-black page buys nothing and costs a repaint. */
-.glass-panel {
-  background: var(--color-obsidian-card);
+/* A panel: clean paper, ink outline, and the hard offset shadow of a misprinted plate. */
+.glass-panel,
+.glass-panel-gold,
+.bg-obsidian-card.border {
+  background-color: var(--color-obsidian-card);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.night .bg-obsidian-card.border {
   border: 1px solid var(--color-obsidian-border);
-}
-
-.glass-panel-gold {
-  background: var(--color-obsidian-card);
-  border: 1px solid #2F2F2F;
+  box-shadow: none;
 }
 
 .glass-nav {
-  background: rgba(11, 10, 8, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-obsidian-border);
+  background: var(--color-obsidian-deep);
+  border-bottom: 3px solid var(--ink);
 }
 
-
-/* =========================================================================
-   The wall.
-
-   A single tiling SVG noise layer over the whole page at very low opacity.
-   It is fixed, so it does not swim while scrolling, and pointer-events:none
-   so it never eats a click. This is what stops the background reading as
-   "flat dark div" - there is something to paint on.
-   ========================================================================= */
+/* Ben-Day dots, the printed tone that makes a page read as a comic. It sits under
+   everything at low strength and never moves, so it can't compete with the text. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.045;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: var(--page-opacity);
+  background-image: var(--page-image);
+  background-size: var(--page-size);
+  background-position: var(--page-position);
 }
 
-/* Headings are poster type: heavy, condensed, tight. */
 .display {
   font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  letter-spacing: var(--display-tracking);
+  text-transform: var(--display-case);
 }
 
-/* A marker stroke behind a word, cut at an angle the way tape or a roller
-   leaves it. Flat colour, no blur. */
+/* Bangers has one weight. Asking it for font-black smears a fake bold over the lettering. */
+h1, h2, .display, .stencil {
+  font-weight: 400 !important;
+  font-synthesis: none;
+}
+.night h1, .night h2, .night .display { font-synthesis: weight; }
+
+/* A caption box: the yellow narration block from a comic panel, set slightly off square. */
 .mark {
   position: relative;
   display: inline-block;
-  padding: 0 0.12em;
-  /* Without this the z-index:-1 block below escapes the element and paints behind the
-     page background, leaving dark text on a dark wall. */
+  padding: 0 0.22em;
+  color: var(--ink) !important;
+  text-shadow: none;
   isolation: isolate;
 }
-
 .mark::before {
   content: "";
   position: absolute;
-  inset: 12% -0.06em 14%;
-  background: var(--mark-color, var(--color-spray-pink));
-  transform: skewX(-8deg) rotate(-0.6deg);
+  inset: 6% -0.02em 2%;
+  background: var(--accent);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: rotate(-1.5deg);
   z-index: -1;
 }
 
-/* Pasted-poster edge: a hard colour rule along the top of a card. */
+/* Top edge of a card: a thick strip of colour under the ink line. */
 .taped {
-  box-shadow: inset 0 3px 0 0 var(--tape-color, var(--color-spray-pink));
+  box-shadow: inset 0 5px 0 0 var(--tape-color, var(--color-spray-pink)), 4px 4px 0 var(--ink) !important;
 }
 
-/* Stencil numerals for ranks and counters. */
 .stencil {
   font-family: var(--font-display);
   letter-spacing: 0.04em;
 }
 
 ::selection {
-  background: var(--color-spray-lime);
-  color: #0B0B0B;
+  background: var(--accent);
+  color: var(--ink);
 }
 
+/* The printed dot tone, fading out of a panel's corner. It sits under the panel's own content,
+   which needs position: relative to stay on top. */
+.halftone { position: relative; isolation: isolate; }
+.halftone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(5, 6, 10, 0.32) 1.5px, transparent 1.8px);
+  background-size: 8px 8px;
+  -webkit-mask-image: linear-gradient(315deg, #000 0%, transparent 52%);
+  mask-image: linear-gradient(315deg, #000 0%, transparent 52%);
+}
 
-/* A skin card: one colour, flat.
-   This was two radial washes from opposite corners, lime and pink, which is precisely the
-   generated look - a gradient doing decoration rather than saying anything. The card now
-   carries a single flat tint of its rarity colour, the same colour as the top edge, so each
-   card is one colour at two strengths instead of three colours at once. */
+/* A starburst, cut with a clip-path so it scales with no image file. */
+.burst {
+  clip-path: var(--burst-clip);
+}
+
 .skin-card {
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.12s ease, transform 0.12s ease;
 }
-
 
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
 }
@@ -260,55 +350,69 @@ body::before {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 0.8; }
 }
-
 .animate-pulse-subtle {
   animation: pulse-subtle 4s ease-in-out infinite;
 }
 
-/* Was a three-stop gradient with a glow. Gradient-filled headings are the
-   single clearest tell of a generated page, so this is now just the accent. */
 .text-gold-gradient {
   color: var(--color-gold-bright);
 }
-
 .text-mythic-gradient {
   color: var(--color-rarity-mythic);
 }
 
-/* Rarity used to be communicated with coloured light bleeding off the card.
-   A 1px border in the rarity colour says the same thing and stays quiet. */
-.shadow-mythic    { border-color: rgba(255, 45, 70, 0.75) !important; }
-.shadow-legendary { border-color: rgba(255, 200, 30, 0.7) !important; }
-.shadow-epic      { border-color: rgba(196, 107, 255, 0.65) !important; }
-.shadow-rare      { border-color: rgba(59, 169, 255, 0.6) !important; }
-.shadow-common    { border-color: rgba(156, 163, 175, 0.4) !important; }
+/* Rarity outline, at full ink strength. */
+.shadow-mythic    { border-color: var(--color-rarity-mythic) !important; }
+.shadow-legendary { border-color: var(--color-rarity-legendary) !important; }
+.shadow-epic      { border-color: var(--color-rarity-epic) !important; }
+.shadow-rare      { border-color: var(--color-rarity-rare) !important; }
+.shadow-common    { border-color: var(--color-rarity-common) !important; }
 
 .glow-filter-gold {
   filter: none;
 }
 
-/* Interaction: a change of surface and border, no lift, no scale, no
-   brightness pump. Movement on hover is what makes a page feel like a demo. */
-.btn-interactive {
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+/* Solid buttons look printed on: ink outline and hard shadow, and pressing one lands it
+   on the page. The press is the only movement on the site that isn't content. */
+.bg-gold-primary,
+.bg-spray-lime {
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+button.bg-gold-primary,
+a.bg-gold-primary,
+button.bg-spray-lime {
+  color: var(--on-fill-1);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+button.bg-gold-primary:hover,
+button.bg-spray-lime:hover {
+  background-color: var(--fill-2);
+  color: var(--on-fill-1);
+}
+button.bg-gold-primary:active,
+button.bg-spray-lime:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
 }
 
+.btn-interactive {
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
 .btn-interactive:hover {
   background-color: var(--color-obsidian-hover);
-  border-color: #3D3D3D;
+  border-color: var(--ink);
 }
-
 .btn-interactive:active {
-  background-color: var(--color-obsidian-card);
+  background-color: #454B66;
 }
 
 .card-interactive {
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
 }
-
 .card-interactive:hover {
   background-color: var(--color-obsidian-hover);
-  border-color: #3D3D3D;
+  border-color: var(--ink);
 }
 
 /* Respect the OS setting. The old file animated regardless. */
@@ -344,63 +448,44 @@ body::before {
 .text-purple-black-wave {
   background: linear-gradient(
     110deg,
-    #9333ea 0%,
-    #c084fc 15%,
-    #f5d0fe 28%,
-    #a855f7 42%,
-    #05020a 52%,
-    #581c87 66%,
-    #c084fc 82%,
-    #9333ea 100%
+    #b26bff 0%,
+    #d8b4fe 18%,
+    #f5d0fe 32%,
+    #a855f7 46%,
+    #7e3fd0 56%,
+    #a855f7 68%,
+    #d8b4fe 84%,
+    #b26bff 100%
   );
   background-size: 280% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: purple-wave-flow 3.5s linear infinite, purple-wave-glow 2.5s ease-in-out infinite alternate;
+  animation: purple-wave-flow 3.5s linear infinite;
   display: inline-block;
   font-weight: 800;
 }
 
 .badge-purple-wave {
-  background: linear-gradient(
-    110deg,
-    rgba(88, 28, 135, 0.5) 0%,
-    rgba(10, 4, 18, 0.9) 35%,
-    rgba(147, 51, 234, 0.45) 70%,
-    rgba(10, 4, 18, 0.95) 100%
-  );
-  background-size: 250% 100%;
-  animation: purple-wave-flow 4s linear infinite;
-  border: 1px solid rgba(168, 85, 247, 0.55);
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.25), inset 0 0 10px rgba(147, 51, 234, 0.2);
+  background: #2E1F4A;
+  border: 2px solid #B57BFF;
 }
 
 .chip-purple-wave {
-  background: linear-gradient(
-    110deg,
-    rgba(30, 10, 45, 0.8) 0%,
-    rgba(88, 28, 135, 0.4) 40%,
-    rgba(15, 5, 25, 0.9) 70%,
-    rgba(147, 51, 234, 0.35) 100%
-  );
-  background-size: 250% 100%;
-  animation: purple-wave-flow 4s linear infinite;
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: #2E1F4A;
+  border: 2px solid #B57BFF;
 }
 
 .chip-purple-wave:hover {
-  border-color: rgba(192, 132, 252, 0.75);
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+  background: #3D2A61;
 }
 
 .vip-avatar-glow {
-  border-color: rgba(168, 85, 247, 0.6) !important;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), inset 0 0 12px rgba(126, 34, 206, 0.25) !important;
+  border-color: #B57BFF !important;
+  box-shadow: 3px 3px 0 #7B2CBF !important;
 }
 
 .vip-card-aura {
-  background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.15), transparent 60%),
-              radial-gradient(circle at bottom left, rgba(126, 34, 206, 0.1), transparent 50%);
+  background: #2E1F4A;
 }
 
 /* =========================================================================
@@ -427,62 +512,43 @@ body::before {
 .text-yip-blue-wave {
   background: linear-gradient(
     110deg,
-    #527eff 0%,
-    #8bb2ff 15%,
-    #c0f5ff 28%,
-    #ffffff 38%,
-    #0a1835 50%,
-    #2554d7 65%,
-    #c0f5ff 82%,
-    #527eff 100%
+    #6f96ff 0%,
+    #8bb2ff 18%,
+    #c0f5ff 32%,
+    #ffffff 42%,
+    #527eff 56%,
+    #8bb2ff 68%,
+    #c0f5ff 84%,
+    #6f96ff 100%
   );
   background-size: 280% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: yip-wave-flow 3.5s linear infinite, yip-wave-glow 2.5s ease-in-out infinite alternate;
+  animation: yip-wave-flow 3.5s linear infinite;
   display: inline-block;
   font-weight: 800;
 }
 
 .badge-yip-blue-wave {
-  background: linear-gradient(
-    110deg,
-    rgba(82, 126, 255, 0.4) 0%,
-    rgba(6, 16, 34, 0.95) 35%,
-    rgba(192, 245, 255, 0.35) 70%,
-    rgba(6, 16, 34, 0.95) 100%
-  );
-  background-size: 250% 100%;
-  animation: yip-wave-flow 4s linear infinite;
-  border: 1px solid rgba(82, 126, 255, 0.75);
-  box-shadow: 0 0 14px rgba(82, 126, 255, 0.35), inset 0 0 10px rgba(192, 245, 255, 0.2);
+  background: #16294D;
+  border: 2px solid #4DA3FF;
 }
 
 .chip-yip-wave {
-  background: linear-gradient(
-    110deg,
-    rgba(8, 20, 44, 0.85) 0%,
-    rgba(82, 126, 255, 0.4) 40%,
-    rgba(5, 14, 30, 0.95) 70%,
-    rgba(192, 245, 255, 0.35) 100%
-  );
-  background-size: 250% 100%;
-  animation: yip-wave-flow 4s linear infinite;
-  border: 1px solid rgba(82, 126, 255, 0.5);
+  background: #16294D;
+  border: 2px solid #4DA3FF;
 }
 
 .chip-yip-wave:hover {
-  border-color: rgba(192, 245, 255, 0.85);
-  box-shadow: 0 0 16px rgba(82, 126, 255, 0.5);
+  background: #1E3766;
 }
 
 .yip-avatar-glow {
-  border-color: rgba(82, 126, 255, 0.8) !important;
-  box-shadow: 0 0 22px rgba(82, 126, 255, 0.55), inset 0 0 14px rgba(192, 245, 255, 0.3) !important;
+  border-color: #4DA3FF !important;
+  box-shadow: 3px 3px 0 #1565D8 !important;
 }
 
 .yip-card-aura {
-  background: radial-gradient(circle at top right, rgba(82, 126, 255, 0.2), transparent 60%),
-              radial-gradient(circle at bottom left, rgba(192, 245, 255, 0.12), transparent 50%);
+  background: #16294D;
 }
 

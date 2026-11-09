@@ -95,7 +95,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
       case 'RARE':
         return { card: 'skin-card bg-rarity-rare/[0.07] hover:bg-rarity-rare/[0.13] border-slate-800 border-t-[3px] border-t-rarity-rare', badge: 'border-rarity-rare/40 bg-rarity-rare/10 text-rarity-rare' };
       default:
-        return { card: 'skin-card bg-obsidian-card hover:bg-obsidian-hover border-slate-800 border-t-[3px] border-t-rarity-common', badge: 'border-slate-700 bg-slate-800/40 text-slate-400' };
+        return { card: 'skin-card bg-obsidian-card hover:bg-obsidian-hover border-slate-800 border-t-[3px] border-t-rarity-common', badge: 'border-slate-700 bg-obsidian-hover text-slate-400' };
     }
   };
 
@@ -211,7 +211,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
             <Tag className="w-4 h-4" />
             <span className="text-[10px] font-mono font-bold tracking-widest uppercase">Pricing Database</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl text-[#EDEDED]">Skins &amp; <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-lime)' }}>prices</span></h2>
+          <h2 className="text-2xl sm:text-3xl text-slate-100">Skins &amp; <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-lime)' }}>prices</span></h2>
           <p className="text-xs text-slate-400 font-medium">Search and browse current market valuations synchronized from Kirka Hub Index.</p>
         </div>
         <div className="flex items-center space-x-2 bg-obsidian-card/60 border border-obsidian-border/80 px-4 py-2.5 rounded-md text-xs text-slate-400 font-mono self-start md:self-auto">
@@ -230,37 +230,37 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
               placeholder="Search items by name or origin..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#12141f] border border-obsidian-border rounded-md pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/45 focus:shadow-gold-glow transition-all"
+              className="w-full bg-obsidian-card border border-obsidian-border rounded-md pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-gold-primary/45 focus:shadow-gold-glow transition-all"
             />
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
             {/* Rarity filter dropdown */}
-            <div className="flex items-center space-x-2 bg-[#12141f] border border-obsidian-border rounded-md px-3 py-1.5">
+            <div className="flex items-center space-x-2 bg-obsidian-card border border-obsidian-border rounded-md px-3 py-1.5">
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={selectedRarity}
                 onChange={(e) => setSelectedRarity(e.target.value)}
                 className="bg-transparent text-xs font-bold text-slate-300 outline-none border-0 ring-0 cursor-pointer uppercase font-mono"
               >
-                <option value="ALL" className="bg-[#12141f]">All Rarities</option>
+                <option value="ALL" className="bg-obsidian-card">All Rarities</option>
                 {rarities.map(rarity => (
-                  <option key={rarity} value={rarity} className="bg-[#12141f]">{rarity}</option>
+                  <option key={rarity} value={rarity} className="bg-obsidian-card">{rarity}</option>
                 ))}
               </select>
             </div>
 
             {/* Type filter dropdown */}
-            <div className="flex items-center space-x-2 bg-[#12141f] border border-obsidian-border rounded-md px-3 py-1.5">
+            <div className="flex items-center space-x-2 bg-obsidian-card border border-obsidian-border rounded-md px-3 py-1.5">
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="bg-transparent text-xs font-bold text-slate-300 outline-none border-0 ring-0 cursor-pointer uppercase font-mono"
               >
-                <option value="ALL" className="bg-[#12141f]">All Types</option>
+                <option value="ALL" className="bg-obsidian-card">All Types</option>
                 {types.map(t => (
-                  <option key={t} value={t} className="bg-[#12141f]">{t}</option>
+                  <option key={t} value={t} className="bg-obsidian-card">{t}</option>
                 ))}
               </select>
             </div>
@@ -304,7 +304,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                         src={renderUrl}
                         alt={item.skinName}
                         loading="lazy"
-                        className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)] hover:rotate-6 transition-transform duration-300"
+                        className="max-h-full max-w-full object-contain filter drop-shadow-lg hover:rotate-6 transition-transform duration-300"
                         onError={(e) => {
                           const target = e.currentTarget;
                           const isChar = (item.type || '').toLowerCase() === 'character';
@@ -344,7 +344,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
                     </div>
 
                     {/* Valuation badge */}
-                    <div className="bg-[#04050a]/90 border border-slate-800 rounded-md px-2 py-2 flex items-center justify-center space-x-1.5">
+                    <div className="bg-obsidian-card border border-slate-800 rounded-md px-2 py-2 flex items-center justify-center space-x-1.5">
                       {item.baseValue > 0 ? (
                         <>
                           <img
@@ -372,7 +372,7 @@ export const PriceViewerSection: React.FC<PriceViewerSectionProps> = ({
             <div className="flex justify-center pt-4">
               <button
                 onClick={() => setVisibleCount(prev => prev + 25)}
-                className="px-6 py-3 bg-obsidian-card hover:bg-[#1b1e2e] border border-obsidian-border hover:border-gold-primary/30 rounded-md text-xs font-bold text-slate-300 transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center space-x-2"
+                className="px-6 py-3 bg-obsidian-card hover:bg-obsidian-hover border border-obsidian-border hover:border-gold-primary/30 rounded-md text-xs font-bold text-slate-300 transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center space-x-2"
               >
                 <span>Load More Items</span>
                 <span className="text-[10px] font-mono text-slate-500">({filteredItems.length - visibleCount} remaining)</span>

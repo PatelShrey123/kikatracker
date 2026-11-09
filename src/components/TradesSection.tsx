@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Repeat, RefreshCw, Search, FileText, ArrowRight } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { getSkinRenderUrl } from '../utils/skinAssets';
+import { getSkinRenderUrl, fallBackToBaseRender } from '../utils/skinAssets';
 import { isVip } from '../utils/vip';
 
 interface TradesSectionProps {
@@ -564,7 +564,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return (
       <div 
         key={trade.tradeId + '-' + index}
-        className="bg-obsidian-card border border-obsidian-border/80 rounded-md p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] flex flex-col space-y-4"
+        className="bg-obsidian-card border border-obsidian-border/80 rounded-md p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-lg flex flex-col space-y-4"
       >
         {/* Card Header info */}
         <div className="flex items-center justify-between border-b border-obsidian-border/50 pb-3 text-xs">
@@ -609,7 +609,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
@@ -670,7 +670,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
@@ -705,7 +705,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
     return (
       <div 
         key={trade.tradeId + '-' + index}
-        className="bg-obsidian-card border border-obsidian-border/80 rounded-md p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] flex flex-col space-y-4"
+        className="bg-obsidian-card border border-obsidian-border/80 rounded-md p-5 hover:border-gold-primary/20 transition-all duration-300 relative shadow-sm hover:shadow-lg flex flex-col space-y-4"
       >
         {/* Card Header info */}
         <div className="flex items-center justify-between border-b border-obsidian-border/50 pb-3 text-xs">
@@ -767,7 +767,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
@@ -828,7 +828,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-obsidian-deep/50 border border-slate-800 rounded-md flex items-center justify-center p-1.5 flex-shrink-0">
                       {item.render ? (
-                        <img src={item.render} alt={item.name} className="max-h-8 max-w-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                        <img src={item.render} alt={item.name} onError={(e) => fallBackToBaseRender(e)} className="max-h-8 max-w-full object-contain filter drop-shadow-lg" />
                       ) : (
                         <span className="text-[8px] font-mono text-slate-600 uppercase">Skin</span>
                       )}
@@ -970,7 +970,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         <div className="flex items-center space-x-3.5">
           <Repeat className="w-7 h-7 text-spray-cyan shrink-0" />
           <div>
-            <h2 className="text-2xl sm:text-3xl text-[#EDEDED] leading-tight">
+            <h2 className="text-2xl sm:text-3xl text-slate-100 leading-tight">
               Trades <span className="mark text-obsidian-deep" style={{ ['--mark-color' as string]: 'var(--color-spray-cyan)' }}>Portal</span>
             </h2>
             <p className="text-sm text-slate-400 mt-1">
@@ -980,12 +980,12 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         </div>
 
         {/* Sub-Tabs Navigation */}
-        <div className="flex bg-[#090A0F]/80 p-1.5 rounded-md border border-obsidian-border w-fit">
+        <div className="flex bg-obsidian-card p-1.5 rounded-md border border-obsidian-border w-fit">
           <button
             onClick={() => setActiveSubTab('live')}
             className={`btn-interactive px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === 'live'
-                ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
+                ? 'bg-gold-primary text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -995,7 +995,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
             onClick={() => setActiveSubTab('history')}
             className={`btn-interactive px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               activeSubTab === 'history'
-                ? 'bg-gradient-to-r from-gold-primary to-gold-bright text-obsidian-deep font-black shadow-md'
+                ? 'bg-gold-primary text-obsidian-deep font-black shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -1005,7 +1005,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       </div>
 
       {/* Advanced Search Card */}
-      <div className="bg-[#12141D] border border-obsidian-border rounded-md p-5 space-y-4">
+      <div className="bg-obsidian-card border border-obsidian-border rounded-md p-5 space-y-4">
         {/* Main Search Row */}
         <form 
           onSubmit={(e) => {
@@ -1027,7 +1027,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
           </div>
           <button
             type="submit"
-            className="px-5 py-3 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex-shrink-0"
+            className="px-5 py-3 rounded-md bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex-shrink-0"
           >
             Search
           </button>
@@ -1055,7 +1055,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
 
         {/* Advanced Filters Panel */}
         {showAdvanced && (
-          <div className="bg-[#090A0F]/60 border border-indigo-500/10 rounded-md p-4.5 space-y-4">
+          <div className="bg-obsidian-card border border-indigo-500/10 rounded-md p-4.5 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               
               {/* Offered Contains */}
@@ -1110,7 +1110,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
                     setAppliedOffered(offeredQuery);
                     setAppliedWanted(wantedQuery);
                   }}
-                  className="w-full md:w-auto px-5 py-3 rounded-md bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="w-full md:w-auto px-5 py-3 rounded-md bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   Apply
                 </button>
@@ -1122,7 +1122,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
       </div>
 
       {/* Roster / Ranks filter settings card */}
-      <div className="bg-[#12141D] border border-obsidian-border rounded-md p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 flex-wrap">
+      <div className="bg-obsidian-card border border-obsidian-border rounded-md p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 flex-wrap">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           {/* Toggle Escrow Switch */}
           <div className="flex items-center space-x-3.5">
@@ -1211,7 +1211,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => setVisibleLiveCount((prev) => prev + 40)}
-                  className="px-6 py-2.5 bg-[#12141D] border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-md transition-all duration-200 cursor-pointer"
+                  className="px-6 py-2.5 bg-obsidian-card border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-md transition-all duration-200 cursor-pointer"
                 >
                   Load More Offers (+40)
                 </button>
@@ -1228,7 +1228,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
         ) : (
           <div className="space-y-6">
             {/* All-Time Stream Status Banner */}
-            <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="bg-obsidian-card border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex items-center space-x-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -1294,7 +1294,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               const { diffDays, dateString } = historyDateRangeInfo;
               if (diffDays === 0) return null;
               return (
-                <div className="bg-[#0b0c13]/90 border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-sm">
+                <div className="bg-obsidian-card border border-obsidian-border rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-sm">
                   <span className="text-slate-300 font-extrabold tracking-wider uppercase">
                     COMPLETED TRADE HISTORY
                   </span>
@@ -1315,7 +1315,7 @@ export const TradesSection: React.FC<TradesSectionProps> = ({
               <div className="flex justify-center pt-2">
                 <button
                   onClick={() => setVisibleHistoryCount((prev) => prev + 40)}
-                  className="px-6 py-2.5 bg-[#12141D] border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-md transition-all duration-200 cursor-pointer"
+                  className="px-6 py-2.5 bg-obsidian-card border border-obsidian-border hover:border-gold-primary/20 text-xs font-bold uppercase tracking-wider text-slate-300 rounded-md transition-all duration-200 cursor-pointer"
                 >
                   Load More History (+40)
                 </button>

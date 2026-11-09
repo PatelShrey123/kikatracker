@@ -2,7 +2,7 @@ import React, { useState, Suspense } from 'react';
 import { X, Coins, Shield, Layers, Calendar, UserCheck, Eye, Layers3, Award, Box, Palette, Loader2 } from 'lucide-react';
 import type { MarketItem } from '../utils/csv';
 import { formatValue } from '../utils/csv';
-import { has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl, isPlaceholderUrl } from '../utils/skinAssets';
+import { has3DViewerSupport, getSkinRenderUrl, cleanTextureUrl, isPlaceholderUrl, fallBackToBaseRender } from '../utils/skinAssets';
 import { resolveItemCreator } from '../utils/catalogCache';
 
 const Weapon3DViewer = React.lazy(() =>
@@ -196,15 +196,15 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
     switch (rarity.toUpperCase()) {
       case 'MYTHICAL':
       case 'MYTHIC':
-        return 'from-[#4a1212] via-[#2f0c0c] to-[#12141D] border-b border-red-500/10';
+        return 'border-b-2 border-black bg-[#3D1A20]';
       case 'LEGENDARY':
-        return 'from-[#4a3e12] via-[#2f280c] to-[#12141D] border-b border-yellow-500/10';
+        return 'border-b-2 border-black bg-[#3A3214]';
       case 'EPIC':
-        return 'from-[#3a124a] via-[#260c30] to-[#12141D] border-b border-purple-500/10';
+        return 'border-b-2 border-black bg-[#2E1F4A]';
       case 'RARE':
-        return 'from-[#12244a] via-[#0c1830] to-[#12141D] border-b border-blue-500/10';
+        return 'border-b-2 border-black bg-[#16294D]';
       default:
-        return 'from-[#22252c] via-[#16181d] to-[#12141D] border-b border-slate-500/10';
+        return 'border-b-2 border-black bg-obsidian-dark';
     }
   };
 
@@ -213,14 +213,14 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
       {/* Background overlay */}
       <div 
         onClick={onClose}
-        className="absolute inset-0 bg-[#040509]/80 backdrop-blur-md transition-opacity"
+        className="absolute inset-0 bg-obsidian-card backdrop-blur-md transition-opacity"
       />
 
       {/* Modal Box */}
-      <div className="relative max-w-xl w-full bg-[#12141D] border border-obsidian-border/80 rounded-md overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] transition-transform select-text">
+      <div className="relative max-w-xl w-full bg-obsidian-card border border-obsidian-border/80 rounded-md overflow-hidden shadow-2xl z-10 flex flex-col max-h-[92vh] transition-transform select-text">
         
         {/* Top Hero Section with dynamic rarity background gradient */}
-        <div className={`relative ${viewMode === '3d' && has3DModel ? 'h-72' : 'h-56'} bg-gradient-to-b ${getHeaderGradient(itemRarity)} flex items-center justify-center p-6 flex-shrink-0 transition-all duration-300`}>
+        <div className={`relative ${viewMode === '3d' && has3DModel ? 'h-72' : 'h-56'} ${getHeaderGradient(itemRarity)} flex items-center justify-center p-6 flex-shrink-0 transition-all duration-300`}>
           
           {/* 2D / 3D Mode Switcher if 3D model is supported */}
           {has3DModel && (
@@ -252,7 +252,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
+            className="absolute top-4 right-4 bg-obsidian-dark hover:bg-black/60 text-white rounded-full p-2 border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
           >
             <X className="w-4 h-4" />
           </button>
@@ -282,9 +282,10 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             <div className="w-full h-full flex items-center justify-center relative pt-4">
               {renderUrl ? (
                 <img
+                  onError={(e) => fallBackToBaseRender(e, isCharacterType ? 'CHARACTER' : itemClassType)}
                   src={renderUrl}
                   alt={itemName}
-                  className="max-h-40 max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform duration-300"
+                  className="max-h-40 max-w-full object-contain filter drop-shadow-lg hover:scale-105 transition-transform duration-300"
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center text-slate-700 opacity-30">
@@ -301,7 +302,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
         </div>
 
         {/* Item Title */}
-        <div className="text-center py-4 border-b border-obsidian-border/50 bg-[#0e1017] flex items-center justify-center space-x-2">
+        <div className="text-center py-4 border-b border-obsidian-border/50 bg-obsidian-card flex items-center justify-center space-x-2">
           <h2 className="text-2xl font-black text-white uppercase tracking-wider font-sans leading-none">
             {itemName}
           </h2>
@@ -318,7 +319,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             
             {/* TYPE Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+            <div className="bg-obsidian-card border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
               <div className="p-2 bg-indigo-500/10 rounded-md text-indigo-400">
                 <Layers className="w-4 h-4" />
               </div>
@@ -329,7 +330,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* RARITY Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+            <div className="bg-obsidian-card border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
               <div className="p-2 bg-gold-primary/10 rounded-md text-gold-bright">
                 <Award className="w-4 h-4" />
               </div>
@@ -342,7 +343,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* UNIQUE Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+            <div className="bg-obsidian-card border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
               <div className="p-2 bg-[#ff5e00]/10 rounded-md text-[#ff5e00]">
                 <Layers3 className="w-4 h-4" />
               </div>
@@ -353,7 +354,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* OBTAINABLE BY Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+            <div className="bg-obsidian-card border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
               <div className="p-2 bg-[#00ffcc]/10 rounded-md text-[#00ffcc]">
                 <Eye className="w-4 h-4" />
               </div>
@@ -364,7 +365,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* TOTAL OWNED Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+            <div className="bg-obsidian-card border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
               <div className="p-2 bg-pink-500/10 rounded-md text-pink-400">
                 <UserCheck className="w-4 h-4" />
               </div>
@@ -375,7 +376,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* CREATOR Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+            <div className="bg-obsidian-card border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
               <div className="p-2 bg-purple-500/10 rounded-md text-purple-400">
                 <Palette className="w-4 h-4" />
               </div>
@@ -386,7 +387,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
             </div>
 
             {/* CREATED Card */}
-            <div className="bg-[#1b191c]/30 border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
+            <div className="bg-obsidian-card border border-obsidian-border/40 p-4 rounded-md flex items-center space-x-3.5">
               <div className="p-2 bg-emerald-500/10 rounded-md text-emerald-400">
                 <Calendar className="w-4 h-4" />
               </div>
@@ -404,7 +405,7 @@ export const ItemInspectModal: React.FC<ItemInspectModalProps> = ({
               MARKET DATA
             </h4>
             
-            <div className="bg-[#090A0F] border border-obsidian-border/60 rounded-md p-4.5 space-y-3 font-mono text-xs text-slate-400">
+            <div className="bg-obsidian-card border border-obsidian-border/60 rounded-md p-4.5 space-y-3 font-mono text-xs text-slate-400">
               {/* Hub Value Row */}
               <div className="flex justify-between items-center">
                 <span>HUB VALUE:</span>
