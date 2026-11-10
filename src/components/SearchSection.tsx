@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { MarketItem } from '../utils/csv';
-import { FilmStopPanel } from './home/FilmStopPanels';
-import { FILM_STOPS, type FilmStopId } from './home/filmStops';
+import { FilmStopPanel, type FilmStopId } from './home/FilmStopPanels';
+import type { Crew, WheelEmote } from './home/crew';
 
 interface SearchSectionProps {
   onSearch: (id: string, isShortId: boolean) => void;
@@ -15,74 +15,55 @@ interface SearchSectionProps {
   onNavigate: (tab: string) => void;
 }
 
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const ramp = (a: number, b: number, v: number) => clamp01((v - a) / (b - a));
+const LINK_GROUPS: FilmStopId[] = ['skin', 'market', 'compete', 'create', 'live'];
+const EMOTES: { name: WheelEmote; label: string }[] = [
+  { name: 'wave', label: 'Wave' },
+  { name: 'dance', label: 'Dance' },
+  { name: 'gg', label: 'GG' },
+  { name: 'flex', label: 'Flex' },
+  { name: 'spin', label: 'Spin' },
+];
 
 /**
- * The home page: a player ID box over a film that runs as you scroll (see home/homeFilm.ts). The box
- * is plain HTML and works before the film has loaded, or on a device that can't run it at all.
+ * The home page: the player ID box, with four Kirka players beside it who watch what you do (see
+ * home/crew.ts), and every part of the site one click away just below. The box and the links are
+ * plain HTML and work before the crew has loaded, or on a device that can't draw them at all.
  */
 export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, isLoading, searchError, onClearError, catalog, marketPrices, onInspectItem, onOpenRender, onNavigate }) => {
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
   const [filmReady, setFilmReady] = useState(false);
   const [still] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
-
-  const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const formRef = useRef<HTMLDivElement>(null);
-  const hintRef = useRef<HTMLParagraphElement>(null);
-  const panelRefs = useRef<Partial<Record<FilmStopId, HTMLDivElement | null>>>({});
+  const inputRef = useRef<HTMLInputElement>(null);
+  const crewRef = useRef<Crew | null>(null);
 
   useEffect(() => {
-    const progress = () => {
-      const track = trackRef.current;
-      if (!track || still) return 0;
-      const room = track.offsetHeight - window.innerHeight;
-      return room > 0 ? clamp01(-track.getBoundingClientRect().top / room) : 0;
-    };
-
-    // The box shows at the very start and the very end of the film, and gets out of the way between.
-    const onScroll = () => {
-      const p = progress();
-      const shown = Math.max(1 - ramp(0.02, 0.045, p), ramp(0.93, 0.975, p));
-      if (formRef.current) {
-        formRef.current.style.opacity = String(shown);
-        formRef.current.style.visibility = shown > 0.01 ? 'visible' : 'hidden';
-      }
-      if (hintRef.current) hintRef.current.style.opacity = String(1 - ramp(0, 0.015, p));
-      // A building's popup pops open while the player is in front of it.
-      for (const stop of FILM_STOPS) {
-        const panel = panelRefs.current[stop.id];
-        if (!panel) continue;
-        const on = p >= stop.from && p <= stop.to;
-        panel.style.opacity = on ? '1' : '0';
-        panel.style.visibility = on ? 'visible' : 'hidden';
-        panel.style.transform = on ? 'none' : 'scale(0.82) translateY(14px)';
-      }
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-
-    let film: { dispose: () => void } | null = null;
     let left = false;
-    import('./home/homeFilm')
-      .then(({ createHomeFilm }) => {
+    import('./home/crew')
+      .then(({ createCrew }) => {
         if (left || !stageRef.current) return;
-        film = createHomeFilm(stageRef.current, progress, () => setFilmReady(true), still);
+        crewRef.current = createCrew(stageRef.current, {
+          inputRect: () => inputRef.current?.getBoundingClientRect() ?? null,
+          onReady: () => setFilmReady(true),
+          still,
+        });
       })
-      .catch((err) => console.warn('[home film] failed to load:', err));
-
+      .catch((err) => console.warn('[home crew] failed to load:', err));
     return () => {
       left = true;
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      film?.dispose();
-      // The film is thousands of pixels tall, so whatever page comes next must not inherit that scroll.
-      window.scrollTo(0, 0);
+      crewRef.current?.dispose();
+      crewRef.current = null;
     };
   }, [still]);
+
+  // They watch the search: thinking while it loads, a facepalm when nobody's found
+  useEffect(() => {
+    crewRef.current?.react({ type: 'searching', on: isLoading });
+  }, [isLoading]);
+  useEffect(() => {
+    if (searchError) crewRef.current?.react({ type: 'notFound' });
+  }, [searchError]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +76,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, isLoadin
       onSearch(id, false);
     } else {
       setError('That is not a player ID. It is 6 characters, like HESHPY.');
+      crewRef.current?.react({ type: 'invalid' });
     }
   };
 
@@ -102,22 +84,44 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, isLoadin
 
   return (
     <div className="night select-text">
-      <div ref={trackRef} className={still ? 'h-[100svh]' : 'h-[1100vh] md:h-[1400vh]'}>
-        <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#06080d]">
+      <section className="relative min-h-[86svh] overflow-hidden bg-[#06080d] grid md:grid-cols-2 items-stretch">
+        {/* The crew, half the screen; above the search on a phone */}
+        <div className="relative h-[46svh] md:h-auto md:min-h-[520px]">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_70%,#1b2130_0%,transparent_65%)]" aria-hidden="true" />
           <div
             ref={stageRef}
             className={`absolute inset-0 transition-opacity duration-700 ${filmReady ? 'opacity-100' : 'opacity-0'}`}
             aria-hidden="true"
           />
+          {filmReady && (
+            <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 flex-wrap px-3">
+              {EMOTES.map((e) => (
+                <button
+                  key={e.name}
+                  type="button"
+                  onClick={() => crewRef.current?.react({ type: 'emote', name: e.name })}
+                  aria-label={`Make them ${e.label.toLowerCase()}`}
+                  className="h-8 px-3 border-2 border-[#f4f1e8]/70 bg-[#06080d]/80 font-mono text-[12px] text-[#f4f1e8] hover:bg-[#f5c518] hover:border-[#f5c518] hover:text-[#06080d] cursor-pointer"
+                >
+                  {e.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-          <h1 className="sr-only">Kirka Hub: look up any Kirka.io player</h1>
-
-          <div ref={formRef} className="absolute left-4 right-4 bottom-[13svh] sm:right-auto sm:left-[7vw] sm:w-[440px]">
+        <div className="relative flex items-center px-4 pb-10 md:pb-0 md:pr-[7vw] md:pl-6">
+          <div className="w-full max-w-[480px]">
+            <h1 className="text-[34px] sm:text-[44px] leading-[1.05] text-[#f4f1e8] normal-case tracking-normal" style={{ fontFamily: 'var(--font-sans)', fontWeight: 800 }}>
+              Look up any Kirka player
+            </h1>
+            <p className="mt-3 mb-7 text-[16px] text-[#a9aeb9]">Their inventory and what it&apos;s worth, stats, clan and trades.</p>
             <form onSubmit={handleSubmit} role="search">
               <label htmlFor="home-player-id" className="block mb-2 font-mono text-[13px] tracking-[0.04em] text-[#d8dbe2]">
                 Player ID
               </label>
               <input
+                ref={inputRef}
                 id="home-player-id"
                 type="text"
                 value={query}
@@ -125,7 +129,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, isLoadin
                   setQuery(e.target.value);
                   if (error) setError('');
                   if (searchError) onClearError();
+                  crewRef.current?.react({ type: 'type', value: e.target.value });
                 }}
+                onFocus={() => crewRef.current?.react({ type: 'focus' })}
+                onBlur={() => crewRef.current?.react({ type: 'blur' })}
                 disabled={isLoading}
                 enterKeyHint="search"
                 placeholder="HESHPY"
@@ -139,34 +146,29 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, isLoadin
               {isLoading ? 'Looking them up...' : shownError || 'Press enter'}
             </p>
           </div>
-
-          {FILM_STOPS.map((stop) => (
-            <div
-              key={stop.id}
-              ref={(el) => {
-                panelRefs.current[stop.id] = el;
-              }}
-              style={{ opacity: 0, visibility: 'hidden', transform: 'scale(0.82) translateY(14px)' }}
-              className="absolute left-3 right-3 bottom-3 max-h-[52svh] overflow-y-auto overscroll-contain md:right-auto md:left-[4vw] md:bottom-auto md:top-1/2 md:-mt-[150px] md:w-[360px] md:max-h-[76svh] p-4 bg-[#06080d] border-[3px] border-[#f4f1e8] shadow-[6px_6px_0_#f5c518] origin-bottom-left transition-[transform,opacity] duration-200 ease-[cubic-bezier(.2,1.5,.4,1)]"
-            >
-              <FilmStopPanel
-                stop={stop.id}
-                catalog={catalog}
-                prices={marketPrices}
-                onInspect={onInspectItem}
-                onOpenRender={onOpenRender}
-                onNavigate={onNavigate}
-              />
-            </div>
-          ))}
-
-          {!still && (
-            <p ref={hintRef} aria-hidden="true" className="absolute bottom-5 inset-x-0 text-center font-mono text-[13px] text-[#8d929d]">
-              Scroll
-            </p>
-          )}
         </div>
-      </div>
+      </section>
+
+      {/* The whole site, one click away */}
+      <nav aria-label="Site" className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-5 items-start">
+        {LINK_GROUPS.map((id) => (
+          <div
+            key={id}
+            onMouseEnter={(e) => crewRef.current?.react({ type: 'hoverLink', id, el: e.currentTarget })}
+            onMouseLeave={() => crewRef.current?.react({ type: 'hoverLink', id: null, el: null })}
+            className="p-4 bg-[#06080d] border-[3px] border-[#f4f1e8] shadow-[6px_6px_0_#f5c518]"
+          >
+            <FilmStopPanel
+              stop={id}
+              catalog={catalog}
+              prices={marketPrices}
+              onInspect={onInspectItem}
+              onOpenRender={onOpenRender}
+              onNavigate={onNavigate}
+            />
+          </div>
+        ))}
+      </nav>
 
       {/* In words, for anyone who wants them and for search engines. */}
       <section className="max-w-[62ch] mx-auto px-5 pt-16 pb-6 text-[17px] leading-relaxed text-slate-300">

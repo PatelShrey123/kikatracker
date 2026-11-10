@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import type { MarketItem } from '../../utils/csv';
 import { fallBackToBaseRender, getSkinRenderUrl } from '../../utils/skinAssets';
-import type { FilmStopId } from './filmStops';
+
+/** The groups of pages on the home page; 'skin' is the skin finder. */
+export type FilmStopId = 'skin' | 'market' | 'compete' | 'create' | 'live';
 
 const PAGES: Record<Exclude<FilmStopId, 'skin'>, { title: string; links: { id: string; label: string; hint: string }[] }> = {
   market: {
