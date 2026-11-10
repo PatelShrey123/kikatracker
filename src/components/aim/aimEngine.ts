@@ -136,6 +136,7 @@ export class AimEngine {
   private scopeShown = false;
 
   private targets: Target[] = [];
+  private recentCells: number[] = [];
   private targetGeo = new THREE.SphereGeometry(1, 24, 16);
   private targetMat = new THREE.MeshLambertMaterial({ color: 0xff4d5a, emissive: 0x5a0d14 });
   private pillars = new THREE.Group();
@@ -355,6 +356,7 @@ export class AimEngine {
     this.drill = DRILLS.find((d) => d.id === id) ?? DRILLS[0];
     for (const t of this.targets) this.scene.remove(t.mesh);
     this.targets = [];
+    this.recentCells = [];
     this.clock = this.kills = this.shots = this.hits = this.onTargetTime = this.trackTick = 0;
     this.killTimes = [];
     this.yaw = this.pitch = this.turned = 0;
@@ -404,21 +406,32 @@ export class AimEngine {
     const mesh = new THREE.Mesh(this.targetGeo, this.targetMat);
     const t: Target = { mesh, born: this.clock, cell: -1, dying: 0, angle: 0, speed: 0, nextTurn: 0, jump: 0 };
     if (d === 'gridshot') {
-      // a 5 x 5 grid straight ahead; never the same cell twice in a row
-      const taken = new Set(this.targets.map((o) => o.cell));
+      // a 5 x 5 grid on the wall ahead, its bottom row clear of the floor. Random, but never a cell
+      // that's showing or one of the last few used, so it can't fall into a back-and-forth
+      const taken = new Set([...this.targets.map((o) => o.cell), ...this.recentCells]);
       let cell = 0;
       do cell = Math.floor(Math.random() * 25);
       while (taken.has(cell));
       t.cell = cell;
+      this.recentCells = [...this.recentCells, cell].slice(-4);
       const col = (cell % 5) - 2;
       const row = Math.floor(cell / 5) - 2;
       mesh.scale.setScalar(0.42);
-      mesh.position.set(col * 1.5, EYE + row * 1.5, -14);
+      mesh.position.set(col * 1.2, 3.0 + row * 1.1, -14);
     } else if (d === 'flick' || d === 'quickscope') {
       const far = d === 'quickscope' ? 32 : 14;
-      const yaw = (Math.random() * 2 - 1) * (d === 'quickscope' ? 45 : 40) * DEG;
-      const pitch = (-6 + Math.random() * 20) * DEG;
-      mesh.scale.setScalar(d === 'quickscope' ? 0.42 : 0.38);
+      const radius = d === 'quickscope' ? 0.42 : 0.38;
+      // low enough to stay above the floor, and far enough from the crosshair to be a real flick
+      const lowest = Math.asin((radius + 0.3 - EYE) / far) / DEG;
+      const spread = d === 'quickscope' ? 45 : 40;
+      let yaw = 0;
+      let pitch = 0;
+      for (let tries = 0; tries < 20; tries++) {
+        yaw = this.yaw + (Math.random() * 2 - 1) * spread * DEG;
+        pitch = (lowest + Math.random() * (14 - lowest)) * DEG;
+        if (Math.hypot(yaw - this.yaw, pitch - this.pitch) > 12 * DEG) break;
+      }
+      mesh.scale.setScalar(radius);
       mesh.position.set(-Math.sin(yaw) * Math.cos(pitch) * far, EYE + Math.sin(pitch) * far, -Math.cos(yaw) * Math.cos(pitch) * far);
     } else if (d === 'tracking') {
       mesh.scale.setScalar(0.5);
