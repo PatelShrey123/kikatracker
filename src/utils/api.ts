@@ -594,6 +594,113 @@ export interface MatchHistoryItem {
   date: string;
 }
 
+/**
+ * Where Kirka's match history lives, and what its request fields are called. Kirka scrambles these
+ * names and changes them now and then (it moved from /wwMmWW/wWwMnWN to /WwMWm/wWwWmMN, with new
+ * field names, in November 2026). When they change again, this finds the new ones by itself in api2's
+ * own published spec: a 404 means the address moved, a 400 means the fields were renamed. What it
+ * finds is remembered in the browser.
+ */
+interface MatchHistoryRoute {
+  /** Under api2's /api, without a leading slash. */
+  path: string;
+  idField: string;
+  shortIdField: string;
+  pageField: string;
+}
+const MATCH_ROUTE_DEFAULT: MatchHistoryRoute = { path: 'WwMWm/wWwWmMN', idField: 'WnWwwNmM', shortIdField: 'wMWnwm', pageField: 'wMNmWWwn' };
+const MATCH_ROUTE_KEY = 'kirkahub_match_history_route_v1';
+
+function loadMatchRoute(): MatchHistoryRoute {
+  try {
+    const saved = JSON.parse(localStorage.getItem(MATCH_ROUTE_KEY) || 'null');
+    if (saved?.path && saved.idField && saved.shortIdField && saved.pageField) return saved;
+  } catch {}
+  return MATCH_ROUTE_DEFAULT;
+}
+function saveMatchRoute(route: MatchHistoryRoute) {
+  try {
+    localStorage.setItem(MATCH_ROUTE_KEY, JSON.stringify(route));
+  } catch {}
+}
+
+/** Through our proxy first, then straight to api2. */
+async function postApi2(path: string, body: unknown): Promise<Response | null> {
+  for (const url of [`/api2/${path}`, `https://api2.kirka.io/api/${path}`]) {
+    try {
+      return await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    } catch (err) {
+      console.warn('Match history request failed at', url, err);
+    }
+  }
+  return null;
+}
+
+/** api2 publishes its own OpenAPI spec; the match history entry still carries its real name. */
+async function routeFromSpec(): Promise<MatchHistoryRoute | null> {
+  for (const url of ['/api2/docs-json', 'https://api2.kirka.io/api/docs-json']) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const spec = await res.json();
+      for (const [path, ops] of Object.entries<any>(spec.paths || {})) {
+        const op = ops.post;
+        if (!op || !/getMatchHistory$/i.test(op.operationId || '')) continue;
+        const ref: string = op.requestBody?.content?.['application/json']?.schema?.$ref || '';
+        const props: Record<string, { type?: string }> = spec.components?.schemas?.[ref.split('/').pop() || '']?.properties || {};
+        const byType = (t: string) => Object.keys(props).find((k) => props[k].type === t);
+        const idField = byType('string');
+        const shortIdField = byType('boolean');
+        const pageField = byType('number');
+        if (!idField || !shortIdField || !pageField) return null;
+        return { path: path.replace(/^\/api\//, ''), idField, shortIdField, pageField };
+      }
+    } catch (err) {
+      console.warn('Could not read the api2 spec from', url, err);
+    }
+  }
+  return null;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}T/;
+
+/**
+ * One match, read by the shape of its values rather than their scrambled names: the UUID is the
+ * match, the ISO string is when, the other string is the map, the 0/1 is the result, and the
+ * numbers that follow are, in order, the two scores, the XP and the rating change.
+ */
+function readMatch(raw: Record<string, unknown>): MatchHistoryItem | null {
+  let id = '';
+  let date = '';
+  let mapName = '';
+  let isWin: boolean | null = null;
+  const numbers: number[] = [];
+  for (const value of Object.values(raw)) {
+    if (typeof value === 'string') {
+      if (!id && UUID.test(value)) id = value;
+      else if (!date && ISO_DATE.test(value)) date = value;
+      else if (!mapName) mapName = value;
+    } else if (typeof value === 'number') {
+      if (isWin === null && (value === 0 || value === 1)) isWin = value === 1;
+      else numbers.push(value);
+    } else if (typeof value === 'boolean' && isWin === null) {
+      isWin = value;
+    }
+  }
+  if (!id) return null;
+  return {
+    id,
+    isWin: isWin ?? false,
+    score1: numbers[0] ?? 0,
+    score2: numbers[1] ?? 0,
+    xpEarned: numbers[2] ?? 0,
+    mapName: mapName || 'Shipment',
+    ratingDelta: numbers[3],
+    date,
+  };
+}
+
 export async function fetchMatchHistory(identifier: string, page: number = 0): Promise<MatchHistoryItem[]> {
   let cleanId = identifier.trim().toUpperCase().replace('#', '');
   if (cleanId === 'WEATIE') {
@@ -602,66 +709,26 @@ export async function fetchMatchHistory(identifier: string, page: number = 0): P
   if (cleanId === 'HISOKA' || cleanId === 'S2WVOK') {
     cleanId = '9d42e1d0-cf39-40bd-91c2-7b85e8b36233';
   }
+  // A UUID has to go as a UUID: with the short-ID flag set, api2 finds nobody
+  const isUuid = UUID.test(cleanId);
+  if (isUuid) cleanId = cleanId.toLowerCase();
 
-  const payload = {
-    WwwnmW: cleanId,
-    wmnwWM: true,
-    wMWwnNmW: page
-  };
-
-  // Try proxy first
-  try {
-    const res = await fetch('/api2/wwMmWW/wWwMnWN', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+  let route = loadMatchRoute();
+  // One try with what we know, and one more with what the spec says if Kirka has renamed things
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await postApi2(route.path, { [route.idField]: cleanId, [route.shortIdField]: !isUuid, [route.pageField]: page });
+    if (!res) return [];
     if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        return data.map((m: any) => ({
-          id: m.WwwnmW,
-          isWin: m.wnMNwmW === 1,
-          score1: m.wNmMWwn || 0,
-          score2: m.wnMNwWW || 0,
-          xpEarned: m.wnMNwW || 0,
-          mapName: m.WwMwmnWN || 'Shipment',
-          ratingDelta: m.WwMwmnNW,
-          date: m.wmnNwWM
-        }));
-      }
+      const data = await res.json().catch(() => null);
+      if (!Array.isArray(data)) return [];
+      if (route !== MATCH_ROUTE_DEFAULT) saveMatchRoute(route);
+      return data.map(readMatch).filter((m): m is MatchHistoryItem => m !== null);
     }
-  } catch (err) {
-    console.warn('Proxy match history error, trying direct API:', err);
+    if (res.status !== 400 && res.status !== 404) break;
+    const next = await routeFromSpec();
+    if (!next || JSON.stringify(next) === JSON.stringify(route)) break;
+    route = next;
   }
-
-  // Direct API fallback
-  try {
-    const res = await fetch('https://api2.kirka.io/api/wwMmWW/wWwMnWN', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        return data.map((m: any) => ({
-          id: m.WwwnmW,
-          isWin: m.wnMNwmW === 1,
-          score1: m.wNmMWwn || 0,
-          score2: m.wnMNwWW || 0,
-          xpEarned: m.wnMNwW || 0,
-          mapName: m.WwMwmnWN || 'Shipment',
-          ratingDelta: m.WwMwmnNW,
-          date: m.wmnNwWM
-        }));
-      }
-    }
-  } catch (err) {
-    console.error('Direct match history API error:', err);
-  }
-
+  console.error('Match history: Kirka changed its API in a way this could not follow');
   return [];
 }
