@@ -20,6 +20,7 @@ const RendersSection = lazy(() => import('./components/RendersSection').then(m =
 const FitSection = lazy(() => import('./components/FitSection').then(m => ({ default: m.FitSection })));
 const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ default: m.ReloadLab })));
 const SkinEditorSection = lazy(() => import('./components/SkinEditorSection').then(m => ({ default: m.SkinEditorSection })));
+const AimTrainerSection = lazy(() => import('./components/AimTrainerSection').then(m => ({ default: m.AimTrainerSection })));
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
@@ -147,6 +148,9 @@ function App() {
     }
     if (cleanPath === '/skineditor' || cleanPath === '/skin-editor') {
       return { tab: 'skineditor', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/aimtrainer' || cleanPath === '/aim-trainer') {
+      return { tab: 'aimtrainer', player: null, clan: null, skin: null };
     }
     // unlisted: reachable by URL, deliberately absent from the navbar and the sitemap
     if (cleanPath === '/players' || cleanPath === '/playercount') {
@@ -346,6 +350,9 @@ function App() {
       case 'skineditor':
         document.title = 'Free Skin Editor for 3px Slim Skins, in 3D | Kirka Hub';
         break;
+      case 'aimtrainer':
+        document.title = 'Kirka Aim Trainer With Your Own Sensitivity & FOV | Kirka Hub';
+        break;
       case 'renders':
         document.title = 'Kirka 3D Weapon Skins & Character Renders | Kirka Hub';
         break;
@@ -449,7 +456,7 @@ function App() {
 
       {!isLoading && (() => {
         // No ads in full-screen editing tools
-        const showAds = !['reloadlab', 'skineditor'].includes(activeTab);
+        const showAds = !['reloadlab', 'skineditor', 'aimtrainer'].includes(activeTab);
         // The home page is just the film and the search box.
         const isHomeFilm = activeTab === 'search' && !activeUserProfile;
         const adRouteKey = activeTab + (activeTab === 'search' ? (activeUserProfile ? '-profile' : '-input') : '') + (activeTab === 'fit' ? fitPlayerId ?? '' : '');
@@ -600,6 +607,8 @@ function App() {
                     <SkinEditorSection catalog={allItemData} />
                   )}
 
+                  {activeTab === 'aimtrainer' && <AimTrainerSection />}
+
                   {activeTab === 'changelogs' && <ChangelogsSection />}
 
                   {activeTab === 'chatlogs' && <ChatLogsSection />}
@@ -632,7 +641,7 @@ function App() {
                 </div>
                 {[
                   { title: 'Explore', links: [['prices', 'Skins & Prices'], ['trades', 'Trades Portal'], ['daily', 'Daily Leaderboard'], ['clans', 'Clans Registry']] },
-                  { title: 'Make', links: [['skineditor', 'Skin Editor'], ['fit', '3D Fit'], ['renders', '3D Renders'], ['reloadlab', 'Reload Lab']] },
+                  { title: 'Make', links: [['skineditor', 'Skin Editor'], ['aimtrainer', 'Aim Trainer'], ['fit', '3D Fit'], ['renders', '3D Renders'], ['reloadlab', 'Reload Lab']] },
                 ].map((col) => (
                   <nav key={col.title} aria-label={col.title}>
                     <h2 className="display text-[20px] text-gold-bright leading-none mb-2">{col.title}</h2>

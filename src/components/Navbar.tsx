@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users, Brush, Radio, ChevronDown, Loader2 } from 'lucide-react';
+import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users, Brush, Radio, ChevronDown, Loader2, Target } from 'lucide-react';
 import { supportsCustomCursor } from '../hooks/useCursorMode';
 
 interface NavbarProps {
@@ -44,7 +44,8 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: 'Create',
     items: [
-      { id: 'skineditor', label: 'Skin Editor', hint: 'Paint 3px slim skins', icon: Brush, badge: 'NEW' },
+      { id: 'skineditor', label: 'Skin Editor', hint: 'Paint 3px slim skins', icon: Brush },
+      { id: 'aimtrainer', label: 'Aim Trainer', hint: 'Train with your Kirka sens and FOV', icon: Target, badge: 'NEW' },
       { id: 'fit', label: '3D Fit', hint: 'Build and show off a loadout', icon: Shirt },
       { id: 'reloadlab', label: 'Reload Lab', hint: 'Reloads on real weapon models', icon: Crosshair },
     ],
