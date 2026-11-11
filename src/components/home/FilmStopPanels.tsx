@@ -17,6 +17,7 @@ const PAGES: Record<Exclude<FilmStopId, 'skin'>, { title: string; links: { id: s
   compete: {
     title: 'Compete',
     links: [
+      { id: 'wrapped', label: 'Kirka Wrapped', hint: 'Your Kirka story, as a video' },
       { id: 'daily', label: 'Daily Leaderboard', hint: "Today's top scores" },
       { id: 'ranked', label: 'Ranked', hint: 'S&D, 1v1 and 2v2 standings' },
       { id: 'clans', label: 'Clans', hint: 'Top clans and their rosters' },

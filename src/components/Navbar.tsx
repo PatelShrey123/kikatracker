@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users, Brush, Radio, ChevronDown, Loader2, Target } from 'lucide-react';
+import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users, Brush, Radio, ChevronDown, Loader2, Target, Clapperboard } from 'lucide-react';
 import { supportsCustomCursor } from '../hooks/useCursorMode';
 
 interface NavbarProps {
@@ -28,6 +28,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: 'Compete',
     items: [
+      { id: 'wrapped', label: 'Kirka Wrapped', hint: 'Your Kirka story, as a video', icon: Clapperboard, badge: 'NEW' },
       { id: 'daily', label: 'Daily Leaderboard', hint: 'Today\'s top scores', icon: Trophy },
       { id: 'ranked', label: 'Ranked Arena', hint: 'S&D, 1v1 and 2v2 standings', icon: Swords },
       { id: 'clans', label: 'Clans Registry', hint: 'Top clans and rosters', icon: Users },

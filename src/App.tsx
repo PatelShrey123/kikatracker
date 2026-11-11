@@ -21,10 +21,12 @@ const FitSection = lazy(() => import('./components/FitSection').then(m => ({ def
 const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ default: m.ReloadLab })));
 const SkinEditorSection = lazy(() => import('./components/SkinEditorSection').then(m => ({ default: m.SkinEditorSection })));
 const AimTrainerSection = lazy(() => import('./components/AimTrainerSection').then(m => ({ default: m.AimTrainerSection })));
+const WrappedSection = lazy(() => import('./components/WrappedSection').then(m => ({ default: m.WrappedSection })));
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
 import { AdSlot, AD_SLOTS } from './components/AdSlot';
+import { WhatsNewModal } from './components/WhatsNewModal';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -151,6 +153,9 @@ function App() {
     }
     if (cleanPath === '/aimtrainer' || cleanPath === '/aim-trainer') {
       return { tab: 'aimtrainer', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/wrapped' || cleanPath.startsWith('/wrapped/')) {
+      return { tab: 'wrapped', player: null, clan: null, skin: null };
     }
     // unlisted: reachable by URL, deliberately absent from the navbar and the sitemap
     if (cleanPath === '/players' || cleanPath === '/playercount') {
@@ -353,6 +358,9 @@ function App() {
       case 'aimtrainer':
         document.title = 'Kirka Aim Trainer With Your Own Sensitivity & FOV | Kirka Hub';
         break;
+      case 'wrapped':
+        document.title = 'Kirka Wrapped: Your Kirka Story | Kirka Hub';
+        break;
       case 'renders':
         document.title = 'Kirka 3D Weapon Skins & Character Renders | Kirka Hub';
         break;
@@ -456,7 +464,7 @@ function App() {
 
       {!isLoading && (() => {
         // No ads in full-screen editing tools
-        const showAds = !['reloadlab', 'skineditor', 'aimtrainer'].includes(activeTab);
+        const showAds = !['reloadlab', 'skineditor', 'aimtrainer', 'wrapped'].includes(activeTab);
         // The home page is just the film and the search box.
         const isHomeFilm = activeTab === 'search' && !activeUserProfile;
         const adRouteKey = activeTab + (activeTab === 'search' ? (activeUserProfile ? '-profile' : '-input') : '') + (activeTab === 'fit' ? fitPlayerId ?? '' : '');
@@ -609,6 +617,8 @@ function App() {
 
                   {activeTab === 'aimtrainer' && <AimTrainerSection />}
 
+                  {activeTab === 'wrapped' && <WrappedSection marketPrices={marketPrices} />}
+
                   {activeTab === 'changelogs' && <ChangelogsSection />}
 
                   {activeTab === 'chatlogs' && <ChatLogsSection />}
@@ -640,7 +650,7 @@ function App() {
                   </p>
                 </div>
                 {[
-                  { title: 'Explore', links: [['prices', 'Skins & Prices'], ['trades', 'Trades Portal'], ['daily', 'Daily Leaderboard'], ['clans', 'Clans Registry']] },
+                  { title: 'Explore', links: [['prices', 'Skins & Prices'], ['trades', 'Trades Portal'], ['wrapped', 'Kirka Wrapped'], ['daily', 'Daily Leaderboard'], ['clans', 'Clans Registry']] },
                   { title: 'Make', links: [['skineditor', 'Skin Editor'], ['aimtrainer', 'Aim Trainer'], ['fit', '3D Fit'], ['renders', '3D Renders'], ['reloadlab', 'Reload Lab']] },
                 ].map((col) => (
                   <nav key={col.title} aria-label={col.title}>
@@ -665,6 +675,9 @@ function App() {
               <p className="border-t-2 border-[var(--ink)] px-5 py-3 text-center text-[13px] font-bold text-slate-500">© 2026 Xpert Tracker · Valuation index: Hub Valuation</p>
             </footer>
           </div>
+
+          {/* the one-time "what's new" card, on the home page only */}
+          {isHomeFilm && <WhatsNewModal onOpen={handleTabChange} />}
 
           {/* 6. Item Details Inspection Modal overlay */}
           <ItemInspectModal
