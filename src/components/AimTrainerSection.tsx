@@ -49,7 +49,9 @@ const fmtScore = (drill: DrillId, score: number) => {
   return `${score}`;
 };
 
-const EMPTY_HUD: Hud = { time: 0, kills: 0, shots: 0, hits: 0, onTarget: 0, turned: 0, aimed: false, fov: 90 };
+const EMPTY_HUD: Hud = { time: 0, kills: 0, shots: 0, hits: 0, onTarget: 0, turned: 0, aimed: false, fov: 90, fps: 0 };
+// The desktop app shows its frame rate, since an uncapped frame rate is what it's for
+const IS_DESKTOP = import.meta.env.MODE === 'desktop';
 
 export const AimTrainerSection: React.FC = () => {
   const [saved, setSaved] = useState<SavedSettings>(() => loadSettings());
@@ -273,6 +275,7 @@ export const AimTrainerSection: React.FC = () => {
             {/* HUD */}
             {engineState === 'running' && (
               <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-4 px-3 py-1.5 bg-black/55 font-mono text-[14px] text-white pointer-events-none">
+                {IS_DESKTOP && <span>{hud.fps} FPS</span>}
                 {drill.id === 'sens' ? (
                   <>
                     <span>{Math.abs(hud.turned).toFixed(1)}° turned</span>

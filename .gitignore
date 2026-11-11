@@ -44,3 +44,7 @@ kikatracker-main/
 CLAUDE_FIT_VIEWER_BRIEFING.md
 FULL_CHAT_HISTORY.md
 PROJECT_TIMELINE_INDEX.md
+
+# Desktop aim trainer build output
+desktop/app
+desktop/dist

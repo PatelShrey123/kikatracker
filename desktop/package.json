@@ -1,0 +1,34 @@
+{
+  "name": "kirkahub-aim-trainer",
+  "productName": "Kirka Hub Aim Trainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Kirka Hub aim trainer as a desktop app, without the browser's frame rate cap.",
+  "author": "Kirka Hub",
+  "main": "main.cjs",
+  "scripts": {
+    "build:web": "cd .. && vite build --config desktop/vite.aim.config.mjs --mode desktop",
+    "start": "electron ."
+  },
+  "build": {
+    "appId": "online.kirkahub.aimtrainer",
+    "files": [
+      "main.cjs",
+      "app/**"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "mac": {
+      "category": "public.app-category.games",
+      "icon": "build/icon.png",
+      "identity": null,
+      "hardenedRuntime": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.3.0",
+    "electron-builder": "^26.18.0"
+  }
+}

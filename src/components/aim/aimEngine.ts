@@ -44,6 +44,8 @@ export interface Hud {
   turned: number;
   aimed: boolean;
   fov: number;
+  /** Frames per second actually being drawn. */
+  fps: number;
 }
 
 export interface DrillResult {
@@ -148,6 +150,9 @@ export class AimEngine {
   private onTargetTime = 0;
   private trackTick = 0;
   private hudAt = 0;
+  private fps = 0;
+  private fpsFrames = 0;
+  private fpsAt = 0;
 
   private frame = 0;
   private last = 0;
@@ -394,7 +399,8 @@ export class AimEngine {
     this.events.onState(s);
     cancelAnimationFrame(this.frame);
     if (s === 'running') {
-      this.last = performance.now();
+      this.last = this.fpsAt = performance.now();
+      this.fpsFrames = 0;
       this.frame = requestAnimationFrame(this.tick);
     } else {
       this.render();
@@ -494,6 +500,12 @@ export class AimEngine {
     const dt = Math.min(0.05, (now - this.last) / 1000);
     this.last = now;
     this.clock += dt;
+    this.fpsFrames++;
+    if (now - this.fpsAt >= 500) {
+      this.fps = Math.round((this.fpsFrames * 1000) / (now - this.fpsAt));
+      this.fpsFrames = 0;
+      this.fpsAt = now;
+    }
     this.updateAds(dt);
 
     for (const t of [...this.targets]) {
@@ -604,6 +616,7 @@ export class AimEngine {
       turned: this.turned / DEG,
       aimed: this.fullyAimed,
       fov: this.camera.fov,
+      fps: this.fps,
     });
   }
 
