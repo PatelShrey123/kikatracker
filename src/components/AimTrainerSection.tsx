@@ -58,6 +58,11 @@ const IS_TOUCH =
   typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(any-pointer: fine)').matches;
 // Phone scores aren't comparable with mouse ones, so they're kept apart
 const BEST_STORE = IS_TOUCH ? `${BEST_KEY}_touch` : BEST_KEY;
+// The desktop app runs an older Chrome without aspect-ratio or the translate property: the stage keeps its
+// 16:9 shape with padding instead, and centred overlays use a plain transform
+const NO_ASPECT = typeof CSS !== 'undefined' && !CSS.supports('aspect-ratio: 1');
+const CENTER: React.CSSProperties = { transform: 'translate(-50%, -50%)' };
+const CENTER_X: React.CSSProperties = { transform: 'translateX(-50%)' };
 
 export const AimTrainerSection: React.FC = () => {
   const [saved, setSaved] = useState<SavedSettings>(() => loadSettings());
@@ -73,6 +78,12 @@ export const AimTrainerSection: React.FC = () => {
   const [pasteMsg, setPasteMsg] = useState<{ text: string; bad?: boolean } | null>(null);
   // on a phone the stage takes over the whole screen from Start until the drill ends
   const [touchSession, setTouchSession] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -290,14 +301,14 @@ export const AimTrainerSection: React.FC = () => {
             className={`bg-black overflow-hidden select-none [&:fullscreen]:border-0 [&:fullscreen]:aspect-auto ${
               touchSession ? 'fixed inset-0 z-[300] touch-none [-webkit-touch-callout:none]' : 'relative aspect-video border-2 border-[var(--ink)]'
             }`}
-            style={touchSession ? { height: '100dvh' } : undefined}
+            style={touchSession ? { height: '100dvh' } : NO_ASPECT && !isFullscreen ? { height: 0, paddingTop: '56.25%' } : undefined}
           >
             <div ref={hostRef} className="absolute inset-0" {...(IS_TOUCH ? touchHandlers('look') : {})} />
 
             {/* scope, drawn over the world */}
             <div ref={scopeRef} className="absolute inset-0 pointer-events-none" style={{ display: 'none' }}>
               {scopeKind === 'image' && <img src={s.sniper.url} alt="" referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-contain" />}
-              {scopeKind === 'crosshair' && <img src={svgUrl(crosshairSvg(s.sniper))} alt="" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 [image-rendering:pixelated]" />}
+              {scopeKind === 'crosshair' && <img src={svgUrl(crosshairSvg(s.sniper))} alt="" className="absolute left-1/2 top-1/2 [image-rendering:pixelated]" style={CENTER} />}
               {scopeKind === 'default' && (
                 <>
                   <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center, transparent 0, transparent 38vmin, rgba(0,0,0,0.9) 38.4vmin, #000 46vmin)' }} />
@@ -307,16 +318,16 @@ export const AimTrainerSection: React.FC = () => {
               )}
             </div>
 
-            <div ref={crosshairRef} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+            <div ref={crosshairRef} className="absolute left-1/2 top-1/2 pointer-events-none" style={CENTER}>
               {crosshairSrc && <img src={crosshairSrc} alt="" referrerPolicy="no-referrer" className="block max-w-none [image-rendering:pixelated]" />}
             </div>
-            <div ref={hitRef} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0">
+            <div ref={hitRef} className="absolute left-1/2 top-1/2 pointer-events-none opacity-0" style={CENTER}>
               <img src={svgUrl(hitmarkerSvg(s.hitmarker))} alt="" className="block max-w-none" />
             </div>
 
             {/* HUD */}
             {engineState === 'running' && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-4 px-3 py-1.5 bg-black/55 font-mono text-[14px] text-white pointer-events-none">
+              <div className="absolute top-3 left-1/2 flex gap-4 px-3 py-1.5 bg-black/55 font-mono text-[14px] text-white pointer-events-none" style={CENTER_X}>
                 {IS_DESKTOP && <span>{hud.fps} FPS</span>}
                 {drill.id === 'sens' ? (
                   <>
@@ -470,7 +481,7 @@ export const AimTrainerSection: React.FC = () => {
             <button type="button" onClick={() => setPref({ muted: !prefs.muted })} aria-pressed={!prefs.muted} className={chip(!prefs.muted)}>
               <span className="flex items-center gap-1.5">{prefs.muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />} Sound</span>
             </button>
-            {s.rawInput && rawActive === false && <span className="text-[13px] font-bold text-red-300">This browser can't do Raw Input, so Windows mouse acceleration is on here.</span>}
+            {s.rawInput && rawActive === false && <span className="text-[13px] font-bold text-red-300">Raw Input isn't available here, so your system's mouse acceleration applies (Kirka's own client is the same).</span>}
           </div>
         </div>
 

@@ -13,6 +13,9 @@ export default defineConfig({
   publicDir: false,
   plugins: [react(), tailwindcss()],
   build: {
+    // Electron 11 is Chrome 87: lower newer JavaScript (class static blocks and the like) to match
+    target: 'chrome87',
+    cssTarget: 'chrome87',
     outDir: path.join(root, 'desktop/app'),
     emptyOutDir: true,
     rollupOptions: { input: path.join(root, 'aim.html') },

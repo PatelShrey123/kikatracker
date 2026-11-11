@@ -357,7 +357,13 @@ export class AimEngine {
     this.ensureAudio();
     if (this.settings.rawInput) {
       try {
-        await canvas.requestPointerLock({ unadjustedMovement: true });
+        const asked = canvas.requestPointerLock({ unadjustedMovement: true });
+        // older Chrome (the desktop app's) ignores the option and returns nothing
+        if (!(asked instanceof Promise)) {
+          this.events.onRawInput(false);
+          return;
+        }
+        await asked;
         this.events.onRawInput(true);
         return;
       } catch (err) {
