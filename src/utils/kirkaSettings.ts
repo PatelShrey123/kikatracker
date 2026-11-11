@@ -9,9 +9,18 @@
  * - Aiming down sights: camera FOV = MAIN_FOV - (MAIN_FOV - gun ADS FOV) x progress x ADS_POWER_<gun>.
  *   Every gun aims to 70 except the VITA (35, with a scope). Getting fully in takes 0.08 s (VITA 0.1 s).
  * - The custom crosshair is an SVG Kirka builds from the CUSTOM_* values; crosshairSvg() is a port of it.
+ * - On phones Kirka looks around with an invisible 130 px joystick that appears under the thumb (the
+ *   nipplejs library). Each move it reads vector x force, multiplies by SENS x 0.0187 x (camera FOV /
+ *   MAIN_FOV), and turns by the change since the last move. Dragging on the fire or aim button looks too,
+ *   at a seventh of that, through their own (tiny) joysticks. While firing or aiming, AIM_SENSITIVITY is
+ *   used, and with AIM_WHEN_FIRE on, firing also aims in. The VITA scopes while fire is held and shoots
+ *   when it's let go.
  */
 
 export const SENS_PER_COUNT = 0.0000235;
+export const TOUCH_SENS_PER_UNIT = 0.0187;
+/** Radius in px of Kirka's touch joysticks: the look area is 130 across; fire and aim scale with their settings. */
+export const TOUCH_RADIUS = { look: 65, fire: 5, aim: 2.25 };
 
 export type Gun = 'AR-9' | 'SCAR' | 'LAR' | 'M60' | 'MAC-10' | 'Weatie' | 'Revolver' | 'Shark' | 'VITA';
 export const GUNS: Gun[] = ['AR-9', 'SCAR', 'LAR', 'M60', 'MAC-10', 'Weatie', 'Revolver', 'Shark', 'VITA'];
@@ -61,6 +70,19 @@ export interface KirkaSettings {
   hitmarker: { enabled: boolean; color: string; size: number; thickness: number; gap: number; opacity: number; fade: number };
   adsPower: Record<Gun, number>;
   keys: { aim: string; shoot: string; reload: string };
+  /** Kirka's phone controls. X and Y move a button in rem, the way Kirka's do. */
+  mobile: {
+    aimWhenFire: boolean;
+    allOpacity: number;
+    fireX: number;
+    fireY: number;
+    fireScale: number;
+    fireOpacity: number;
+    aimX: number;
+    aimY: number;
+    aimScale: number;
+    aimOpacity: number;
+  };
   /** Images on other sites (a crosshair or scope URL) only load once the player says so. */
   allowImages: boolean;
 }
@@ -96,6 +118,7 @@ export const DEFAULT_SETTINGS: KirkaSettings = {
   hitmarker: { enabled: false, color: '#d05353', size: 7, thickness: 2, gap: 3, opacity: 100, fade: 400 },
   adsPower: Object.fromEntries(GUNS.map((g) => [g, 1])) as Record<Gun, number>,
   keys: { aim: 'MOUSE_RIGHT___KEY', shoot: 'MOUSE_LEFT___KEY', reload: 'KEY_R___KEY' },
+  mobile: { aimWhenFire: true, allOpacity: 1, fireX: 0, fireY: 0, fireScale: 1, fireOpacity: 0.4, aimX: 0, aimY: 0, aimScale: 1, aimOpacity: 0.35 },
   allowImages: false,
 };
 
@@ -163,6 +186,8 @@ export function parseKirkaExport(text: string): KirkaSettings {
   const hit = raw.HITMARKER___SETTING || {};
   const weapons = raw.WEAPONS___SETTING || {};
   const keys = raw.KEYBINDINGS___SETTING || {};
+  const mobile = raw.MOBILE___SETTING || {};
+  const dm = d.mobile;
   const display = ['static', 'dynamic', 'hidden'].includes(cross.DISPLAY_TYPE___SETTING) ? cross.DISPLAY_TYPE___SETTING : d.crosshair.display;
   const sniperDisplay = ['default', 'image', 'crosshair'].includes(sniper.DISPLAY_TYPE___SETTING) ? sniper.DISPLAY_TYPE___SETTING : d.sniper.display;
   return {
@@ -201,6 +226,18 @@ export function parseKirkaExport(text: string): KirkaSettings {
       shoot: binding(keys.SHOOT_WEAPON___SETTING, d.keys.shoot),
       reload: binding(keys.RELOAD_WEAPON___SETTING, d.keys.reload),
     },
+    mobile: {
+      aimWhenFire: bool(mobile.AIM_WHEN_FIRE___SETTING, dm.aimWhenFire),
+      allOpacity: num(mobile.ALL_OPACITY___SETTING, dm.allOpacity, 0, 1),
+      fireX: num(mobile.FIRE_RIGHT_X___SETTING, dm.fireX, -40, 40),
+      fireY: num(mobile.FIRE_RIGHT_Y___SETTING, dm.fireY, -40, 40),
+      fireScale: num(mobile.FIRE_RIGHT_SCALE___SETTING, dm.fireScale, 0.3, 3),
+      fireOpacity: num(mobile.FIRE_RIGHT_OPACITY___SETTING, dm.fireOpacity, 0, 1),
+      aimX: num(mobile.AIM_X___SETTING, dm.aimX, -40, 40),
+      aimY: num(mobile.AIM_Y___SETTING, dm.aimY, -40, 40),
+      aimScale: num(mobile.AIM_SCALE___SETTING, dm.aimScale, 0.3, 3),
+      aimOpacity: num(mobile.AIM_OPACITY___SETTING, dm.aimOpacity, 0, 1),
+    },
     allowImages: false,
   };
 }
@@ -229,6 +266,7 @@ export function loadSettings(): SavedSettings {
           hitmarker: { ...DEFAULT_SETTINGS.hitmarker, ...s.hitmarker },
           adsPower: { ...DEFAULT_SETTINGS.adsPower, ...s.adsPower },
           keys: { ...DEFAULT_SETTINGS.keys, ...s.keys },
+          mobile: { ...DEFAULT_SETTINGS.mobile, ...s.mobile },
         },
         source: saved.source === 'import' || saved.source === 'manual' ? saved.source : 'default',
         dpi: num(saved.dpi, 800, 50, 64000),
@@ -255,6 +293,20 @@ export function radiansPerCount(sens: number, cameraFov: number, mainFov: number
 export function adsFov(s: KirkaSettings, gun: Gun, progress: number) {
   const zoom = GUN_ADS[gun].fov;
   return s.mainFov - (s.mainFov - zoom) * progress * s.adsPower[gun];
+}
+
+/**
+ * What Kirka's joystick library reports, as vector x force, for a thumb dx, dy px from where it landed.
+ * Inside the radius the reading grows with the square of the distance; past it, it's linear.
+ */
+export function joystickReading(dx: number, dy: number, radius: number) {
+  const reach = Math.min(Math.hypot(dx, dy), radius);
+  return { x: (dx * reach) / (radius * radius), y: (-dy * reach) / (radius * radius) };
+}
+
+/** Degrees a straight swipe of `px` turns on a phone, past the joystick's radius. */
+export function touchDegrees(sens: number, px: number) {
+  return ((px / TOUCH_RADIUS.look) * sens * TOUCH_SENS_PER_UNIT * 180) / Math.PI;
 }
 
 /** Centimetres of mouse travel for a full turn. */

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GUN_ADS, adsFov, keyMatches, mouseButtonOf, radiansPerCount } from '../../utils/kirkaSettings';
+import { GUN_ADS, TOUCH_RADIUS, TOUCH_SENS_PER_UNIT, adsFov, joystickReading, keyMatches, mouseButtonOf, radiansPerCount } from '../../utils/kirkaSettings';
 import type { Gun, KirkaSettings } from '../../utils/kirkaSettings';
 
 /**
@@ -90,6 +90,18 @@ interface Target {
   jump: number;
 }
 
+export type TouchControl = 'look' | 'fire' | 'aim';
+
+/** One finger on the screen, and what Kirka's joystick code remembers about it. */
+interface Touch {
+  control: TouchControl;
+  x0: number;
+  y0: number;
+  prevX: number;
+  prevY: number;
+  factor: number;
+}
+
 const EYE = 1.6;
 const DEG = Math.PI / 180;
 
@@ -133,6 +145,11 @@ export class AimEngine {
   private aimKey = false;
   private aimMouse = false;
   private fireHeld = false;
+  /** 'touch' on phones: no mouse lock, on-screen buttons instead. */
+  private mode: 'mouse' | 'touch' = 'mouse';
+  private touches = new Map<number, Touch>();
+  private touchFire = false;
+  private touchAim = false;
   private adsTime = 0;
   private fullyAimed = false;
   private scopeShown = false;
@@ -266,6 +283,7 @@ export class AimEngine {
       this.disposers.push(() => target.removeEventListener(type, fn as EventListener));
     };
     on(document, 'pointerlockchange', () => {
+      if (this.mode === 'touch') return;
       const locked = document.pointerLockElement === canvas;
       if (locked && (this.state === 'paused' || this.state === 'idle')) this.setState('running');
       else if (!locked && this.state === 'running') {
@@ -333,6 +351,7 @@ export class AimEngine {
   /** Asks for the mouse. Has to be called from a click. */
   async lock() {
     const canvas = this.renderer.domElement as HTMLCanvasElement & { requestPointerLock(o?: { unadjustedMovement?: boolean }): Promise<void> | void };
+    this.mode = 'mouse';
     this.ensureAudio();
     if (this.settings.rawInput) {
       try {
@@ -351,6 +370,89 @@ export class AimEngine {
       this.events.onRawInput(false);
     } catch {
       this.events.onLockError('The browser needs a second before it can lock the mouse again. Click once more.');
+    }
+  }
+
+  // ---------------------------------------------------------------- touch
+
+  /** Starts or resumes a drill on a phone. Has to be called from a tap, for the sound. */
+  startTouch() {
+    this.mode = 'touch';
+    this.ensureAudio();
+    if (this.state === 'idle' || this.state === 'paused') this.setState('running');
+  }
+
+  pause() {
+    if (this.state !== 'running') return;
+    this.releaseTouches();
+    this.setState('paused');
+  }
+
+  private releaseTouches() {
+    this.touches.clear();
+    this.touchFire = this.touchAim = this.fireHeld = false;
+  }
+
+  /** Aimed in from the phone controls: the aim button, or fire with AIM_WHEN_FIRE (the VITA's scope). */
+  private touchScoped() {
+    return this.touchAim || (this.touchFire && this.settings.mobile.aimWhenFire);
+  }
+
+  touchDown(id: number, control: TouchControl, x: number, y: number) {
+    if (this.state !== 'running' || this.mode !== 'touch') return;
+    this.touches.set(id, { control, x0: x, y0: y, prevX: 0, prevY: 0, factor: 0 });
+    if (control === 'aim') this.touchAim = true;
+    if (control === 'fire') {
+      this.touchFire = true;
+      // the VITA with AIM_WHEN_FIRE scopes while held and shoots on release instead
+      if (!(GUN_ADS[this.gun].scope && this.settings.mobile.aimWhenFire)) this.pullTrigger();
+    }
+    // the joystick library reports a move as soon as a thumb lands
+    this.touchMove(id, x, y);
+  }
+
+  /** Kirka's touch look, step for step. */
+  touchMove(id: number, x: number, y: number) {
+    const t = this.touches.get(id);
+    if (!t || this.state !== 'running') return;
+    const s = this.settings;
+    const m = s.mobile;
+    const radius = t.control === 'look' ? TOUCH_RADIUS.look : t.control === 'fire' ? TOUCH_RADIUS.fire * m.fireScale : TOUCH_RADIUS.aim * m.aimScale;
+    const slow = t.control === 'look' ? 1 : 7;
+    const reading = joystickReading(x - t.x0, y - t.y0, radius);
+    const aiming = this.touchAim || this.touchFire;
+    const factor = (this.camera.fov / s.mainFov) * (aiming ? s.aimSensitivity : s.sensitivity) * TOUCH_SENS_PER_UNIT;
+    const ax = (reading.x / slow) * factor;
+    const ay = (reading.y / slow) * factor;
+    const dx = ax - t.prevX;
+    const dy = ay - t.prevY;
+    t.prevX = ax;
+    t.prevY = ay;
+    // when the sensitivity changes (first touch, aiming in) Kirka skips that move rather than jump
+    if (Math.abs(factor - t.factor) > 0.001) {
+      t.factor = factor;
+      return;
+    }
+    t.factor = factor;
+    this.yaw = (this.yaw - dx) % 6.283;
+    this.turned -= dx;
+    this.pitch = Math.min(1.57, Math.max(-1.57, this.pitch + dy));
+    this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
+  }
+
+  touchUp(id: number) {
+    const t = this.touches.get(id);
+    if (!t) return;
+    this.touches.delete(id);
+    if (t.control === 'aim') this.touchAim = false;
+    if (t.control === 'fire') {
+      this.touchFire = false;
+      this.fireHeld = false;
+      if (this.state === 'running' && GUN_ADS[this.gun].scope && this.settings.mobile.aimWhenFire) {
+        // still scoped this instant: the scope only drops on the next frame
+        this.pullTrigger();
+        this.fireHeld = false;
+      }
     }
   }
 
@@ -383,6 +485,7 @@ export class AimEngine {
   /** Stops the drill and reports it. */
   finish() {
     if (this.state === 'done') return;
+    this.releaseTouches();
     if (document.pointerLockElement === this.renderer.domElement) document.exitPointerLock();
     const d = this.drill;
     const avgKillMs = this.killTimes.length ? (this.killTimes.reduce((a, b) => a + b, 0) / this.killTimes.length) * 1000 : 0;
@@ -566,7 +669,7 @@ export class AimEngine {
   private updateAds(dt: number) {
     const gun = this.gun;
     const ads = GUN_ADS[gun];
-    const held = this.aimKey || this.aimMouse;
+    const held = this.aimKey || this.aimMouse || this.touchScoped();
     this.adsTime = held ? Math.min(ads.time, this.adsTime + dt) : Math.max(0, this.adsTime - dt);
     const p = this.adsTime / ads.time;
     if (held && p >= 1) this.fullyAimed = true;

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ClipboardPaste, Crosshair, Image as ImageIcon, Maximize, Play, RotateCcw, Trophy, Volume2, VolumeX } from 'lucide-react';
+import { ClipboardPaste, Crosshair, Image as ImageIcon, Maximize, Pause, Play, RotateCcw, Trophy, Volume2, VolumeX } from 'lucide-react';
 import { AimEngine, DRILLS } from './aim/aimEngine';
-import type { DrillId, DrillResult, EngineState, Hud } from './aim/aimEngine';
+import type { DrillId, DrillResult, EngineState, Hud, TouchControl } from './aim/aimEngine';
 import {
   DEFAULT_SETTINGS,
   GUNS,
@@ -15,6 +15,7 @@ import {
   parseKirkaExport,
   saveSettings,
   svgUrl,
+  touchDegrees,
 } from '../utils/kirkaSettings';
 import type { Gun, KirkaSettings, SavedSettings } from '../utils/kirkaSettings';
 
@@ -52,11 +53,16 @@ const fmtScore = (drill: DrillId, score: number) => {
 const EMPTY_HUD: Hud = { time: 0, kills: 0, shots: 0, hits: 0, onTarget: 0, turned: 0, aimed: false, fov: 90, fps: 0 };
 // The desktop app shows its frame rate, since an uncapped frame rate is what it's for
 const IS_DESKTOP = import.meta.env.MODE === 'desktop';
+// Phones and tablets get Kirka's touch controls. A laptop with a touchscreen still has a mouse, so it doesn't.
+const IS_TOUCH =
+  typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(any-pointer: fine)').matches;
+// Phone scores aren't comparable with mouse ones, so they're kept apart
+const BEST_STORE = IS_TOUCH ? `${BEST_KEY}_touch` : BEST_KEY;
 
 export const AimTrainerSection: React.FC = () => {
   const [saved, setSaved] = useState<SavedSettings>(() => loadSettings());
   const [prefs, setPrefs] = useState(() => loadJson(PREFS_KEY, { gun: 'AR-9' as Gun, fullscreen: true, muted: false, drill: 'gridshot' as DrillId }));
-  const [best, setBest] = useState<Partial<Record<DrillId, number>>>(() => loadJson(BEST_KEY, {}));
+  const [best, setBest] = useState<Partial<Record<DrillId, number>>>(() => loadJson(BEST_STORE, {}));
   const [engineState, setEngineState] = useState<EngineState>('idle');
   const [hud, setHud] = useState<Hud>(EMPTY_HUD);
   const [result, setResult] = useState<(DrillResult & { newBest: boolean }) | null>(null);
@@ -65,7 +71,8 @@ export const AimTrainerSection: React.FC = () => {
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [pasteMsg, setPasteMsg] = useState<{ text: string; bad?: boolean } | null>(null);
-  const [touchOnly] = useState(() => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(any-pointer: fine)').matches);
+  // on a phone the stage takes over the whole screen from Start until the drill ends
+  const [touchSession, setTouchSession] = useState(false);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -94,7 +101,7 @@ export const AimTrainerSection: React.FC = () => {
   // ---------------------------------------------------------------- engine
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || !crosshairRef.current || !scopeRef.current || !hitRef.current || touchOnly) return;
+    if (!host || !crosshairRef.current || !scopeRef.current || !hitRef.current) return;
     const engine = new AimEngine(
       host,
       { crosshair: crosshairRef.current, scope: scopeRef.current, hitmarker: hitRef.current },
@@ -103,7 +110,10 @@ export const AimTrainerSection: React.FC = () => {
         onState: (st) => {
           setEngineState(st);
           if (st === 'running') setLockError('');
-          if (st === 'done' && document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+          if (st === 'done') {
+            setTouchSession(false);
+            if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+          }
         },
         onResult: (r) => {
           const info = DRILLS.find((d) => d.id === r.drill)!;
@@ -113,7 +123,7 @@ export const AimTrainerSection: React.FC = () => {
           if (newBest) {
             const next = { ...bestRef.current, [r.drill]: r.score };
             setBest(next);
-            saveJson(BEST_KEY, next);
+            saveJson(BEST_STORE, next);
           }
           setResult({ ...r, newBest });
         },
@@ -132,7 +142,7 @@ export const AimTrainerSection: React.FC = () => {
     };
     // built once; settings, drill and sound reach it through the effects below
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [touchOnly]);
+  }, []);
 
   useEffect(() => {
     engineRef.current?.setSettings(s, prefs.gun);
@@ -155,12 +165,42 @@ export const AimTrainerSection: React.FC = () => {
       setResult(null);
       engine.prepare(prefs.drill);
     }
+    if (IS_TOUCH) {
+      setTouchSession(true);
+      // Android can go properly fullscreen and turn sideways; an iPhone can't, and gets the stage over the page
+      void stageRef.current
+        ?.requestFullscreen?.()
+        .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> })?.lock?.('landscape'))
+        .catch(() => {});
+      engine.startTouch();
+      return;
+    }
     // the mouse first: going fullscreen uses up the click, and the lock needs it
     void engine.lock();
     if (prefs.fullscreen && !document.fullscreenElement) void stageRef.current?.requestFullscreen?.().catch(() => {});
   };
 
   const endDrill = () => engineRef.current?.finish();
+
+  // fingers on the phone controls: the look area is the whole stage, fire and aim are buttons on top
+  const touchHandlers = (control: TouchControl) => ({
+    onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+      if (e.pointerType === 'mouse') return;
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {}
+      engineRef.current?.touchDown(e.pointerId, control, e.clientX, e.clientY);
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
+      if (e.pointerType !== 'mouse') engineRef.current?.touchMove(e.pointerId, e.clientX, e.clientY);
+    },
+    onPointerUp: (e: React.PointerEvent<HTMLElement>) => engineRef.current?.touchUp(e.pointerId),
+    onPointerCancel: (e: React.PointerEvent<HTMLElement>) => engineRef.current?.touchUp(e.pointerId),
+  });
+  const m = s.mobile;
+  const touchButton = 'absolute grid place-items-center rounded-full border-2 border-white/70 bg-black/40 text-white display select-none touch-none';
 
   // ---------------------------------------------------------------- overlays
   const crosshairSrc = useMemo(() => {
@@ -235,11 +275,7 @@ export const AimTrainerSection: React.FC = () => {
         </div>
       </header>
 
-      {touchOnly && (
-        <p className="bg-obsidian-card border p-4 text-[15px] font-bold text-slate-300">The aim trainer needs a mouse and keyboard. Open this page on a computer to play.</p>
-      )}
-
-      <div className={`grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] ${touchOnly ? 'hidden' : ''}`}>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-3 min-w-0">
           <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Drills">
             {DRILLS.map((d) => (
@@ -249,8 +285,14 @@ export const AimTrainerSection: React.FC = () => {
             ))}
           </div>
 
-          <div ref={stageRef} className="relative aspect-video bg-black border-2 border-[var(--ink)] overflow-hidden select-none [&:fullscreen]:border-0 [&:fullscreen]:aspect-auto">
-            <div ref={hostRef} className="absolute inset-0" />
+          <div
+            ref={stageRef}
+            className={`bg-black overflow-hidden select-none [&:fullscreen]:border-0 [&:fullscreen]:aspect-auto ${
+              touchSession ? 'fixed inset-0 z-[300] touch-none [-webkit-touch-callout:none]' : 'relative aspect-video border-2 border-[var(--ink)]'
+            }`}
+            style={touchSession ? { height: '100dvh' } : undefined}
+          >
+            <div ref={hostRef} className="absolute inset-0" {...(IS_TOUCH ? touchHandlers('look') : {})} />
 
             {/* scope, drawn over the world */}
             <div ref={scopeRef} className="absolute inset-0 pointer-events-none" style={{ display: 'none' }}>
@@ -280,7 +322,7 @@ export const AimTrainerSection: React.FC = () => {
                   <>
                     <span>{Math.abs(hud.turned).toFixed(1)}° turned</span>
                     <span>{(Math.abs(hud.turned) / 360).toFixed(2)} turns</span>
-                    <span>Esc to stop</span>
+                    <span>{IS_TOUCH ? 'Pause to stop' : 'Esc to stop'}</span>
                   </>
                 ) : (
                   <>
@@ -290,6 +332,55 @@ export const AimTrainerSection: React.FC = () => {
                     {hud.aimed && <span className="text-[#f5c518]">ADS {Math.round(hud.fov)}°</span>}
                   </>
                 )}
+              </div>
+            )}
+
+            {touchSession && engineState === 'running' && (
+              <>
+                <button type="button" onClick={() => engineRef.current?.pause()} aria-label="Pause" className="absolute top-3 left-3 w-11 h-11 grid place-items-center bg-black/55 border-2 border-white/60 text-white">
+                  <Pause className="w-5 h-5" />
+                </button>
+                {drill.id !== 'sens' && (
+                  <>
+                    <div
+                      {...touchHandlers('fire')}
+                      role="button"
+                      aria-label="Fire"
+                      className={touchButton}
+                      style={{
+                        width: `${4.5 * m.fireScale}rem`,
+                        height: `${4.5 * m.fireScale}rem`,
+                        right: `${2 - m.fireX}rem`,
+                        bottom: `${2.5 - m.fireY}rem`,
+                        opacity: Math.max(0.25, m.fireOpacity * m.allOpacity),
+                        fontSize: `${1.1 * m.fireScale}rem`,
+                      }}
+                    >
+                      FIRE
+                    </div>
+                    <div
+                      {...touchHandlers('aim')}
+                      role="button"
+                      aria-label="Aim"
+                      className={touchButton}
+                      style={{
+                        width: `${3.25 * m.aimScale}rem`,
+                        height: `${3.25 * m.aimScale}rem`,
+                        right: `${7.5 - m.aimX}rem`,
+                        bottom: `${5.5 - m.aimY}rem`,
+                        opacity: Math.max(0.25, m.aimOpacity * m.allOpacity),
+                        fontSize: `${0.85 * m.aimScale}rem`,
+                      }}
+                    >
+                      AIM
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+            {touchSession && (
+              <div className="absolute inset-0 hidden portrait:grid place-items-center bg-black/85 p-6 text-center display text-[26px] text-slate-100 z-10">
+                Turn your phone sideways
               </div>
             )}
 
@@ -325,9 +416,16 @@ export const AimTrainerSection: React.FC = () => {
                     )}
                   </div>
                   {lockError && <p className="text-[13px] font-bold text-red-300">{lockError}</p>}
+                  {IS_TOUCH ? (
+                    <p className="text-[12px] font-bold text-slate-500">
+                      Drag anywhere to look ·{' '}
+                      {drill.gun && GUN_ADS[drill.gun].scope && m.aimWhenFire ? 'hold FIRE to scope, let go to shoot' : 'FIRE to shoot'} · AIM to zoom. Hold your phone sideways.
+                    </p>
+                  ) : (
                   <p className="text-[12px] font-bold text-slate-500">
                     Shoot: {keyLabel(s.keys.shoot)}{s.keys.shoot !== 'MOUSE_LEFT___KEY' ? ' or left mouse' : ''} · Aim: {keyLabel(s.keys.aim)}{s.keys.aim !== 'MOUSE_RIGHT___KEY' ? ' or right mouse' : ''} · Esc to pause
                   </p>
+                  )}
                 </div>
               </div>
             )}
@@ -348,9 +446,11 @@ export const AimTrainerSection: React.FC = () => {
                 </select>
               </label>
             )}
-            <button type="button" onClick={() => setPref({ fullscreen: !prefs.fullscreen })} aria-pressed={prefs.fullscreen} className={chip(prefs.fullscreen)}>
-              <span className="flex items-center gap-1.5"><Maximize className="w-3.5 h-3.5" /> Fullscreen</span>
-            </button>
+            {!IS_TOUCH && (
+              <button type="button" onClick={() => setPref({ fullscreen: !prefs.fullscreen })} aria-pressed={prefs.fullscreen} className={chip(prefs.fullscreen)}>
+                <span className="flex items-center gap-1.5"><Maximize className="w-3.5 h-3.5" /> Fullscreen</span>
+              </button>
+            )}
             <button type="button" onClick={() => setPref({ muted: !prefs.muted })} aria-pressed={!prefs.muted} className={chip(!prefs.muted)}>
               <span className="flex items-center gap-1.5">{prefs.muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />} Sound</span>
             </button>
@@ -397,14 +497,23 @@ export const AimTrainerSection: React.FC = () => {
               {numberField('Aim sensitivity', s.aimSensitivity, 1, 300, (v) => edit({ aimSensitivity: v }))}
               {numberField('Field of view', s.mainFov, 60, 150, (v) => edit({ mainFov: v }))}
               {numberField(`ADS power (${gun})`, s.adsPower[gun], 0, 3, (v) => edit({ adsPower: { ...s.adsPower, [gun]: v } }), 0.05)}
-              <label className={row}>
-                <span className="text-slate-400 font-bold">Raw input</span>
-                <input type="checkbox" checked={s.rawInput} onChange={(e) => edit({ rawInput: e.target.checked })} className="w-4 h-4 accent-[var(--accent)]" />
-              </label>
-              <label className={row}>
-                <span className="text-slate-400 font-bold">Flick protection</span>
-                <input type="checkbox" checked={s.flickProtection} onChange={(e) => edit({ flickProtection: e.target.checked })} className="w-4 h-4 accent-[var(--accent)]" />
-              </label>
+              {IS_TOUCH ? (
+                <label className={row}>
+                  <span className="text-slate-400 font-bold">Aim when fire</span>
+                  <input type="checkbox" checked={m.aimWhenFire} onChange={(e) => edit({ mobile: { ...m, aimWhenFire: e.target.checked } })} className="w-4 h-4 accent-[var(--accent)]" />
+                </label>
+              ) : (
+                <>
+                  <label className={row}>
+                    <span className="text-slate-400 font-bold">Raw input</span>
+                    <input type="checkbox" checked={s.rawInput} onChange={(e) => edit({ rawInput: e.target.checked })} className="w-4 h-4 accent-[var(--accent)]" />
+                  </label>
+                  <label className={row}>
+                    <span className="text-slate-400 font-bold">Flick protection</span>
+                    <input type="checkbox" checked={s.flickProtection} onChange={(e) => edit({ flickProtection: e.target.checked })} className="w-4 h-4 accent-[var(--accent)]" />
+                  </label>
+                </>
+              )}
               <p className={row}>
                 <span className="text-slate-400 font-bold">Crosshair</span>
                 <span className="flex items-center justify-center w-16 h-10 bg-[#8fc3f2] border-2 border-[var(--ink)]">
@@ -435,6 +544,20 @@ export const AimTrainerSection: React.FC = () => {
             </button>
           </section>
 
+          {IS_TOUCH ? (
+          <section className={panel}>
+            <h2 className={heading}>Your swipe</h2>
+            <p className={row}>
+              <span className="text-slate-400 font-bold">Swipe 100 px</span>
+              <span className="font-mono text-slate-100">{touchDegrees(s.sensitivity, 100).toFixed(0)}°</span>
+            </p>
+            <p className={row}>
+              <span className="text-slate-400 font-bold">Full turn</span>
+              <span className="font-mono text-slate-100">{Math.round((360 / touchDegrees(s.sensitivity, 1)))} px</span>
+            </p>
+            <p className="text-[12px] font-bold text-slate-500 leading-snug">Same touch maths as Kirka: small drags near where your thumb lands turn slower, longer swipes turn evenly.</p>
+          </section>
+          ) : (
           <section className={panel}>
             <h2 className={heading}>Your 360</h2>
             {numberField('Mouse DPI', saved.dpi, 50, 64000, (v) => update({ ...saved, dpi: v }), 50)}
@@ -448,6 +571,7 @@ export const AimTrainerSection: React.FC = () => {
             </p>
             <p className="text-[12px] font-bold text-slate-500 leading-snug">Use the 360 check drill to feel it: mark a spot on your desk, turn once here and once in Kirka.</p>
           </section>
+          )}
 
           <section className={panel}>
             <h2 className={`${heading} flex items-center gap-2`}><Trophy className="w-4 h-4" /> Your bests</h2>
@@ -457,7 +581,7 @@ export const AimTrainerSection: React.FC = () => {
                 <span className="font-mono text-slate-100">{best[d.id] !== undefined ? fmtScore(d.id, best[d.id]!) : '—'}</span>
               </p>
             ))}
-            <p className="text-[12px] font-bold text-slate-500">Saved in this browser.</p>
+            <p className="text-[12px] font-bold text-slate-500">Saved in this browser{IS_TOUCH ? ', separately from mouse scores' : ''}.</p>
           </section>
         </aside>
       </div>
@@ -468,6 +592,7 @@ export const AimTrainerSection: React.FC = () => {
           <li>Mouse look is Kirka's own formula: every mouse count turns you by sensitivity × 0.0000235 radians, scaled by how zoomed in you are.</li>
           <li>Aiming in zooms to the same field of view as in game (70 for most guns, 35 for the VITA), times your ADS power, and switches to your aim sensitivity once you're fully in.</li>
           <li>Raw Input asks the browser for unfiltered mouse movement, like Kirka. Flick protection drops the same mouse spikes.</li>
+          <li>On phones it uses Kirka's touch controls: the same invisible look joystick and touch sensitivity, a fire button you can drag to aim, an aim button, and your Aim when fire setting.</li>
           <li>Your crosshair is drawn pixel for pixel the way Kirka draws it. Play in fullscreen so the view matches your game window.</li>
         </ul>
       </section>
