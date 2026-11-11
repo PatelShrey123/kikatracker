@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <title>Advertisement</title>
+    <style>
+      html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
+    </style>
+  </head>
+  <body>
+    <!-- One Adsterra banner. Loaded in a sandboxed iframe by src/components/AdSlot.tsx, so the ad
+         code can't read the site or redirect the page. -->
+    <script>
+      (function () {
+        var units = {
+          '728x90': { key: 'eb03325c0a652e4d6651aa2fa8bbaf67', width: 728, height: 90 },
+          '320x50': { key: '3f65bda74b921cd3f16f9c4f9463c7d2', width: 320, height: 50 },
+        };
+        var name = new URLSearchParams(location.search).get('unit');
+        if (!Object.prototype.hasOwnProperty.call(units, name)) return;
+        var unit = units[name];
+        window.atOptions = { key: unit.key, format: 'iframe', height: unit.height, width: unit.width, params: {} };
+        document.write('<script src="https://bauval.org/22/' + unit.key + '"><\/script>');
+      })();
+    </script>
+  </body>
+</html>
