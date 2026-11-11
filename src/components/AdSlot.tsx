@@ -29,6 +29,10 @@ interface AdSlotProps {
   className?: string;
 }
 
+// Off: Adsterra's banners for this audience were almost all betting ads. Kept so it can be switched
+// back on; the ad frame, the subdomain and the keys are all still in place.
+const USE_ADSTERRA = false;
+
 // Only the live site: a view from localhost or a preview would count as invalid traffic on the account
 const ADSTERRA_HOSTS = ['kirkahub.online', 'www.kirkahub.online'];
 const WIDE_SCREEN = '(min-width: 768px)';
@@ -108,7 +112,7 @@ export function AdSlot({ slot, className = '' }: AdSlotProps) {
     }
   }, [slot]);
 
-  if (!ADSENSE_CLIENT || !slot) return <AdsterraBanner className={className} />;
+  if (!ADSENSE_CLIENT || !slot) return USE_ADSTERRA ? <AdsterraBanner className={className} /> : null;
 
   return (
     <div className={`w-full overflow-hidden ${className}`}>
