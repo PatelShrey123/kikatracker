@@ -22,6 +22,7 @@ const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ defau
 const SkinEditorSection = lazy(() => import('./components/SkinEditorSection').then(m => ({ default: m.SkinEditorSection })));
 const AimTrainerSection = lazy(() => import('./components/AimTrainerSection').then(m => ({ default: m.AimTrainerSection })));
 const WrappedSection = lazy(() => import('./components/WrappedSection').then(m => ({ default: m.WrappedSection })));
+const RouletteSection = lazy(() => import('./components/RouletteSection').then(m => ({ default: m.RouletteSection })));
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
@@ -153,6 +154,9 @@ function App() {
     }
     if (cleanPath === '/aimtrainer' || cleanPath === '/aim-trainer') {
       return { tab: 'aimtrainer', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/giveaway' || cleanPath === '/roulette') {
+      return { tab: 'giveaway', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/wrapped' || cleanPath.startsWith('/wrapped/')) {
       return { tab: 'wrapped', player: null, clan: null, skin: null };
@@ -361,6 +365,9 @@ function App() {
       case 'wrapped':
         document.title = 'Kirka Wrapped: Your Kirka Story | Kirka Hub';
         break;
+      case 'giveaway':
+        document.title = 'Giveaway Roulette with Kirka Characters | Kirka Hub';
+        break;
       case 'renders':
         document.title = 'Kirka 3D Weapon Skins & Character Renders | Kirka Hub';
         break;
@@ -464,7 +471,7 @@ function App() {
 
       {!isLoading && (() => {
         // No ads in full-screen editing tools
-        const showAds = !['reloadlab', 'skineditor', 'aimtrainer', 'wrapped'].includes(activeTab);
+        const showAds = !['reloadlab', 'skineditor', 'aimtrainer', 'wrapped', 'giveaway'].includes(activeTab);
         // The home page is just the film and the search box.
         const isHomeFilm = activeTab === 'search' && !activeUserProfile;
         const adRouteKey = activeTab + (activeTab === 'search' ? (activeUserProfile ? '-profile' : '-input') : '') + (activeTab === 'fit' ? fitPlayerId ?? '' : '');
@@ -618,6 +625,8 @@ function App() {
                   {activeTab === 'aimtrainer' && <AimTrainerSection />}
 
                   {activeTab === 'wrapped' && <WrappedSection marketPrices={marketPrices} />}
+
+                  {activeTab === 'giveaway' && <RouletteSection catalog={allItemData} />}
 
                   {activeTab === 'changelogs' && <ChangelogsSection />}
 

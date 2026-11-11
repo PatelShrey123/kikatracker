@@ -37,6 +37,7 @@ const PAGES: Record<Exclude<FilmStopId, 'skin'>, { title: string; links: { id: s
     links: [
       { id: 'players', label: 'Lobbies', hint: 'Join a match running now' },
       { id: 'chat', label: 'Kirka Chat', hint: 'The in-game chat, live' },
+      { id: 'giveaway', label: 'Giveaway Roulette', hint: 'Pick a winner, Kirka style' },
       { id: 'bot', label: 'Discord Bot', hint: 'Commands and invite' },
     ],
   },

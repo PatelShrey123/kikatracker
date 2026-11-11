@@ -338,6 +338,17 @@ h1, h2, .display, .stencil {
   transition: background-color 0.12s ease, transform 0.12s ease;
 }
 
+/* Giveaway Roulette's captions and finalists */
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

@@ -6,9 +6,17 @@ import { crosshairSvg, DEFAULT_SETTINGS, svgUrl } from '../utils/kirkaSettings';
  * A one-time "what's new" card on the home page. Shown once per browser: closing it, or opening one of
  * the features from it, remembers that it's been seen. Bump the key to announce the next batch.
  */
-const SEEN_KEY = 'kirkahub_whats_new_v1';
+// v2 added Giveaway Roulette, so everyone who closed v1 sees it once more
+const SEEN_KEY = 'kirkahub_whats_new_v2';
 
 // Small pictures of the real things instead of generic icons
+
+/** Kirka's own Revolver render, on the table's green felt. */
+const RouletteArt = () => (
+  <span className="relative block w-full h-full overflow-hidden" style={{ background: 'radial-gradient(circle at 50% 45%, #3aa36a, #1d5a3a)' }}>
+    <img src="https://kirka.io/assets/img/render-mini.d26a90cd.webp" alt="" className="absolute inset-0 w-full h-full object-contain -rotate-12 scale-[1.1] brightness-125 drop-shadow-[0_2px_0_rgba(0,0,0,0.5)]" />
+  </span>
+);
 
 /** A tiny Wrapped story slide: progress bars and the year. */
 const WrappedArt = () => (
@@ -44,6 +52,12 @@ const SkinArt = () => (
 );
 
 const ITEMS = [
+  {
+    tab: 'giveaway',
+    Art: RouletteArt,
+    title: 'Giveaway Roulette',
+    text: 'For streams and Discord giveaways: up to 12 players sit round a table as Kirka characters and pass a revolver. Last one sitting wins. More than 12 entrants? 12 finalists are drawn first.',
+  },
   {
     tab: 'wrapped',
     Art: WrappedArt,

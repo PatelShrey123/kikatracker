@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users, Brush, Radio, ChevronDown, Loader2, Target, Clapperboard } from 'lucide-react';
+import { MessageSquare, Tag, Bot, Menu, X, Box, Shirt, MousePointer2, Crosshair, Repeat, Search, Trophy, Swords, Users, Brush, Radio, ChevronDown, Loader2, Target, Clapperboard, Gift } from 'lucide-react';
 import { supportsCustomCursor } from '../hooks/useCursorMode';
 
 interface NavbarProps {
@@ -56,6 +56,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { id: 'players', label: 'Live Lobbies', hint: 'Join a running match', icon: Radio, badge: 'LIVE' },
       { id: 'chat', label: 'Kirka Chat', hint: 'The in-game chat, live', icon: MessageSquare },
+      { id: 'giveaway', label: 'Giveaway Roulette', hint: 'Pick a winner, Kirka style', icon: Gift, badge: 'NEW' },
       { id: 'bot', label: 'Discord Bot', hint: 'Commands and invite', icon: Bot },
     ],
   },
