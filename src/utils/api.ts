@@ -592,6 +592,8 @@ export interface MatchHistoryItem {
   mapName: string;
   ratingDelta?: number;
   date: string;
+  /** False when Kirka sent no map (older matches); mapName is then only a placeholder. */
+  mapKnown?: boolean;
 }
 
 /**
@@ -696,6 +698,7 @@ function readMatch(raw: Record<string, unknown>): MatchHistoryItem | null {
     score2: numbers[1] ?? 0,
     xpEarned: numbers[2] ?? 0,
     mapName: mapName || 'Shipment',
+    mapKnown: !!mapName,
     ratingDelta: numbers[3],
     date,
   };

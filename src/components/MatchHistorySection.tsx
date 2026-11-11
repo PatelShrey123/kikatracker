@@ -232,8 +232,10 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
         <div className="space-y-3">
           {pagedMatches.map((match) => {
             const { dateLine, timeLine } = formatMatchDate(match.date);
-            const mapNameClean = match.mapName || 'Shipment';
-            const mapImgUrl = `https://api2.kirka.io/api/map-image/${encodeURIComponent(mapNameClean)}/mini`;
+            // Kirka sends no map on older matches; say so rather than showing a made-up one
+            const mapKnown = match.mapKnown !== false && !!match.mapName;
+            const mapNameClean = mapKnown ? match.mapName : 'Unknown map';
+            const mapImgUrl = mapKnown ? `https://api2.kirka.io/api/map-image/${encodeURIComponent(mapNameClean)}/mini` : '';
 
             return (
               <div
@@ -249,16 +251,18 @@ export const MatchHistorySection: React.FC<MatchHistorySectionProps> = ({
 
                 {/* 2. Map Image Background Container with Uppercase Map Label */}
                 <div className="relative w-40 sm:w-64 md:w-80 h-20 sm:h-24 overflow-hidden flex items-center justify-center flex-shrink-0 bg-obsidian-dark">
-                  <img
-                    src={mapImgUrl}
-                    alt={mapNameClean}
-                    className="absolute inset-0 w-full h-full object-cover brightness-[0.72] contrast-[1.15] group-hover:scale-105 transition-transform duration-500 ease-out"
-                    loading="lazy"
-                    onError={(e) => {
-                      // Fallback if specific map image redirect fails
-                      e.currentTarget.src = 'https://api2.kirka.io/api/map-image/Shipment/mini/v1785719320996.webp';
-                    }}
-                  />
+                  {mapKnown && (
+                    <img
+                      src={mapImgUrl}
+                      alt={mapNameClean}
+                      className="absolute inset-0 w-full h-full object-cover brightness-[0.72] contrast-[1.15] group-hover:scale-105 transition-transform duration-500 ease-out"
+                      loading="lazy"
+                      onError={(e) => {
+                        // no picture for this map: leave the plain background rather than another map's
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  )}
                   {/* Dark Vignette Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/60 pointer-events-none" />
 
