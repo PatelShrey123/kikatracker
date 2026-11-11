@@ -348,12 +348,28 @@ export const AimTrainerSection: React.FC = () => {
                       aria-label="Fire"
                       className={touchButton}
                       style={{
-                        width: `${4.5 * m.fireScale}rem`,
-                        height: `${4.5 * m.fireScale}rem`,
-                        right: `${2 - m.fireX}rem`,
-                        bottom: `${2.5 - m.fireY}rem`,
-                        opacity: Math.max(0.25, m.fireOpacity * m.allOpacity),
-                        fontSize: `${1.1 * m.fireScale}rem`,
+                        width: `${6.25 * m.fireScale}rem`,
+                        height: `${6.25 * m.fireScale}rem`,
+                        right: `${1.75 - m.fireX}rem`,
+                        bottom: `${2 - m.fireY}rem`,
+                        opacity: Math.max(0.3, m.fireOpacity * m.allOpacity),
+                        fontSize: `${1.4 * m.fireScale}rem`,
+                      }}
+                    >
+                      FIRE
+                    </div>
+                    <div
+                      {...touchHandlers('fireLeft')}
+                      role="button"
+                      aria-label="Fire left"
+                      className={touchButton}
+                      style={{
+                        width: `${5.5 * m.fireLeftScale}rem`,
+                        height: `${5.5 * m.fireLeftScale}rem`,
+                        left: `${1.75 + m.fireLeftX}rem`,
+                        bottom: `${2 - m.fireLeftY}rem`,
+                        opacity: Math.max(0.3, m.fireLeftOpacity * m.allOpacity),
+                        fontSize: `${1.25 * m.fireLeftScale}rem`,
                       }}
                     >
                       FIRE
@@ -364,12 +380,12 @@ export const AimTrainerSection: React.FC = () => {
                       aria-label="Aim"
                       className={touchButton}
                       style={{
-                        width: `${3.25 * m.aimScale}rem`,
-                        height: `${3.25 * m.aimScale}rem`,
-                        right: `${7.5 - m.aimX}rem`,
-                        bottom: `${5.5 - m.aimY}rem`,
-                        opacity: Math.max(0.25, m.aimOpacity * m.allOpacity),
-                        fontSize: `${0.85 * m.aimScale}rem`,
+                        width: `${4.5 * m.aimScale}rem`,
+                        height: `${4.5 * m.aimScale}rem`,
+                        right: `${9 - m.aimX}rem`,
+                        bottom: `${6.5 - m.aimY}rem`,
+                        opacity: Math.max(0.3, m.aimOpacity * m.allOpacity),
+                        fontSize: `${1.05 * m.aimScale}rem`,
                       }}
                     >
                       AIM
@@ -592,7 +608,7 @@ export const AimTrainerSection: React.FC = () => {
           <li>Mouse look is Kirka's own formula: every mouse count turns you by sensitivity × 0.0000235 radians, scaled by how zoomed in you are.</li>
           <li>Aiming in zooms to the same field of view as in game (70 for most guns, 35 for the VITA), times your ADS power, and switches to your aim sensitivity once you're fully in.</li>
           <li>Raw Input asks the browser for unfiltered mouse movement, like Kirka. Flick protection drops the same mouse spikes.</li>
-          <li>On phones it uses Kirka's touch controls: the same invisible look joystick and touch sensitivity, a fire button you can drag to aim, an aim button, and your Aim when fire setting.</li>
+          <li>On phones it uses Kirka's touch controls: the same invisible look joystick and touch sensitivity, a right fire button you can drag to aim, a left fire button, an aim button, and your Aim when fire setting.</li>
           <li>Your crosshair is drawn pixel for pixel the way Kirka draws it. Play in fullscreen so the view matches your game window.</li>
         </ul>
       </section>

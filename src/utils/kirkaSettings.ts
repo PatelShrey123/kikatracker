@@ -78,6 +78,10 @@ export interface KirkaSettings {
     fireY: number;
     fireScale: number;
     fireOpacity: number;
+    fireLeftX: number;
+    fireLeftY: number;
+    fireLeftScale: number;
+    fireLeftOpacity: number;
     aimX: number;
     aimY: number;
     aimScale: number;
@@ -118,7 +122,7 @@ export const DEFAULT_SETTINGS: KirkaSettings = {
   hitmarker: { enabled: false, color: '#d05353', size: 7, thickness: 2, gap: 3, opacity: 100, fade: 400 },
   adsPower: Object.fromEntries(GUNS.map((g) => [g, 1])) as Record<Gun, number>,
   keys: { aim: 'MOUSE_RIGHT___KEY', shoot: 'MOUSE_LEFT___KEY', reload: 'KEY_R___KEY' },
-  mobile: { aimWhenFire: true, allOpacity: 1, fireX: 0, fireY: 0, fireScale: 1, fireOpacity: 0.4, aimX: 0, aimY: 0, aimScale: 1, aimOpacity: 0.35 },
+  mobile: { aimWhenFire: true, allOpacity: 1, fireX: 0, fireY: 0, fireScale: 1, fireOpacity: 0.4, fireLeftX: 0, fireLeftY: 0, fireLeftScale: 1, fireLeftOpacity: 0.75, aimX: 0, aimY: 0, aimScale: 1, aimOpacity: 0.35 },
   allowImages: false,
 };
 
@@ -233,6 +237,10 @@ export function parseKirkaExport(text: string): KirkaSettings {
       fireY: num(mobile.FIRE_RIGHT_Y___SETTING, dm.fireY, -40, 40),
       fireScale: num(mobile.FIRE_RIGHT_SCALE___SETTING, dm.fireScale, 0.3, 3),
       fireOpacity: num(mobile.FIRE_RIGHT_OPACITY___SETTING, dm.fireOpacity, 0, 1),
+      fireLeftX: num(mobile.FIRE_LEFT_X___SETTING, dm.fireLeftX, -40, 40),
+      fireLeftY: num(mobile.FIRE_LEFT_Y___SETTING, dm.fireLeftY, -40, 40),
+      fireLeftScale: num(mobile.FIRE_LEFT_SCALE___SETTING, dm.fireLeftScale, 0.3, 3),
+      fireLeftOpacity: num(mobile.FIRE_LEFT_OPACITY___SETTING, dm.fireLeftOpacity, 0, 1),
       aimX: num(mobile.AIM_X___SETTING, dm.aimX, -40, 40),
       aimY: num(mobile.AIM_Y___SETTING, dm.aimY, -40, 40),
       aimScale: num(mobile.AIM_SCALE___SETTING, dm.aimScale, 0.3, 3),

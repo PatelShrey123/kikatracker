@@ -90,7 +90,8 @@ interface Target {
   jump: number;
 }
 
-export type TouchControl = 'look' | 'fire' | 'aim';
+/** 'fireLeft' is Kirka's plain left fire button: it shoots, but isn't a joystick and doesn't aim in. */
+export type TouchControl = 'look' | 'fire' | 'fireLeft' | 'aim';
 
 /** One finger on the screen, and what Kirka's joystick code remembers about it. */
 interface Touch {
@@ -149,6 +150,7 @@ export class AimEngine {
   private mode: 'mouse' | 'touch' = 'mouse';
   private touches = new Map<number, Touch>();
   private touchFire = false;
+  private touchFireLeft = false;
   private touchAim = false;
   private adsTime = 0;
   private fullyAimed = false;
@@ -390,7 +392,7 @@ export class AimEngine {
 
   private releaseTouches() {
     this.touches.clear();
-    this.touchFire = this.touchAim = this.fireHeld = false;
+    this.touchFire = this.touchFireLeft = this.touchAim = this.fireHeld = false;
   }
 
   /** Aimed in from the phone controls: the aim button, or fire with AIM_WHEN_FIRE (the VITA's scope). */
@@ -402,6 +404,11 @@ export class AimEngine {
     if (this.state !== 'running' || this.mode !== 'touch') return;
     this.touches.set(id, { control, x0: x, y0: y, prevX: 0, prevY: 0, factor: 0 });
     if (control === 'aim') this.touchAim = true;
+    if (control === 'fireLeft') {
+      this.touchFireLeft = true;
+      this.pullTrigger();
+      return;
+    }
     if (control === 'fire') {
       this.touchFire = true;
       // the VITA with AIM_WHEN_FIRE scopes while held and shoots on release instead
@@ -414,13 +421,13 @@ export class AimEngine {
   /** Kirka's touch look, step for step. */
   touchMove(id: number, x: number, y: number) {
     const t = this.touches.get(id);
-    if (!t || this.state !== 'running') return;
+    if (!t || t.control === 'fireLeft' || this.state !== 'running') return;
     const s = this.settings;
     const m = s.mobile;
     const radius = t.control === 'look' ? TOUCH_RADIUS.look : t.control === 'fire' ? TOUCH_RADIUS.fire * m.fireScale : TOUCH_RADIUS.aim * m.aimScale;
     const slow = t.control === 'look' ? 1 : 7;
     const reading = joystickReading(x - t.x0, y - t.y0, radius);
-    const aiming = this.touchAim || this.touchFire;
+    const aiming = this.touchAim || this.touchFire || this.touchFireLeft;
     const factor = (this.camera.fov / s.mainFov) * (aiming ? s.aimSensitivity : s.sensitivity) * TOUCH_SENS_PER_UNIT;
     const ax = (reading.x / slow) * factor;
     const ay = (reading.y / slow) * factor;
@@ -445,9 +452,13 @@ export class AimEngine {
     if (!t) return;
     this.touches.delete(id);
     if (t.control === 'aim') this.touchAim = false;
+    if (t.control === 'fireLeft') {
+      this.touchFireLeft = false;
+      if (!this.touchFire) this.fireHeld = false;
+    }
     if (t.control === 'fire') {
       this.touchFire = false;
-      this.fireHeld = false;
+      if (!this.touchFireLeft) this.fireHeld = false;
       if (this.state === 'running' && GUN_ADS[this.gun].scope && this.settings.mobile.aimWhenFire) {
         // still scoped this instant: the scope only drops on the next frame
         this.pullTrigger();
