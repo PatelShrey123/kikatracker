@@ -32,14 +32,27 @@ interface AdSlotProps {
 // Only the live site: a view from localhost or a preview would count as invalid traffic on the account
 const ADSTERRA_HOSTS = ['kirkahub.online', 'www.kirkahub.online'];
 const WIDE_SCREEN = '(min-width: 768px)';
+// The frame comes from its own subdomain: a different origin, so the ad code can have cookies and storage
+// (it doesn't run without them) while still having no way into kirkahub.online itself
+const AD_FRAME_ORIGIN = 'https://ads.kirkahub.online';
 
 /**
- * An Adsterra banner, used until AdSense slots exist. It runs in a sandboxed frame: without
- * allow-same-origin the ad code can't read the site, and without allow-top-navigation it can't
- * redirect the page. Clicks still open the advertiser in a new tab.
+ * An Adsterra banner, used until AdSense slots exist. It runs in a sandboxed frame on
+ * ads.kirkahub.online: being another origin, the ad code can't read the site, and without
+ * allow-top-navigation it can't redirect the page. Clicks still open the advertiser in a new tab.
  */
 function AdsterraBanner({ className }: { className: string }) {
   const [wide, setWide] = useState(() => window.matchMedia(WIDE_SCREEN).matches);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+
+  // the frame reports the ad code's errors here, so a missing ad can be explained from the console
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.source && e.source === frameRef.current?.contentWindow && typeof e.data?.khAdError === 'string') console.warn('[ad]', e.data.khAdError);
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
 
   useEffect(() => {
     const query = window.matchMedia(WIDE_SCREEN);
@@ -66,14 +79,15 @@ function AdsterraBanner({ className }: { className: string }) {
   return (
     <div className={`w-full overflow-hidden flex justify-center ${className}`}>
       <iframe
+        ref={frameRef}
         key={width}
         title="Advertisement"
-        src={`${import.meta.env.BASE_URL}ad-frame.html?unit=${width}x${height}`}
+        src={`${AD_FRAME_ORIGIN}/ad-frame.html?unit=${width}x${height}`}
         width={width}
         height={height}
         loading="lazy"
         scrolling="no"
-        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
         style={{ border: 0, display: 'block', maxWidth: '100%' }}
       />
     </div>

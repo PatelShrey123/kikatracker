@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/((?!ad-frame\\.html).*)", "has": [{ "type": "host", "value": "ads.kirkahub.online" }], "destination": "https://kirkahub.online/$1", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/api/bot-stats", "destination": "/api/bot-stats" },
     { "source": "/api/prices", "destination": "/api/prices" },

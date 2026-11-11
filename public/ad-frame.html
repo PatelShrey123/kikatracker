@@ -3,15 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="robots" content="noindex" />
+    <!-- Must match the site's dark scheme: Chrome paints a frame with a different scheme solid white -->
+    <meta name="color-scheme" content="dark" />
     <title>Advertisement</title>
     <style>
-      html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
+      html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; color-scheme: dark; }
     </style>
   </head>
   <body>
     <!-- One Adsterra banner. Loaded in a sandboxed iframe by src/components/AdSlot.tsx, so the ad
          code can't read the site or redirect the page. -->
     <script>
+      // Errors from the ad code are passed up to the page's console, prefixed [ad], to see why an ad is missing
+      function report(message) {
+        try { parent.postMessage({ khAdError: String(message).slice(0, 300) }, '*'); } catch (e) {}
+      }
+      window.addEventListener('error', function (e) { report(e.message || 'script error'); });
+      window.addEventListener('unhandledrejection', function (e) { report(e.reason && e.reason.message ? e.reason.message : e.reason); });
       (function () {
         var units = {
           '728x90': { key: 'eb03325c0a652e4d6651aa2fa8bbaf67', width: 728, height: 90 },
