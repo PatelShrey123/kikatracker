@@ -73,12 +73,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag="aim-trainer-mac-v$(node -p "require('./package.json').version")"
+          version="$(node -p "require('./package.json').version")"
+          tag="aim-trainer-mac-v$version"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" release/*.dmg release/*.zip --clobber
           else
             gh release create "$tag" release/*.dmg release/*.zip --latest=false --title "Aim Trainer for Mac" --notes "One file for every Mac: it runs natively on Apple Silicon (no Rosetta) and on Intel. The first time you open it, macOS will block it: go to System Settings, Privacy & Security, and choose Open Anyway. Keep it in Applications and it updates itself. If the game looks choppy, try Uncapped FPS or Screen refresh rate, and VSync on or off, from the Frame Rate menu in the menu bar."
           fi
+          # the file the app reads to find updates, on a release of its own that never moves
+          printf '{"version":"%s","url":"https://github.com/%s/releases/download/%s/Kirka-Hub-Aim-Trainer-mac.zip"}' "$version" "$GITHUB_REPOSITORY" "$tag" > release/latest-mac.json
+          cat release/latest-mac.json
+          if ! gh release view aim-trainer-mac-updates >/dev/null 2>&1; then
+            gh release create aim-trainer-mac-updates --latest=false --title "Aim Trainer for Mac: update feed" --notes "The Mac app reads latest-mac.json here to find its updates."
+          fi
+          gh release upload aim-trainer-mac-updates release/latest-mac.json --clobber
 
       # A copy that thinks it's old has to download the release just published and swap itself out.
       - name: Check the app updates itself
@@ -91,7 +99,7 @@ jobs:
           ditto "dist/mac-universal/Kirka Hub Aim Trainer.app" "$app"
           touch "$app/Contents/old-copy"
           KIRKAHUB_UPDATE_TEST=1 "$app/Contents/MacOS/Kirka Hub Aim Trainer" &
-          for i in $(seq 1 60); do
+          for i in $(seq 1 90); do
             sleep 2
             if [ -d "$app/Contents/MacOS" ] && [ ! -e "$app/Contents/old-copy" ] && [ ! -e "$app.old" ]; then
               echo "The app updated itself"

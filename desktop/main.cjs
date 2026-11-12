@@ -62,10 +62,15 @@ const REPO = 'PatelShrey123/kikatracker';
 const TAG_PREFIX = 'aim-trainer-mac-v';
 const ZIP_NAME = 'Kirka-Hub-Aim-Trainer-mac.zip';
 const RELEASES_PAGE = `https://github.com/${REPO}/releases`;
+// A small file the build keeps up to date. A plain download, so unlike GitHub's API it has no hourly limit.
+const FEED_URL = `https://github.com/${REPO}/releases/download/aim-trainer-mac-updates/latest-mac.json`;
 
 // The build checks the updater on GitHub's Mac: a copy that thinks it's old updates itself with no questions.
 const UPDATE_TEST = process.env.KIRKAHUB_UPDATE_TEST === '1';
 const currentVersion = () => (UPDATE_TEST ? '0.0.1' : app.getVersion());
+const log = (...args) => {
+  if (UPDATE_TEST) console.log('[update]', ...args);
+};
 
 let ready = null; // { version, newApp, tmp } once an update is downloaded
 let checking = false;
@@ -101,6 +106,15 @@ function isNewer(a, b) {
 }
 
 async function findUpdate() {
+  try {
+    const feed = JSON.parse((await request(FEED_URL)).toString('utf8'));
+    log('feed says', feed.version, 'and this is', currentVersion());
+    if (feed && typeof feed.version === 'string' && typeof feed.url === 'string' && feed.url.startsWith('https://github.com/')) {
+      return isNewer(feed.version, currentVersion()) ? { version: feed.version, url: feed.url } : null;
+    }
+  } catch (err) {
+    log('feed failed, asking the API:', String((err && err.message) || err));
+  }
   const releases = JSON.parse((await request(`https://api.github.com/repos/${REPO}/releases?per_page=30`)).toString('utf8'));
   let best = null;
   for (const r of releases) {
@@ -146,6 +160,7 @@ function install(relaunch) {
   const bundle = replaceableBundle();
   if (!ready || !bundle || installing) return;
   installing = true;
+  log('swapping', bundle);
   const script = [
     'while kill -0 "$PID" 2>/dev/null; do sleep 0.2; done',
     'rm -rf "$OLD.old"',
@@ -185,7 +200,9 @@ async function checkForUpdates(fromMenu) {
       if (response === 0) void shell.openExternal(RELEASES_PAGE);
       return;
     }
+    log('downloading', update.version, update.url);
     ready = await download(update);
+    log('downloaded to', ready.newApp);
     if (UPDATE_TEST) {
       install(true);
       app.quit();
@@ -193,6 +210,7 @@ async function checkForUpdates(fromMenu) {
     }
     offerRestart();
   } catch (err) {
+    log('failed:', String((err && err.message) || err));
     if (fromMenu) void dialog.showMessageBox({ type: 'warning', message: "Couldn't check for updates", detail: String((err && err.message) || err) });
   } finally {
     checking = false;
