@@ -28,9 +28,11 @@ jobs:
         working-directory: desktop
         run: npm run build:web
 
+      # One universal app that runs natively on both, so nobody picks the Intel one on an M-series Mac
+      # and ends up on Rosetta.
       - name: Package for Apple Silicon and Intel
         working-directory: desktop
-        run: npx electron-builder --mac dir --arm64 --x64 --publish never
+        run: npx electron-builder --mac dir --universal --publish never
 
       # No Apple Developer account, so an ad-hoc signature: Apple Silicon refuses to run an app with
       # none at all. Players still allow it once under Privacy & Security.
@@ -39,28 +41,26 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release
-          for pair in mac-arm64:arm64 mac:x64; do
-            folder="${pair%%:*}"
-            arch="${pair##*:}"
-            app="dist/$folder/Kirka Hub Aim Trainer.app"
-            codesign --force --deep --sign - "$app"
-            codesign --verify --deep --strict "$app"
-            stage="$(mktemp -d)"
-            ditto "$app" "$stage/Kirka Hub Aim Trainer.app"
-            ln -s /Applications "$stage/Applications"
-            out="release/Kirka-Hub-Aim-Trainer-$arch.dmg"
-            for attempt in 1 2 3; do
-              hdiutil create -volname "Kirka Hub Aim Trainer" -srcfolder "$stage" -ov -format UDZO "$out" && break
-              sleep 5
-            done
-            test -f "$out"
+          app="dist/mac-universal/Kirka Hub Aim Trainer.app"
+          lipo -archs "$app/Contents/MacOS/Kirka Hub Aim Trainer" | grep -q arm64
+          lipo -archs "$app/Contents/MacOS/Kirka Hub Aim Trainer" | grep -q x86_64
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict "$app"
+          stage="$(mktemp -d)"
+          ditto "$app" "$stage/Kirka Hub Aim Trainer.app"
+          ln -s /Applications "$stage/Applications"
+          out="release/Kirka-Hub-Aim-Trainer.dmg"
+          for attempt in 1 2 3; do
+            hdiutil create -volname "Kirka Hub Aim Trainer" -srcfolder "$stage" -ov -format UDZO "$out" && break
+            sleep 5
           done
+          test -f "$out"
           ls -lh release
 
       - name: Check the app starts
         working-directory: desktop
         run: |
-          "dist/mac-arm64/Kirka Hub Aim Trainer.app/Contents/MacOS/Kirka Hub Aim Trainer" &
+          "dist/mac-universal/Kirka Hub Aim Trainer.app/Contents/MacOS/Kirka Hub Aim Trainer" &
           pid=$!
           sleep 15
           kill -0 "$pid"
@@ -75,5 +75,5 @@ jobs:
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" release/*.dmg --clobber
           else
-            gh release create "$tag" release/*.dmg --latest=false --title "Aim Trainer for Mac" --notes "Apple Silicon (M1 and newer): the arm64 file. Older Intel Macs: the x64 file. The first time you open it, macOS will block it: go to System Settings, Privacy & Security, and choose Open Anyway."
+            gh release create "$tag" release/*.dmg --latest=false --title "Aim Trainer for Mac" --notes "One file for every Mac: it runs natively on Apple Silicon (no Rosetta) and on Intel. The first time you open it, macOS will block it: go to System Settings, Privacy & Security, and choose Open Anyway. If the game looks choppy, try another mode from the Frame Rate menu in the menu bar; the app restarts in that mode."
           fi
