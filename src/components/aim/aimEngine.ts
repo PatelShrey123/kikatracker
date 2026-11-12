@@ -310,6 +310,12 @@ export class AimEngine {
       if (e.button === 0 || e.button === mouseButtonOf(shoot)) this.fireHeld = false;
     });
     on(window, 'keydown', (e) => {
+      // A browser frees the mouse on Esc by itself; the desktop app (Electron) leaves that to the page
+      if (e.key === 'Escape' && document.pointerLockElement === canvas) {
+        e.preventDefault();
+        document.exitPointerLock();
+        return;
+      }
       if (this.state !== 'running') return;
       const { aim, shoot } = this.settings.keys;
       if (keyMatches(aim, e)) {

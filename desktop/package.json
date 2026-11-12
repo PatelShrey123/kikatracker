@@ -1,7 +1,7 @@
 {
   "name": "kirkahub-aim-trainer",
   "productName": "Kirka Hub Aim Trainer",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "The Kirka Hub aim trainer as a desktop app, without the browser's frame rate cap.",
   "author": "Kirka Hub",
