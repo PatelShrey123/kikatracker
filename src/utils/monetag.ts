@@ -9,7 +9,8 @@ const VIGNETTE = { zone: '12252595', src: 'https://n6wxm.com/vignette.min.js' };
 const loaded = new Set<string>();
 
 function load({ zone, src }: { zone: string; src: string }) {
-  if (loaded.has(zone) || import.meta.env.DEV) return;
+  // index.html usually started it already (Monetag's install check needs the tag in the page's <head>)
+  if (loaded.has(zone) || import.meta.env.DEV || document.querySelector(`script[data-zone="${zone}"]`)) return;
   loaded.add(zone);
   const s = document.createElement('script');
   s.dataset.zone = zone;

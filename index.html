@@ -1,6 +1,18 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Monetag. Only on the live site; never in the aim trainer or the giveaway roulette, and no vignette in
+         the reload lab or Wrapped either. src/utils/monetag.ts starts them later if a visitor arrived on one
+         of those pages first, and src/index.css hides any ad box while one of them is open. -->
+    <script>
+      window.KH_PATH = location.pathname.replace(/^\/kikatracker/, '').toLowerCase();
+      window.KH_LIVE = /(^|\.)kirkahub\.online$/.test(location.hostname);
+      window.KH_NO_ADS = /^\/(aimtrainer|aim-trainer|giveaway|roulette)\/?$/.test(KH_PATH);
+      window.KH_NO_VIGNETTE = KH_NO_ADS || /^\/(reloadlab|wrapped)(\/|$)/.test(KH_PATH);
+      if (KH_NO_ADS) document.documentElement.setAttribute('data-no-ads', '');
+    </script>
+    <script>if (KH_LIVE && !KH_NO_ADS) (function(s){s.dataset.zone='12252591',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script>if (KH_LIVE && !KH_NO_VIGNETTE) (function(s){s.dataset.zone='12252595',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QJYMFB19JZ"></script>
     <script>
