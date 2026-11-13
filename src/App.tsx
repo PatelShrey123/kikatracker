@@ -23,11 +23,14 @@ const SkinEditorSection = lazy(() => import('./components/SkinEditorSection').th
 const AimTrainerSection = lazy(() => import('./components/AimTrainerSection').then(m => ({ default: m.AimTrainerSection })));
 const WrappedSection = lazy(() => import('./components/WrappedSection').then(m => ({ default: m.WrappedSection })));
 const RouletteSection = lazy(() => import('./components/RouletteSection').then(m => ({ default: m.RouletteSection })));
+const SkinPage = lazy(() => import('./components/SkinPage').then(m => ({ default: m.SkinPage })));
+const GuidesSection = lazy(() => import('./components/GuidesSection').then(m => ({ default: m.GuidesSection })));
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
 import { AdSlot, AD_SLOTS, loadSocialBar, SideRails, ADS_ENABLED } from './components/AdSlot';
 import { SponsoredCard, SMARTLINK } from './components/SponsoredCard';
+import { PageIntro } from './components/PageIntro';
 import { WhatsNewModal } from './components/WhatsNewModal';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
@@ -42,6 +45,8 @@ function App() {
 
   const [activeTab, setActiveTab] = useState<string>('search');
   const [activeUserProfile, setActiveUserProfile] = useState<UserProfile | null>(null);
+  // the skin on /skin/<name>, or the guide on /guides/<slug>
+  const [subPage, setSubPage] = useState<string | null>(null);
   const [marketPrices, setMarketPrices] = useState<Map<string, MarketItem>>(new Map());
   const [publicItems, setPublicItems] = useState<any[]>(() => getCachedCatalog() || []);
   const [fallbackRenders] = useState<Record<string, any>>({});
@@ -120,7 +125,7 @@ function App() {
   }, []);
 
   // Helper to parse path and return resolved routing state
-  const parsePath = () => {
+  const parsePath = (): { tab: string; player: string | null; clan: string | null; skin: string | null; sub?: string | null } => {
     const path = window.location.pathname;
     const cleanPath = path.replace(/^\/kikatracker/, '');
     
@@ -141,8 +146,14 @@ function App() {
       return { tab: 'clans', player: null, clan: name, skin: null };
     }
     if (cleanPath.startsWith('/skin/')) {
-      const skinName = cleanPath.split('/skin/')[1];
-      return { tab: 'prices', player: null, clan: null, skin: decodeURIComponent(skinName) };
+      const skinName = cleanPath.split('/skin/')[1].replace(/\/+$/, '');
+      return { tab: 'skin', player: null, clan: null, skin: null, sub: decodeURIComponent(skinName) };
+    }
+    if (cleanPath === '/guides' || cleanPath === '/guides/') {
+      return { tab: 'guides', player: null, clan: null, skin: null, sub: null };
+    }
+    if (cleanPath.startsWith('/guides/')) {
+      return { tab: 'guides', player: null, clan: null, skin: null, sub: cleanPath.split('/guides/')[1].replace(/\/+$/, '') };
     }
     if (/^\/(3d)?fit(\/|$)/.test(cleanPath)) {
       return { tab: 'fit', player: null, clan: null, skin: null };
@@ -216,6 +227,7 @@ function App() {
     window.history.pushState(null, '', finalPath);
 
     setActiveTab(tab);
+    setSubPage(null);
     if (player) {
       handlePlayerSearchDirect(player);
     } else {
@@ -254,6 +266,7 @@ function App() {
     const handlePopState = () => {
       const state = parsePath();
       setActiveTab(state.tab);
+      setSubPage(state.sub ?? null);
       if (state.player) {
         setSearchLoading(true);
         fetchUserProfile(state.player, state.player.length === 6)
@@ -305,6 +318,7 @@ function App() {
       if (state.tab) {
         setActiveTab(state.tab);
       }
+      setSubPage(state.sub ?? null);
       if (state.player) {
         setSearchLoading(true);
         try {
@@ -337,6 +351,8 @@ function App() {
 
   // Dynamic SEO Document Title Manager
   useEffect(() => {
+    // skin pages and guides set their own titles
+    if ((activeTab === 'skin' || activeTab === 'guides') && !activeUserProfile) return;
     if (activeUserProfile) {
       document.title = `${activeUserProfile.name} (#${activeUserProfile.shortId}) — Kirka Profile, Stats & Inventory | Kirka Hub`;
       return;
@@ -614,6 +630,8 @@ function App() {
                     />
                   )}
                   {activeTab === 'prices' && <SponsoredCard className="mt-8" />}
+                  {activeTab === 'skin' && subPage && <SkinPage skinKey={subPage} marketPrices={marketPrices} onInspect={handleInspectItem} />}
+                  {activeTab === 'guides' && <GuidesSection slug={subPage} />}
                   {activeTab === 'bot' && (
                     <BotSection />
                   )}
@@ -661,6 +679,8 @@ function App() {
                       openItem={rendersOpenItem}
                     />
                   )}
+                  {/* a short written introduction under each tool page (not on profiles, clan pages or the home film) */}
+                  {!['search', 'guides', 'skin'].includes(activeTab) && !activeClanName && <PageIntro tab={activeTab} />}
                   </Suspense>
                 </motion.div>
               </AnimatePresence>
@@ -679,7 +699,7 @@ function App() {
                   </p>
                 </div>
                 {[
-                  { title: 'Explore', links: [['prices', 'Skins & Prices'], ['trades', 'Trades Portal'], ['wrapped', 'Kirka Wrapped'], ['daily', 'Daily Leaderboard'], ['clans', 'Clans Registry']] },
+                  { title: 'Explore', links: [['prices', 'Skins & Prices'], ['trades', 'Trades Portal'], ['wrapped', 'Kirka Wrapped'], ['daily', 'Daily Leaderboard'], ['clans', 'Clans Registry'], ['guides', 'Guides']] },
                   { title: 'Make', links: [['skineditor', 'Skin Editor'], ['aimtrainer', 'Aim Trainer'], ['fit', '3D Fit'], ['renders', '3D Renders'], ['reloadlab', 'Reload Lab']] },
                 ].map((col) => (
                   <nav key={col.title} aria-label={col.title}>

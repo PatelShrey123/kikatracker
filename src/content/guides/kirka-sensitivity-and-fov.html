@@ -1,0 +1,53 @@
+<p>Most aim advice for Kirka.io is guesswork: "try 40", "lower it until it feels right". This guide uses the actual formula the game runs when you move your mouse, read from Kirka's own client code, so you can work out exactly how far your mouse has to travel to turn around, and why aiming down sights feels slower.</p>
+
+<h2>How Kirka turns mouse movement into aim</h2>
+<p>Every time your mouse reports movement, Kirka turns the camera by:</p>
+<p><strong>mouse counts &times; Sensitivity &times; 0.0000235 &times; (current FOV &divide; your FOV setting)</strong> radians</p>
+<ul>
+  <li><strong>Mouse counts</strong> is the raw movement your mouse reports. A mouse at 800 DPI reports 800 counts for every inch you move it.</li>
+  <li><strong>Sensitivity</strong> is the number in Kirka's settings. The default is 50.</li>
+  <li><strong>0.0000235</strong> is a fixed number in the game. One count at sensitivity 1 turns you about 0.00135 degrees.</li>
+  <li><strong>Current FOV &divide; your FOV setting</strong> is 1 while you are not aiming, so it has no effect. It only matters when you aim down sights (see below).</li>
+</ul>
+<p>Turning left and right wraps around a full circle; looking up and down stops just short of straight up and straight down.</p>
+
+<h2>Working out your cm/360</h2>
+<p>The most useful number for comparing sensitivity is <strong>cm/360</strong>: how many centimetres you move your mouse to turn a full circle. From the formula above:</p>
+<p><strong>cm/360 = (6.2832 &divide; (Sensitivity &times; 0.0000235)) &divide; DPI &times; 2.54</strong></p>
+<table>
+  <thead><tr><th>Sensitivity</th><th>DPI</th><th>cm/360</th></tr></thead>
+  <tbody>
+    <tr><td>20</td><td>800</td><td>42.4 cm</td></tr>
+    <tr><td>50 (default)</td><td>800</td><td>17.0 cm</td></tr>
+    <tr><td>50</td><td>1600</td><td>8.5 cm</td></tr>
+    <tr><td>100</td><td>800</td><td>8.5 cm</td></tr>
+  </tbody>
+</table>
+<p>Doubling your DPI and halving your sensitivity gives exactly the same cm/360. That is why players at 1600 DPI usually play on much lower numbers than players at 400 DPI.</p>
+<p>As a rough guide, many players in fast shooters sit somewhere between 20 and 45 cm/360. Lower cm/360 (faster) helps you turn quickly in close fights; higher cm/360 (slower) makes small corrections easier at range, which matters a lot with the VITA.</p>
+
+<h2>Bringing your sensitivity over from another game</h2>
+<p>If you already have a sensitivity you like in another game, you can carry it over for hip-fire by matching how far one mouse count turns you:</p>
+<ul>
+  <li><strong>From CS2 / CS:GO:</strong> Kirka sensitivity &asymp; CS sensitivity &times; 16.34. For example, 2.0 in CS is about 32.7 in Kirka.</li>
+  <li><strong>From Valorant:</strong> Kirka sensitivity &asymp; Valorant sensitivity &times; 52. For example, 0.4 in Valorant is about 20.8 in Kirka.</li>
+</ul>
+<p>These only match turning speed with the same DPI. They do not account for different FOVs or aiming down sights.</p>
+
+<h2>Why aiming down sights feels slower</h2>
+<p>When you aim, Kirka narrows your field of view, and the formula above multiplies your turn speed by <strong>current FOV &divide; your FOV setting</strong>. A narrower view means a smaller turn per count, so the same mouse movement covers the same part of your <em>screen</em> instead of the same angle. On top of that, while you are fully aimed in Kirka uses your <strong>ADS Sensitivity</strong> setting instead of your normal Sensitivity.</p>
+<ul>
+  <li>Every gun except the VITA zooms to an FOV of 70, and gets there in 0.08 seconds.</li>
+  <li>The VITA zooms to an FOV of 35 with its scope, taking 0.1 seconds.</li>
+  <li>Each gun also has its own <strong>ADS power</strong> setting, which scales how far it zooms. At 1 you get the full zoom; lower values zoom less.</li>
+</ul>
+<p>With the default FOV of 90, ADS Sensitivity 30 and 800 DPI, a full turn takes about 36 cm while aimed with a normal gun, and about 73 cm while scoped with the VITA. That is why the VITA feels so slow in the scope, and why many players raise their ADS Sensitivity above their normal one.</p>
+
+<h2>Raw input and flick protection</h2>
+<ul>
+  <li><strong>Raw input</strong> asks the browser for unadjusted mouse movement, which skips your operating system's pointer acceleration. If you use Windows' "Enhance pointer precision", turning raw input on makes your aim consistent.</li>
+  <li><strong>Flick protection</strong> ignores a single mouse movement that is bigger than a set limit and repeats your previous movement instead. It exists to stop rare glitchy jumps, but if the limit is low it can also eat real fast flicks.</li>
+</ul>
+
+<h2>Practise with your exact settings</h2>
+<p>The <a href="/aimtrainer">Kirka Hub aim trainer</a> uses this same formula. Paste the text that Kirka's settings export button gives you and it copies your sensitivity, ADS sensitivity, FOV, per-gun ADS power and crosshair, so a flick in the trainer is the same distance as a flick in the game. Its 360 check lets you confirm that a full turn matches.</p>

@@ -264,6 +264,15 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
                 </div>
               );
             })}
+            <a
+              href={pathFor('guides')}
+              data-nav-tab="guides"
+              id="nav-tab-desktop-guides"
+              aria-current={activeTab === 'guides' ? 'page' : undefined}
+              className={`hidden 2xl:flex items-center h-10 px-3 border-2 text-[15px] font-bold cursor-pointer transition-colors ${activeTab === 'guides' ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)] shadow-[3px_3px_0_var(--ink)] -rotate-1' : 'border-transparent text-slate-200 hover:bg-obsidian-hover'}`}
+            >
+              Guides
+            </a>
           </nav>
 
           <div className="flex-1 min-w-0 flex items-center justify-end gap-2">
@@ -314,6 +323,9 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
                 </div>
               </section>
             ))}
+            <a href={pathFor('guides')} data-nav-tab="guides" id="nav-tab-mobile-guides" className={`block w-full text-left px-3 py-2.5 border-2 text-[16px] font-bold cursor-pointer ${activeTab === 'guides' ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)]' : 'border-[var(--ink)] bg-obsidian-dark text-slate-100'}`}>
+              Guides
+            </a>
             {showCursorToggle && <CursorToggle on={isCustomCursor} onClick={toggleCursorMode} className="w-full justify-center" />}
           </div>
         )}
