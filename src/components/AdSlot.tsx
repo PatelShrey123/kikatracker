@@ -7,7 +7,8 @@ declare global {
 }
 
 // Google AdSense publisher ID ("ca-pub-...") and the ad unit IDs created under Ads > By ad unit
-export const ADSENSE_CLIENT = 'ca-pub-6745235979444662';
+// Empty: AdSense turned the site down (Nov 2026), so nothing from Google loads. Monetag is in utils/monetag.ts.
+export const ADSENSE_CLIENT = '';
 export const AD_SLOTS = {
   topBanner: '',
   bottomBanner: '',

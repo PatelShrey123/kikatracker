@@ -70,15 +70,21 @@ function parsePlayerId(raw: string): { id: string; isShortId: boolean } | null {
   return null;
 }
 
-const Logo: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button type="button" onClick={onClick} className="flex items-center gap-2.5 cursor-pointer shrink-0" aria-label="Kirka Hub home">
+/** The address of a page, the same one App writes when you open it. */
+function pathFor(id: string) {
+  const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+  return prefix + (id === 'search' ? '/' : `/${id}`);
+}
+
+const Logo: React.FC = () => (
+  <a href={pathFor('search')} data-nav-tab="search" className="flex items-center gap-2.5 cursor-pointer shrink-0" aria-label="Kirka Hub home">
     <span className="relative w-12 h-12 flex items-center justify-center -rotate-6">
       <span className="burst absolute inset-0 bg-[var(--ink)]" />
       <span className="burst absolute inset-[3px] bg-[var(--accent)]" />
       <img src={`${import.meta.env.BASE_URL}kikatracker_mascot.png`} alt="" className="relative w-6 h-6 object-cover" />
     </span>
     <span className="display text-[32px] leading-none text-[var(--logo)]">Xpert</span>
-  </button>
+  </a>
 );
 
 const CursorToggle: React.FC<{ on: boolean; onClick: () => void; className?: string }> = ({ on, onClick, className = '' }) => (
@@ -128,6 +134,24 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
     setOpenGroup(null);
     setMobileOpen(false);
   };
+  const goRef = useRef(go);
+  goRef.current = go;
+
+  // The menu is made of real links, so ad scripts (Monetag's vignette) see a page change they can
+  // show an ad on. This listener sits on window, the last stop of a click, so anything that handled
+  // the click first wins; otherwise the page switches in place, without reloading the site.
+  // Ctrl/Cmd/Shift/middle clicks are left alone and open a new tab as usual.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const link = (e.target as Element | null)?.closest?.('a[data-nav-tab]');
+      if (!link) return;
+      e.preventDefault();
+      goRef.current(link.getAttribute('data-nav-tab')!);
+    };
+    window.addEventListener('click', onClick);
+    return () => window.removeEventListener('click', onClick);
+  }, []);
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,18 +214,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
       {/* Desktop masthead */}
       <header ref={barRef} className={`${minimal ? 'hidden' : 'hidden lg:block'} sticky top-0 z-40 bg-obsidian-card border-b-[3px] border-[var(--ink)] shadow-[0_4px_0_var(--ink)]`}>
         <div className="max-w-[1600px] mx-auto px-5 h-[68px] flex items-center gap-5">
-          <Logo onClick={() => go('search')} />
+          <Logo />
 
           <nav className="flex items-center gap-1" aria-label="Main">
-            <button
-              type="button"
+            <a
+              href={pathFor('search')}
+              data-nav-tab="search"
               id="nav-tab-desktop-search"
-              onClick={() => go('search')}
               aria-current={onHome ? 'page' : undefined}
-              className={`h-10 px-3 border-2 text-[15px] font-bold cursor-pointer transition-colors ${onHome ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)] shadow-[3px_3px_0_var(--ink)] -rotate-1' : 'border-transparent text-slate-200 hover:bg-obsidian-hover'}`}
+              className={`flex items-center h-10 px-3 border-2 text-[15px] font-bold cursor-pointer transition-colors ${onHome ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)] shadow-[3px_3px_0_var(--ink)] -rotate-1' : 'border-transparent text-slate-200 hover:bg-obsidian-hover'}`}
             >
               Home
-            </button>
+            </a>
             {NAV_GROUPS.map((group) => {
               const current = group.items.some((i) => i.id === activeTab);
               const open = openGroup === group.label;
@@ -220,11 +244,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
                   {open && (
                     <div className="absolute left-0 top-full mt-2 w-[290px] p-1.5 space-y-1 bg-obsidian-card border-2 border-[var(--ink)] shadow-[5px_5px_0_var(--ink)]">
                       {group.items.map(({ id, label, hint, icon: Icon, badge }) => (
-                        <button
+                        <a
                           key={id}
-                          type="button"
+                          href={pathFor(id)}
+                          data-nav-tab={id}
                           id={`nav-tab-desktop-${id}`}
-                          onClick={() => go(id)}
                           aria-current={activeTab === id ? 'page' : undefined}
                           className={`w-full flex items-center gap-3 px-2.5 py-2 text-left cursor-pointer transition-colors ${activeTab === id ? 'bg-[var(--accent)] text-[var(--on-accent)]' : 'text-slate-200 hover:bg-obsidian-hover'}`}
                         >
@@ -233,7 +257,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
                             <span className="flex items-center gap-1.5 text-[15px] font-bold leading-tight">{label}{badge && <Badge text={badge} />}</span>
                             <span className={`block text-[13px] leading-snug ${activeTab === id ? 'text-[var(--on-accent)]' : 'text-slate-400'}`}>{hint}</span>
                           </span>
-                        </button>
+                        </a>
                       ))}
                     </div>
                   )}
@@ -252,7 +276,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
       {/* Phones and tablets */}
       <div className={minimal ? '' : 'lg:hidden sticky top-0 z-40'}>
         <header className={`${minimal ? 'hidden' : 'flex'} h-[60px] px-3 items-center justify-between bg-obsidian-card border-b-[3px] border-[var(--ink)]`}>
-          <Logo onClick={() => go('search')} />
+          <Logo />
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
@@ -266,26 +290,26 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
         {mobileOpen && (
           <div className={`fixed inset-x-0 bottom-0 z-40 overflow-y-auto bg-obsidian-card px-4 pb-8 space-y-5 ${minimal ? 'top-0 pt-16' : 'top-[60px] pt-4'}`}>
             {!minimal && <div className="flex">{searchForm}</div>}
-            <button type="button" id="nav-tab-mobile-search" onClick={() => go('search')} className={`w-full text-left px-3 py-2.5 border-2 text-[16px] font-bold cursor-pointer ${onHome ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)]' : 'border-[var(--ink)] bg-obsidian-dark text-slate-100'}`}>
+            <a href={pathFor('search')} data-nav-tab="search" id="nav-tab-mobile-search" className={`block w-full text-left px-3 py-2.5 border-2 text-[16px] font-bold cursor-pointer ${onHome ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)]' : 'border-[var(--ink)] bg-obsidian-dark text-slate-100'}`}>
               Home
-            </button>
+            </a>
             {NAV_GROUPS.map((group) => (
               <section key={group.label}>
                 <h2 className="display text-[22px] text-gold-bright leading-none mb-1.5">{group.label}</h2>
                 <div className="space-y-1">
                   {group.items.map(({ id, label, icon: Icon, badge }) => (
-                    <button
+                    <a
                       key={id}
-                      type="button"
+                      href={pathFor(id)}
+                      data-nav-tab={id}
                       id={`nav-tab-mobile-${id}`}
-                      onClick={() => go(id)}
                       aria-current={activeTab === id ? 'page' : undefined}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 text-[16px] font-bold cursor-pointer ${activeTab === id ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)]' : 'border-[var(--ink)] bg-obsidian-dark text-slate-100'}`}
                     >
                       <Icon className="w-5 h-5 shrink-0" />
                       <span className="flex-1 text-left">{label}</span>
                       {badge && <Badge text={badge} />}
-                    </button>
+                    </a>
                   ))}
                 </div>
               </section>
