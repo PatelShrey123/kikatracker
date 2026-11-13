@@ -26,7 +26,7 @@ const RouletteSection = lazy(() => import('./components/RouletteSection').then(m
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
-import { AdSlot, AD_SLOTS, loadSocialBar, SideRails } from './components/AdSlot';
+import { AdSlot, AD_SLOTS, loadSocialBar, SideRails, ADS_ENABLED } from './components/AdSlot';
 import { SponsoredCard, SMARTLINK } from './components/SponsoredCard';
 import { WhatsNewModal } from './components/WhatsNewModal';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
@@ -509,7 +509,7 @@ function App() {
           {showAds && !isHomeFilm && <SideRails />}
 
           {/* 4. Core Content Area with Left Padding on Desktop */}
-          <div className={`relative z-[1] flex-grow flex flex-col min-h-screen ${showAds && !isHomeFilm ? '2xl:px-[176px]' : ''}`}>
+          <div className={`relative z-[1] flex-grow flex flex-col min-h-screen ${ADS_ENABLED && showAds && !isHomeFilm ? '2xl:px-[176px]' : ''}`}>
             
             {/* Ad: top banner, above page content (never inside profiles, skins or tools) */}
             {showAds && !isHomeFilm && <AdSlot key={`top-${adRouteKey}`} slot={AD_SLOTS.topBanner} className="pt-4 px-4" />}
@@ -698,7 +698,7 @@ function App() {
                     <li><a href="/contact.html" className="text-slate-300 hover:text-gold-bright underline">Contact</a></li>
                     <li><a href="/privacy.html" className="text-slate-300 hover:text-gold-bright underline">Privacy Policy</a></li>
                     <li><a href="/terms.html" className="text-slate-300 hover:text-gold-bright underline">Terms</a></li>
-                    <li><a href={SMARTLINK} target="_blank" rel="sponsored noopener noreferrer" className="text-slate-400 hover:text-gold-bright underline">Sponsored offer ↗</a></li>
+                    {ADS_ENABLED && <li><a href={SMARTLINK} target="_blank" rel="sponsored noopener noreferrer" className="text-slate-400 hover:text-gold-bright underline">Sponsored offer ↗</a></li>}
                   </ul>
                 </nav>
               </div>

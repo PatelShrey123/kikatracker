@@ -30,8 +30,10 @@ interface AdSlotProps {
   className?: string;
 }
 
-// Adsterra banners (back on in Nov 2026 after trying Monetag). Earlier they were mostly betting ads.
-const USE_ADSTERRA = true;
+// Every ad on the site (banners, side strips, boxes, native, Social Bar, Smartlink) is behind this switch.
+// Off since 13 Nov 2026. Turning it back on also needs the Social Bar tag restored in index.html.
+export const ADS_ENABLED = false;
+const USE_ADSTERRA = ADS_ENABLED;
 
 // Only the live site: a view from localhost or a preview would count as invalid traffic on the account
 const ADSTERRA_HOSTS = ['kirkahub.online', 'www.kirkahub.online'];

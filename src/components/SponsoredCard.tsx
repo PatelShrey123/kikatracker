@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import { ADS_ENABLED } from './AdSlot';
 
 /** Adsterra Smartlink: it sends the visitor to an advertiser's offer, picked by Adsterra. */
 export const SMARTLINK = 'https://araplhn.org/4/2e9790cdd38733d803af1b6cc9984740';
@@ -8,6 +9,7 @@ export const SMARTLINK = 'https://araplhn.org/4/2e9790cdd38733d803af1b6cc9984740
  * it says "Sponsored", says it leaves the site, and opens in a new tab.
  */
 export function SponsoredCard({ className = '' }: { className?: string }) {
+  if (!ADS_ENABLED) return null;
   return (
     <a
       href={SMARTLINK}

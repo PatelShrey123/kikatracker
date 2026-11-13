@@ -106,15 +106,5 @@
     </div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "969729ec3a504a0fb1ffeac69534b1fb"}'></script><!-- End Cloudflare Web Analytics -->
-    <!-- Adsterra Social Bar, right above </body> as Adsterra asks. Only on the live site, and never in the
-         aim trainer or the giveaway roulette: src/App.tsx starts it later if a visitor began on one of those,
-         and src/index.css hides it while one of them is open. -->
-    <script>
-      if (/^\/(kikatracker\/)?(aimtrainer|aim-trainer|giveaway|roulette)\/?$/i.test(location.pathname)) {
-        document.documentElement.setAttribute('data-no-ads', '');
-      } else if (/(^|\.)kirkahub\.online$/.test(location.hostname)) {
-        document.write('<script data-cfasync="false" src="https://bauval.org/14/5822c776b2a34c6b7007b85a61196089"><\/script>');
-      }
-    </script>
   </body>
 </html>
