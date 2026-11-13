@@ -35,18 +35,28 @@ const USE_ADSTERRA = true;
 
 // Only the live site: a view from localhost or a preview would count as invalid traffic on the account
 const ADSTERRA_HOSTS = ['kirkahub.online', 'www.kirkahub.online'];
-const WIDE_SCREEN = '(min-width: 768px)';
 // The frame comes from its own subdomain: a different origin, so the ad code can have cookies and storage
 // (it doesn't run without them) while still having no way into kirkahub.online itself
 const AD_FRAME_ORIGIN = 'https://ads.kirkahub.online';
 
+function useMedia(query: string) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const q = window.matchMedia(query);
+    const onChange = () => setMatches(q.matches);
+    onChange();
+    q.addEventListener('change', onChange);
+    return () => q.removeEventListener('change', onChange);
+  }, [query]);
+  return matches;
+}
+
 /**
- * An Adsterra banner, used until AdSense slots exist. It runs in a sandboxed frame on
- * ads.kirkahub.online: being another origin, the ad code can't read the site, and without
- * allow-top-navigation it can't redirect the page. Clicks still open the advertiser in a new tab.
+ * One Adsterra banner of a given size. It runs in a sandboxed frame on ads.kirkahub.online: being
+ * another origin, the ad code can't read the site, and without allow-top-navigation it can't redirect
+ * the page. Clicks still open the advertiser in a new tab. Off the live site it's a dashed box.
  */
-function AdsterraBanner({ className }: { className: string }) {
-  const [wide, setWide] = useState(() => window.matchMedia(WIDE_SCREEN).matches);
+function AdFrame({ width, height }: { width: number; height: number }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
 
   // the frame reports the ad code's errors here, so a missing ad can be explained from the console
@@ -58,43 +68,70 @@ function AdsterraBanner({ className }: { className: string }) {
     return () => window.removeEventListener('message', onMessage);
   }, []);
 
-  useEffect(() => {
-    const query = window.matchMedia(WIDE_SCREEN);
-    const onChange = () => setWide(query.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-
   const live = ADSTERRA_HOSTS.includes(window.location.hostname);
-  if (!live && !import.meta.env.DEV) return null;
-  const [width, height] = wide ? [728, 90] : [320, 50];
-
   if (!live) {
+    if (!import.meta.env.DEV) return null;
     // while developing: an empty box where the ad goes, so the layout can be checked without real ads
     return (
-      <div className={`w-full overflow-hidden flex justify-center ${className}`}>
-        <div style={{ width, height, maxWidth: '100%' }} className="grid place-items-center border-2 border-dashed border-slate-600 text-[12px] font-bold text-slate-500">
-          Ad {width}x{height} (real ads show on kirkahub.online)
-        </div>
+      <div style={{ width, height, maxWidth: '100%' }} className="grid place-items-center p-1 text-center border-2 border-dashed border-slate-600 bg-obsidian-dark/60 text-[12px] font-bold text-slate-500">
+        Ad {width}x{height}
       </div>
     );
   }
+  return (
+    <iframe
+      ref={frameRef}
+      key={`${width}x${height}`}
+      title="Advertisement"
+      src={`${AD_FRAME_ORIGIN}/ad-frame.html?unit=${width}x${height}`}
+      width={width}
+      height={height}
+      loading="lazy"
+      scrolling="no"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+      style={{ border: 0, display: 'block', maxWidth: '100%' }}
+    />
+  );
+}
 
+/** Top and bottom strip: 728x90 on computers, 468x60 on tablets, 320x50 on phones. */
+function AdsterraBanner({ className }: { className: string }) {
+  const wide = useMedia('(min-width: 768px)');
+  const medium = useMedia('(min-width: 500px)');
+  const [width, height] = wide ? [728, 90] : medium ? [468, 60] : [320, 50];
   return (
     <div className={`w-full overflow-hidden flex justify-center ${className}`}>
-      <iframe
-        ref={frameRef}
-        key={width}
-        title="Advertisement"
-        src={`${AD_FRAME_ORIGIN}/ad-frame.html?unit=${width}x${height}`}
-        width={width}
-        height={height}
-        loading="lazy"
-        scrolling="no"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-        style={{ border: 0, display: 'block', maxWidth: '100%' }}
-      />
+      <AdFrame width={width} height={height} />
     </div>
+  );
+}
+
+/** A 300x250 box for space inside a page. */
+export function BoxAd({ className = '' }: { className?: string }) {
+  if (!USE_ADSTERRA) return null;
+  if (!ADSTERRA_HOSTS.includes(window.location.hostname) && !import.meta.env.DEV) return null;
+  return (
+    <div className={`flex justify-center ${className}`}>
+      <AdFrame width={300} height={250} />
+    </div>
+  );
+}
+
+/** Screens wide enough for a 160px strip down each side; App narrows the page by the same amount. */
+export const SIDE_RAILS_QUERY = '(min-width: 1536px)';
+
+/** 160x600 down both sides of big screens (160x300 when the window is short), below the menu bar. */
+export function SideRails() {
+  const on = useMedia(SIDE_RAILS_QUERY);
+  const tall = useMedia('(min-height: 780px)');
+  if (!USE_ADSTERRA || !on) return null;
+  if (!ADSTERRA_HOSTS.includes(window.location.hostname) && !import.meta.env.DEV) return null;
+  const [width, height] = tall ? [160, 600] : [160, 300];
+  return (
+    <>
+      <div className="fixed left-2 top-[92px] z-30"><AdFrame width={width} height={height} /></div>
+      <div className="fixed right-2 top-[92px] z-30"><AdFrame width={width} height={height} /></div>
+    </>
   );
 }
 

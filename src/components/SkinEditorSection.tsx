@@ -10,7 +10,7 @@ import {
   PART_NAMES, PART_LABELS, getSkinLayout, blankSkin, upgradeLegacySkin, looksClassic, clearUnusedPixels, partPixels, resizeSkin,
 } from '../utils/skinLayout';
 import type { SkinModel, PartName, SkinSize } from '../utils/skinLayout';
-import { NativeAd } from './AdSlot';
+import { NativeAd, BoxAd } from './AdSlot';
 
 type Tool = 'pencil' | 'eraser' | 'fill' | 'replace' | 'picker' | 'lighten' | 'darken' | 'noise' | 'move';
 type Motion = 'still' | 'idle' | 'walk' | 'run';
@@ -1088,6 +1088,11 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
             </div>
           </div>
           <p className="text-[13px] font-bold text-slate-500">Drag on the model to paint. Drag beside it, or right-drag anywhere, to turn it. Scroll to zoom.</p>
+          {/* two 300x250 boxes side by side where there is room for both */}
+          <div className="!mt-4 flex flex-wrap justify-center gap-4">
+            <BoxAd />
+            <BoxAd className="hidden sm:flex" />
+          </div>
         </section>
 
         {/* Flat sheet */}
@@ -1111,6 +1116,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[13px] font-bold text-slate-400 min-h-5">{hover || 'Blue outlines are the outer layer, cream are the body.'}</span>
           </div>
+          <BoxAd className="!mt-4" />
           <NativeAd className="!mt-4" />
         </section>
       </div>

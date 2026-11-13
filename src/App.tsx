@@ -26,7 +26,7 @@ const RouletteSection = lazy(() => import('./components/RouletteSection').then(m
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
-import { AdSlot, AD_SLOTS, loadSocialBar } from './components/AdSlot';
+import { AdSlot, AD_SLOTS, loadSocialBar, SideRails } from './components/AdSlot';
 import { SponsoredCard, SMARTLINK } from './components/SponsoredCard';
 import { WhatsNewModal } from './components/WhatsNewModal';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
@@ -177,6 +177,9 @@ function App() {
     }
     if (cleanPath === '/trades') {
       return { tab: 'trades', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/clans') {
+      return { tab: 'clans', player: null, clan: null, skin: null };
     }
     if (cleanPath === '/daily') {
       return { tab: 'daily', player: null, clan: null, skin: null };
@@ -502,8 +505,11 @@ function App() {
             minimal={isHomeFilm}
           />
 
+          {/* Ads down both sides of big screens; the page is narrowed by the same amount so they never cover it */}
+          {showAds && !isHomeFilm && <SideRails />}
+
           {/* 4. Core Content Area with Left Padding on Desktop */}
-          <div className="relative z-[1] flex-grow flex flex-col min-h-screen">
+          <div className={`relative z-[1] flex-grow flex flex-col min-h-screen ${showAds && !isHomeFilm ? '2xl:px-[176px]' : ''}`}>
             
             {/* Ad: top banner, above page content (never inside profiles, skins or tools) */}
             {showAds && !isHomeFilm && <AdSlot key={`top-${adRouteKey}`} slot={AD_SLOTS.topBanner} className="pt-4 px-4" />}
@@ -702,7 +708,6 @@ function App() {
 
           {/* the one-time "what's new" card, on the home page only */}
           {isHomeFilm && <WhatsNewModal onOpen={handleTabChange} />}
-
 
           {/* 6. Item Details Inspection Modal overlay */}
           <ItemInspectModal
