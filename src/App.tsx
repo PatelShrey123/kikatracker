@@ -28,6 +28,7 @@ import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
 import { AdSlot, AD_SLOTS } from './components/AdSlot';
 import { WhatsNewModal } from './components/WhatsNewModal';
+import { loadMonetag } from './utils/monetag';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -282,6 +283,11 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Monetag (In-Page Push + Vignette), never started from a full-screen tool
+  useEffect(() => {
+    if (!isLoading && !['reloadlab', 'skineditor', 'aimtrainer', 'wrapped', 'giveaway'].includes(activeTab)) loadMonetag();
+  }, [activeTab, isLoading]);
 
   // Load initial route on startup after base configs complete
   useEffect(() => {
