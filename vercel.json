@@ -1,6 +1,9 @@
 {
   "redirects": [
-    { "source": "/((?!ad-frame\\.html).*)", "has": [{ "type": "host", "value": "ads.kirkahub.online" }], "destination": "https://kirkahub.online/$1", "permanent": true }
+    { "source": "/((?!ad-frame\\.html).*)", "has": [{ "type": "host", "value": "ads.kirkahub.online" }], "destination": "https://kirkahub.online/$1", "permanent": true },
+    { "source": "/aim-trainer", "destination": "/aimtrainer", "permanent": true },
+    { "source": "/roulette", "destination": "/giveaway", "permanent": true },
+    { "source": "/skin-editor", "destination": "/skineditor", "permanent": true }
   ],
   "rewrites": [
     { "source": "/api/bot-stats", "destination": "/api/bot-stats" },

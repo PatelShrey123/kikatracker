@@ -10,7 +10,13 @@ import { SITE, PAGES, GUIDES, skinsFrom, skinStats, describeSkin, similarSkins, 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 // pages live in sub-folders, so relative asset links (a non-Vercel build uses base './') must start at the root
-const template = readFileSync(join(dist, 'index.html'), 'utf8').replace(/(src|href)="\.\//g, '$1="/');
+const NO_ADS_PATHS = new Set(['/aimtrainer', '/giveaway']);
+// pages people click all over (painting): Monetag without the popunder, from the separate In-Page Push and Vignette zones
+const NO_POPUNDER_PATHS = new Set(['/skineditor']);
+const NO_POPUNDER_TAGS =
+  `<script>(function(s){s.dataset.zone='12252591',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>` +
+  `<script>(function(s){s.dataset.zone='12252595',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>`;
+const template =readFileSync(join(dist, 'index.html'), 'utf8').replace(/(src|href)="\.\//g, '$1="/');
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const fmt = (n) => Number(n).toLocaleString('en-US');
@@ -62,6 +68,9 @@ function page({ path, title, description, body, image }) {
   if (start < 0 || end < start) throw new Error('prerender: the prerender markers are missing from index.html');
   const content = `<!--prerender-start--><div style="${STYLE.wrap}">${siteNav()}${body}${footer()}</div>`;
   html = html.slice(0, start) + content + html.slice(end);
+  // no Monetag in the aim trainer (a click-heavy game) or the giveaway roulette (shown on stream)
+  if (NO_ADS_PATHS.has(path)) html = html.replace(/<!--multitag-->[\s\S]*?<!--\/multitag-->/, '');
+  else if (NO_POPUNDER_PATHS.has(path)) html = html.replace(/<!--multitag-->[\s\S]*?<!--\/multitag-->/, () => NO_POPUNDER_TAGS);
 
   const file = path === '/' ? join(dist, 'index.html') : join(dist, ...path.split('/').filter(Boolean), 'index.html');
   mkdirSync(dirname(file), { recursive: true });
