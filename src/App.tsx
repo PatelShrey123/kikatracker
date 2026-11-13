@@ -284,9 +284,16 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Monetag (In-Page Push + Vignette), never started from a full-screen tool
+  // Monetag: no ads at all in the aim trainer or the giveaway roulette (a game and a stream tool);
+  // In-Page Push on every other page; the Vignette also kept out of the Reload Lab and Wrapped.
+  // Once loaded an ad script can't be taken back out, so this is about where a visitor starts them.
   useEffect(() => {
-    if (!isLoading && !['reloadlab', 'skineditor', 'aimtrainer', 'wrapped', 'giveaway'].includes(activeTab)) loadMonetag();
+    const noAds = ['aimtrainer', 'giveaway'].includes(activeTab);
+    // hides an ad box that's already up when someone moves into one of these (see index.css)
+    if (noAds) document.documentElement.dataset.noAds = '';
+    else delete document.documentElement.dataset.noAds;
+    if (isLoading || noAds) return;
+    loadMonetag({ vignette: !['reloadlab', 'wrapped'].includes(activeTab) });
   }, [activeTab, isLoading]);
 
   // Load initial route on startup after base configs complete

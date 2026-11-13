@@ -1,23 +1,24 @@
 /**
  * Monetag ads: In-Page Push and Vignette only (no popunder, no multitag).
- * Loaded once, the first time a visitor is on a page that shows ads, so someone who opens the aim
- * trainer or another full-screen tool straight away never gets them there.
+ * In-Page Push (the small box in the top right) runs on every page. The Vignette is only started from
+ * pages that aren't full-screen tools, so someone who goes straight to one never gets it there.
  */
-const ZONES = [
-  { zone: '12252591', src: 'https://nap5k.com/tag.min.js' }, // In-Page Push
-  { zone: '12252595', src: 'https://n6wxm.com/vignette.min.js' }, // Vignette
-];
+const IN_PAGE_PUSH = { zone: '12252591', src: 'https://nap5k.com/tag.min.js' };
+const VIGNETTE = { zone: '12252595', src: 'https://n6wxm.com/vignette.min.js' };
 
-let loaded = false;
+const loaded = new Set<string>();
 
-export function loadMonetag() {
-  if (loaded || import.meta.env.DEV) return;
-  loaded = true;
-  for (const { zone, src } of ZONES) {
-    const s = document.createElement('script');
-    s.dataset.zone = zone;
-    s.src = src;
-    s.async = true;
-    document.body.appendChild(s);
-  }
+function load({ zone, src }: { zone: string; src: string }) {
+  if (loaded.has(zone) || import.meta.env.DEV) return;
+  loaded.add(zone);
+  const s = document.createElement('script');
+  s.dataset.zone = zone;
+  s.src = src;
+  s.async = true;
+  document.body.appendChild(s);
+}
+
+export function loadMonetag({ vignette }: { vignette: boolean }) {
+  load(IN_PAGE_PUSH);
+  if (vignette) load(VIGNETTE);
 }
