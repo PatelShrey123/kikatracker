@@ -280,7 +280,10 @@ export const PAGES = {
     title: 'Kirka Hub Discord Bot — Commands & Invite | Kirka Hub',
     description: 'Add the Kirka Hub bot to your Discord server for Kirka.io profiles, inventories, prices, trades, leaderboards and store alerts.',
     heading: 'Kirka Hub Discord bot',
-    intro: ['The Kirka Hub bot brings the site into Discord: profiles, inventory values, skin prices, trades, clan rosters, leaderboards, quests and store alerts, all with slash commands. Link your Kirka account once and commands know who you are.'],
+    intro: [
+      'The Kirka Hub bot brings the site into Discord: profiles, inventory values, skin prices, trades, clan rosters, leaderboards, quests and store alerts, all with slash commands. Link your Kirka account once and commands know who you are.',
+      'Kirka Hub is a VIP bot. Server VIP unlocks every command for a whole server; Personal VIP lets you use the bot as your own app in DMs, group chats and any server. You can try /profile, /inventory and /link for free in the Kirka Hub support server, and buy VIP by messaging the owner there.',
+    ],
   },
   guides: {
     path: '/guides',

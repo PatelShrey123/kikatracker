@@ -23,7 +23,11 @@ import {
   Coffee,
   X,
   ExternalLink,
-  Gamepad2
+  Gamepad2,
+  Lock,
+  Crown,
+  Smartphone,
+  Home
 } from 'lucide-react';
 
 interface BotCommand {
@@ -458,6 +462,11 @@ export const BotSection: React.FC = () => {
               The ultimate Kirka companion. Track inventories with live <strong className="text-white">Hub valuations</strong>, browse active <strong className="text-white">live marketplace trades</strong>, run side-by-side <strong className="text-white">weapon stat comparisons</strong>, and customize your profile with <strong className="text-white">custom background cards</strong>.
             </p>
 
+            <p className="inline-flex items-start gap-2 text-left px-3 py-2 rounded-md border border-gold-primary/30 bg-gold-primary/10 text-sm text-gold-bright font-semibold">
+              <Crown className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>KirkaHub is a VIP bot: servers and players need VIP to use its commands. Try <code>/profile</code>, <code>/inventory</code> and <code>/link</code> free in the support server.</span>
+            </p>
+
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
               <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400 font-bold flex items-center space-x-1.5">
                 <Users className="w-3.5 h-3.5" />
@@ -746,6 +755,58 @@ export const BotSection: React.FC = () => {
           </div>
         </motion.div>
 
+        {/* 3.5 VIP */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="rounded-md border border-gold-primary/30 bg-obsidian-card p-6 md:p-10 shadow-lg relative overflow-hidden"
+        >
+          <div className="absolute -top-20 -left-20 w-80 h-80 bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="relative z-10 space-y-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-gold-primary/30 bg-gold-primary/10 text-gold-bright text-xs font-semibold uppercase font-mono tracking-wider">
+                <Lock className="w-3.5 h-3.5" />
+                <span>VIP only</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-white">
+                Get <span className="text-gold-bright">KirkaHub VIP</span>
+              </h2>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                KirkaHub is a VIP-only bot. In a server without VIP the bot only has <code className="text-gold-bright">/buy</code>, and using it in DMs, group chats or through &ldquo;Add to my apps&rdquo; needs Personal VIP. VIP unlocks every command, including the ones added later.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-md border border-gold-primary/30 bg-gold-primary/5 p-5 space-y-2">
+                <div className="flex items-center gap-2 text-gold-bright"><Home className="w-5 h-5" /><h3 className="text-base font-bold">Server VIP</h3></div>
+                <p className="text-sm text-slate-300 leading-relaxed">Every command for everyone in one server: profiles, inventories, prices, trades, the store and drop alerts, leaderboards, clans, quests, <code>/fit</code>, <code>/unbox</code> and more.</p>
+              </div>
+              <div className="rounded-md border border-indigo-500/30 bg-indigo-500/5 p-5 space-y-2">
+                <div className="flex items-center gap-2 text-indigo-300"><Smartphone className="w-5 h-5" /><h3 className="text-base font-bold">Personal VIP</h3></div>
+                <p className="text-sm text-slate-300 leading-relaxed">KirkaHub as your own app (&ldquo;Add to my apps&rdquo;): use it in DMs, group chats and any server, even ones without VIP. Sold separately from Server VIP.</p>
+              </div>
+              <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-5 space-y-2">
+                <div className="flex items-center gap-2 text-emerald-300"><Gift className="w-5 h-5" /><h3 className="text-base font-bold">Free to try</h3></div>
+                <p className="text-sm text-slate-300 leading-relaxed"><code>/profile</code>, <code>/inventory</code> and <code>/link</code> are free for everyone in the KirkaHub support server.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <a
+                href="https://discord.gg/3zStCadBtP"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md bg-gold-primary hover:bg-gold-bright text-black font-extrabold text-sm tracking-wide shadow-lg transition-all"
+              >
+                <Crown className="w-4 h-4" />
+                <span>Join the support server to buy VIP</span>
+              </a>
+              <p className="text-sm text-slate-400">Join, then DM the owner. Once you have paid, VIP is switched on within seconds.</p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* 4. Support & Donation Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -765,7 +826,7 @@ export const BotSection: React.FC = () => {
                 Love KirkaHub? <span className="text-amber-400">Support Development</span>
               </h2>
               <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
-                KirkaHub is 100% free with no paywalls. Your donations directly fund high-performance cloud hosting, instant in-game verification listeners, and 3D skin rendering.
+                Want to help without buying VIP? Donations directly fund KirkaHub's 24/7 cloud hosting, the in-game verification listener and 3D skin rendering, for the bot and this website.
               </p>
             </div>
 
