@@ -137,8 +137,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isCusto
   const goRef = useRef(go);
   goRef.current = go;
 
-  // The menu is made of real links, so ad scripts (Monetag's vignette) see a page change they can
-  // show an ad on. This listener sits on window, the last stop of a click, so anything that handled
+  // The menu is made of real links (ctrl-click opens a new tab, ad and analytics scripts see a page
+  // change). This listener sits on window, the last stop of a click, so anything that handled
   // the click first wins; otherwise the page switches in place, without reloading the site.
   // Ctrl/Cmd/Shift/middle clicks are left alone and open a new tab as usual.
   useEffect(() => {

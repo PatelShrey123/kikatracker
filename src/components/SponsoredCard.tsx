@@ -1,16 +1,16 @@
 import { ExternalLink } from 'lucide-react';
 
-/** Monetag Direct Link: it sends the visitor to an advertiser's offer, picked by Monetag. */
-const DIRECT_LINK = 'https://uplcm.com/4/12252596';
+/** Adsterra Smartlink: it sends the visitor to an advertiser's offer, picked by Adsterra. */
+export const SMARTLINK = 'https://araplhn.org/4/2e9790cdd38733d803af1b6cc9984740';
 
 /**
- * A plainly labelled ad card for empty space. It never pretends to be part of the site:
+ * A plainly labelled ad card. It never pretends to be part of the site:
  * it says "Sponsored", says it leaves the site, and opens in a new tab.
  */
 export function SponsoredCard({ className = '' }: { className?: string }) {
   return (
     <a
-      href={DIRECT_LINK}
+      href={SMARTLINK}
       target="_blank"
       rel="sponsored noopener noreferrer"
       className={`group block bg-obsidian-card border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] p-3 hover:bg-obsidian-hover transition-colors ${className}`}

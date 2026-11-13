@@ -10,7 +10,7 @@ import {
   PART_NAMES, PART_LABELS, getSkinLayout, blankSkin, upgradeLegacySkin, looksClassic, clearUnusedPixels, partPixels, resizeSkin,
 } from '../utils/skinLayout';
 import type { SkinModel, PartName, SkinSize } from '../utils/skinLayout';
-import { SponsoredCard } from './SponsoredCard';
+import { NativeAd } from './AdSlot';
 
 type Tool = 'pencil' | 'eraser' | 'fill' | 'replace' | 'picker' | 'lighten' | 'darken' | 'noise' | 'move';
 type Motion = 'still' | 'idle' | 'walk' | 'run';
@@ -1111,7 +1111,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[13px] font-bold text-slate-400 min-h-5">{hover || 'Blue outlines are the outer layer, cream are the body.'}</span>
           </div>
-          <SponsoredCard className="!mt-4" />
+          <NativeAd className="!mt-4" />
         </section>
       </div>
 

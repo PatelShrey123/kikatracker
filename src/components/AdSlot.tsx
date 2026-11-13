@@ -7,7 +7,7 @@ declare global {
 }
 
 // Google AdSense publisher ID ("ca-pub-...") and the ad unit IDs created under Ads > By ad unit
-// Empty: AdSense turned the site down (Nov 2026), so nothing from Google loads. Monetag is in utils/monetag.ts.
+// Empty: AdSense turned the site down (Nov 2026), so nothing from Google loads; Adsterra fills the slots.
 export const ADSENSE_CLIENT = '';
 export const AD_SLOTS = {
   topBanner: '',
@@ -30,9 +30,8 @@ interface AdSlotProps {
   className?: string;
 }
 
-// Off: Adsterra's banners for this audience were almost all betting ads. Kept so it can be switched
-// back on; the ad frame, the subdomain and the keys are all still in place.
-const USE_ADSTERRA = false;
+// Adsterra banners (back on in Nov 2026 after trying Monetag). Earlier they were mostly betting ads.
+const USE_ADSTERRA = true;
 
 // Only the live site: a view from localhost or a preview would count as invalid traffic on the account
 const ADSTERRA_HOSTS = ['kirkahub.online', 'www.kirkahub.online'];
@@ -128,4 +127,65 @@ export function AdSlot({ slot, className = '' }: AdSlotProps) {
       />
     </div>
   );
+}
+
+/**
+ * Adsterra native banner (a row of picture + headline ads) for empty space inside a page. Same
+ * sandboxed frame as the banners; the frame reports its height, and nothing shows until an ad has.
+ */
+export function NativeAd({ className = '' }: { className?: string }) {
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (!e.source || e.source !== frameRef.current?.contentWindow) return;
+      const h = Number(e.data?.khAdHeight);
+      if (Number.isFinite(h)) setHeight(Math.min(Math.max(0, Math.round(h)), 1200));
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
+  if (!USE_ADSTERRA) return null;
+  const live = ADSTERRA_HOSTS.includes(window.location.hostname);
+  if (!live) {
+    if (!import.meta.env.DEV) return null;
+    return (
+      <div className={`grid place-items-center h-[180px] border-2 border-dashed border-slate-600 text-[12px] font-bold text-slate-500 ${className}`}>
+        Native ad (real ads show on kirkahub.online)
+      </div>
+    );
+  }
+
+  // a 1px frame while it loads, so the ad code still runs, then the ad's own height
+  const shown = height > 8;
+  return (
+    <div className={shown ? className : ''}>
+      {shown && <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">Sponsored</p>}
+      <iframe
+        ref={frameRef}
+        title="Advertisement"
+        src={`${AD_FRAME_ORIGIN}/ad-frame.html?unit=native`}
+        width="100%"
+        height={shown ? height : 1}
+        loading="lazy"
+        scrolling="no"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+        style={{ border: 0, display: 'block', width: '100%', opacity: shown ? 1 : 0 }}
+      />
+    </div>
+  );
+}
+
+const SOCIAL_BAR_SRC = 'https://bauval.org/14/5822c776b2a34c6b7007b85a61196089';
+
+/** Adsterra Social Bar. index.html starts it on page load; this covers a visitor who began on an ad-free page. */
+export function loadSocialBar() {
+  if (!USE_ADSTERRA || !ADSTERRA_HOSTS.includes(window.location.hostname)) return;
+  if (document.querySelector(`script[src="${SOCIAL_BAR_SRC}"]`)) return;
+  const s = document.createElement('script');
+  s.dataset.cfasync = 'false';
+  s.src = SOCIAL_BAR_SRC;
+  document.body.appendChild(s);
 }

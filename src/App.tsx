@@ -26,9 +26,9 @@ const RouletteSection = lazy(() => import('./components/RouletteSection').then(m
 import { ChangelogsSection } from './components/ChangelogsSection';
 import { ChatLogsSection } from './components/ChatLogsSection';
 import { OfflineWeaponRenderer } from './components/OfflineWeaponRenderer';
-import { AdSlot, AD_SLOTS } from './components/AdSlot';
+import { AdSlot, AD_SLOTS, loadSocialBar } from './components/AdSlot';
+import { SponsoredCard, SMARTLINK } from './components/SponsoredCard';
 import { WhatsNewModal } from './components/WhatsNewModal';
-import { loadMonetag } from './utils/monetag';
 import { fetchUserProfile, fetchAllPublicItems } from './utils/api';
 import type { UserProfile } from './utils/api';
 import { fetchAndParsePrices } from './utils/csv';
@@ -284,16 +284,15 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Monetag: no ads at all in the aim trainer or the giveaway roulette (a game and a stream tool);
-  // In-Page Push on every other page; the Vignette also kept out of the Reload Lab and Wrapped.
-  // Once loaded an ad script can't be taken back out, so this is about where a visitor starts them.
+  // No ads in the aim trainer or the giveaway roulette (a game and a stream tool): the flag hides the
+  // Social Bar there (index.css). Anywhere else it's started if it isn't running yet.
   useEffect(() => {
-    const noAds = ['aimtrainer', 'giveaway'].includes(activeTab);
-    // hides an ad box that's already up when someone moves into one of these (see index.css)
-    if (noAds) document.documentElement.dataset.noAds = '';
-    else delete document.documentElement.dataset.noAds;
-    if (isLoading || noAds) return;
-    loadMonetag({ vignette: !['reloadlab', 'wrapped'].includes(activeTab) });
+    if (['aimtrainer', 'giveaway'].includes(activeTab)) {
+      document.documentElement.dataset.noAds = '';
+      return;
+    }
+    delete document.documentElement.dataset.noAds;
+    if (!isLoading) loadSocialBar();
   }, [activeTab, isLoading]);
 
   // Load initial route on startup after base configs complete
@@ -608,6 +607,7 @@ function App() {
                       onInspectItem={handleInspectItem}
                     />
                   )}
+                  {activeTab === 'prices' && <SponsoredCard className="mt-8" />}
                   {activeTab === 'bot' && (
                     <BotSection />
                   )}
@@ -638,6 +638,7 @@ function App() {
                   {activeTab === 'aimtrainer' && <AimTrainerSection />}
 
                   {activeTab === 'wrapped' && <WrappedSection marketPrices={marketPrices} />}
+
 
                   {activeTab === 'giveaway' && <RouletteSection catalog={allItemData} />}
 
@@ -691,6 +692,7 @@ function App() {
                     <li><a href="/contact.html" className="text-slate-300 hover:text-gold-bright underline">Contact</a></li>
                     <li><a href="/privacy.html" className="text-slate-300 hover:text-gold-bright underline">Privacy Policy</a></li>
                     <li><a href="/terms.html" className="text-slate-300 hover:text-gold-bright underline">Terms</a></li>
+                    <li><a href={SMARTLINK} target="_blank" rel="sponsored noopener noreferrer" className="text-slate-400 hover:text-gold-bright underline">Sponsored offer ↗</a></li>
                   </ul>
                 </nav>
               </div>
@@ -700,6 +702,7 @@ function App() {
 
           {/* the one-time "what's new" card, on the home page only */}
           {isHomeFilm && <WhatsNewModal onOpen={handleTabChange} />}
+
 
           {/* 6. Item Details Inspection Modal overlay */}
           <ItemInspectModal

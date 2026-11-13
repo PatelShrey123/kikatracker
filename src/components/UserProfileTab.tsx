@@ -11,7 +11,7 @@ import { MatchHistorySection } from './MatchHistorySection';
 import { getSkinRenderUrl, isPlaceholderUrl, cleanTextureUrl, getBaseWeaponRender } from '../utils/skinAssets';
 import { getCachedCatalog } from '../utils/catalogCache';
 import { getVipRoleLabel, getVipType, getVipTextClass, getVipBadgeClass, getVipBackground } from '../utils/vip';
-import { SponsoredCard } from './SponsoredCard';
+import { NativeAd } from './AdSlot';
 interface UserProfileTabProps {
   profile: UserProfile;
   onBack: () => void;
@@ -868,8 +868,8 @@ const UserProfileTabComponent: React.FC<UserProfileTabProps> = ({
         )}
       </div>
 
-      {/* Monetag Direct Link, under whichever profile tab is open */}
-      <SponsoredCard />
+      {/* Adsterra native banner, under whichever profile tab is open */}
+      <NativeAd />
 
 
       <ShareInventoryModal

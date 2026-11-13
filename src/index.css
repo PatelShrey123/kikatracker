@@ -563,9 +563,8 @@ button.bg-spray-lime:active {
   background: #16294D;
 }
 
-
 /* Aim trainer and giveaway roulette: no ads. The app lives entirely in #root (no portals), so anything
-   else an ad script has put on the page is hidden here. */
+   else an ad script (the Social Bar) has put on the page is hidden here. */
 html[data-no-ads] > body > *:not(#root):not(script),
 html[data-no-ads] > *:not(head):not(body) {
   display: none !important;
