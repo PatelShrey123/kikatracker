@@ -283,6 +283,7 @@ export const PAGES = {
     intro: [
       'The Kirka Hub bot brings the site into Discord: profiles, inventory values, skin prices, trades, clan rosters, leaderboards, quests and store alerts, all with slash commands. Link your Kirka account once and commands know who you are.',
       'Kirka Hub is a VIP bot. Server VIP unlocks every command for a whole server; Personal VIP lets you use the bot as your own app in DMs, group chats and any server. You can try /profile, /inventory and /link for free in the Kirka Hub support server, and buy VIP by messaging the owner there.',
+      'One command is free in every server: /skineditor opens the Kirka Hub Skin Editor as a Discord Activity right in the channel. Anyone can join to watch a skin being painted or paint along, live, without a voice call.',
     ],
   },
   guides: {

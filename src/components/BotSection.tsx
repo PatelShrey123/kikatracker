@@ -204,6 +204,16 @@ export const BotSection: React.FC = () => {
 
   const commands: BotCommand[] = [
     {
+      name: '/skineditor',
+      prefix: 'or Apps → KirkaHub → Launch',
+      desc: 'Opens the live Skin Editor right in the channel as a Discord Activity. Anyone can click Join to watch you paint or paint along, and every stroke shows up for everyone at once. No voice channel needed. Free in every server.',
+      options: 'none',
+      example: '/skineditor',
+      category: 'utility',
+      badge: 'FREE · LIVE',
+      badgeColor: 'from-emerald-500 to-teal-500'
+    },
+    {
       name: '/events',
       prefix: '.events [query]',
       desc: 'Browse 2026 Kirka Event Quests slots, weapon types, exact kill and headshot requirements, and live skin circulation.',
@@ -464,7 +474,7 @@ export const BotSection: React.FC = () => {
 
             <p className="inline-flex items-start gap-2 text-left px-3 py-2 rounded-md border border-gold-primary/30 bg-gold-primary/10 text-sm text-gold-bright font-semibold">
               <Crown className="w-4 h-4 mt-0.5 shrink-0" />
-              <span>KirkaHub is a VIP bot: servers and players need VIP to use its commands. Try <code>/profile</code>, <code>/inventory</code> and <code>/link</code> free in the support server.</span>
+              <span>KirkaHub is a VIP bot: servers and players need VIP to use its commands. <code>/skineditor</code>, the live Skin Editor, is free in every server, and you can try <code>/profile</code>, <code>/inventory</code> and <code>/link</code> free in the support server.</span>
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
@@ -773,7 +783,7 @@ export const BotSection: React.FC = () => {
                 Get <span className="text-gold-bright">KirkaHub VIP</span>
               </h2>
               <p className="text-slate-300 text-sm leading-relaxed">
-                KirkaHub is a VIP-only bot. In a server without VIP the bot only has <code className="text-gold-bright">/buy</code>, and using it in DMs, group chats or through &ldquo;Add to my apps&rdquo; needs Personal VIP. VIP unlocks every command, including the ones added later.
+                KirkaHub is a VIP-only bot. In a server without VIP the bot only has <code className="text-gold-bright">/buy</code> and the free <code className="text-gold-bright">/skineditor</code>, and using it in DMs, group chats or through &ldquo;Add to my apps&rdquo; needs Personal VIP. VIP unlocks every command, including the ones added later.
               </p>
             </div>
 
@@ -788,7 +798,7 @@ export const BotSection: React.FC = () => {
               </div>
               <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-5 space-y-2">
                 <div className="flex items-center gap-2 text-emerald-300"><Gift className="w-5 h-5" /><h3 className="text-base font-bold">Free to try</h3></div>
-                <p className="text-sm text-slate-300 leading-relaxed"><code>/profile</code>, <code>/inventory</code> and <code>/link</code> are free for everyone in the KirkaHub support server.</p>
+                <p className="text-sm text-slate-300 leading-relaxed"><code>/skineditor</code> is free in every server: paint a skin live while the channel watches or joins in. <code>/profile</code>, <code>/inventory</code> and <code>/link</code> are free in the KirkaHub support server.</p>
               </div>
             </div>
 
