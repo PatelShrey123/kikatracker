@@ -10,24 +10,29 @@ import { DISCORD_CLIENT_ID, LIVE_SKIN_HOST } from '../utils/liveSkin';
 // URL Mappings set for the app in the Developer Portal.
 if (LIVE_SKIN_HOST) patchUrlMappings([{ prefix: '/live', target: LIVE_SKIN_HOST }]);
 
-/** Discord's instance id is long and has characters a room name can't; a short hash of it is enough. */
-function roomFor(instanceId: string): string {
+/** A room name from Discord's ids: a short hash, since room names are short and plain. */
+function roomFor(id: string): string {
   let h = 2166136261;
-  for (let i = 0; i < instanceId.length; i++) h = Math.imul(h ^ instanceId.charCodeAt(i), 16777619);
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
   return `dc${(h >>> 0).toString(36)}`;
 }
 
 export default function ActivityApp() {
   const [room, setRoom] = useState<string | null>(null);
+  const [sdk, setSdk] = useState<DiscordSDK | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const sdk = new DiscordSDK(DISCORD_CLIENT_ID);
-        await sdk.ready();
-        if (!cancelled) setRoom(roomFor(sdk.instanceId));
+        const discord = new DiscordSDK(DISCORD_CLIENT_ID);
+        await discord.ready();
+        if (cancelled) return;
+        // One room per channel: whoever opens the editor in this channel (the command, the Launch button or
+        // the bot's Join button) paints the same skin, even if Discord gives them separate sessions.
+        setRoom(roomFor(discord.channelId || discord.instanceId));
+        setSdk(discord);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err));
       }
@@ -47,5 +52,11 @@ export default function ActivityApp() {
       </div>
     );
   }
-  return <SkinEditorSection liveRoom={room} inActivity />;
+  return (
+    <SkinEditorSection
+      liveRoom={room}
+      inActivity
+      onInvite={sdk ? () => { void sdk.commands.openInviteDialog().catch(() => {}); } : undefined}
+    />
+  );
 }

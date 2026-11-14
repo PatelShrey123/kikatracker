@@ -22,6 +22,8 @@ interface SkinEditorSectionProps {
   liveRoom?: string;
   /** Running inside Discord: no room link or leave link, no ads. */
   inActivity?: boolean;
+  /** Inside Discord: opens Discord's invite window so others can join. */
+  onInvite?: () => void;
 }
 
 const TOOLS: { id: Tool; label: string; key: string; icon: React.ElementType; hint: string }[] = [
@@ -139,7 +141,7 @@ const BodyFigure: React.FC<{
   );
 };
 
-export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [], liveRoom, inActivity = false }) => {
+export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [], liveRoom, inActivity = false, onInvite }) => {
   const [tool, setTool] = useState<Tool>('pencil');
   const [color, setColor] = useState('#E3202E');
   const [recent, setRecent] = useState<string[]>([]);
@@ -163,8 +165,12 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const [importing, setImporting] = useState(false);
   // live room (?room=abc): everyone in it paints and sees the same skin
   const room = useMemo(() => (LIVE_SKIN_URL ? liveRoom || roomFromUrl() : null), [liveRoom]);
-  const [livePeople, setLivePeople] = useState<{ names: string[]; me: string }>({ names: [], me: '' });
+  const [livePeople, setLivePeople] = useState<{ names: string[]; me: string; host: string | null }>({ names: [], me: '', host: null });
   const [liveState, setLiveState] = useState<'connecting' | 'live' | 'offline'>('connecting');
+  // in a room the host paints and everyone else watches, unless the host lets everyone paint
+  const [liveRole, setLiveRole] = useState<{ host: boolean; open: boolean }>({ host: false, open: false });
+  const watchOnly = useRef(!!room);
+  const liveSocket = useRef<WebSocket | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const flatRef = useRef<HTMLCanvasElement>(null);
@@ -452,6 +458,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       pickFrom(i);
       return false;
     }
+    if (watchOnly.current) return false; // watching someone else's live room
     stroke.current = { before: new Uint8ClampedArray(pixels.current), touched: new Set(), last: i, changed: false };
     if (t === 'fill') floodFill(i);
     else if (t === 'replace') swapColor(i);
@@ -594,7 +601,8 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       }
       const { tool: t } = live.current;
       let i = -1;
-      if (t !== 'move') {
+      // watching a live room: dragging the model only turns it (picking a colour still works)
+      if (t !== 'move' && !(watchOnly.current && t !== 'picker' && !e.altKey)) {
         const hits = pixelsUnder(e);
         // Painting hits whatever's in front, so an outer layer that's showing takes the brush. Picking
         // reads what you can see, which passes through outer pixels that have no paint on them.
@@ -766,14 +774,28 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       setLiveState('connecting');
       const sock = new WebSocket(`${LIVE_SKIN_URL}?room=${encodeURIComponent(room)}&name=${encodeURIComponent(me)}`);
       ws = sock;
+      liveSocket.current = sock;
       sock.onmessage = async (e) => {
         const msg = JSON.parse(String(e.data));
         if (msg.type === 'people') {
-          setLivePeople({ names: msg.names, me });
-        } else if (msg.type === 'empty') {
-          await restoreDraft();
+          setLivePeople({ names: msg.names, me, host: msg.host ?? null });
+        } else if (msg.type === 'role') {
+          watchOnly.current = !(msg.host || msg.open);
+          setLiveRole({ host: !!msg.host, open: !!msg.open });
+        } else if (msg.type === 'need-full') {
+          // the room has no skin yet and we may paint: this skin becomes the room's
           ready = true;
           sendFull();
+          setLiveState('live');
+        } else if (msg.type === 'empty') {
+          ready = true;
+          if (watchOnly.current) {
+            // the host hasn't sent the skin yet: wait for it rather than bring our own
+            snapshot();
+          } else {
+            await restoreDraft();
+            sendFull();
+          }
           setLiveState('live');
         } else if (msg.type === 'full') {
           const next = b64ToPixels(msg.pixels);
@@ -808,6 +830,18 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     const tick = window.setInterval(() => {
       if (!ready || ws?.readyState !== WebSocket.OPEN) return;
       const d = pixels.current;
+      if (watchOnly.current) {
+        // watching: anything changed here (undo, New, Open PNG...) is put back to the room's skin
+        let changed = keyNow() !== sentKey || sent.length !== d.length;
+        for (let o = 0; !changed && o < d.length; o++) changed = d[o] !== sent[o];
+        if (changed && sent.length) {
+          const [m, s] = sentKey.split('/');
+          if (keyNow() !== sentKey) applyModel(m === 'default' ? 'default' : 'slim', Number(s) === 128 ? 128 : 64);
+          pixels.current = new Uint8ClampedArray(sent);
+          refresh();
+        }
+        return;
+      }
       if (keyNow() !== sentKey || sent.length !== d.length) return sendFull();
       const px: number[][] = [];
       for (let o = 0; o < d.length; o += 4) {
@@ -826,8 +860,13 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       window.clearInterval(tick);
       window.clearTimeout(retry);
       ws?.close();
+      liveSocket.current = null;
     };
   }, [room, applyModel, refresh, restoreDraft]);
+
+  const setOthersCanPaint = (open: boolean) => {
+    liveSocket.current?.send(JSON.stringify({ type: 'open', open }));
+  };
 
   // ---------------------------------------------------------------- keyboard
   useEffect(() => {
@@ -1092,10 +1131,34 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           <span className="flex flex-wrap items-center gap-1.5">
             {livePeople.names.map((n, i) => (
               <span key={`${n}-${i}`} className={`px-2 py-0.5 border border-red-300/40 ${n === livePeople.me ? 'bg-red-900/60 font-bold' : ''}`}>
-                {n}{n === livePeople.me ? ' (you)' : ''}
+                {n === livePeople.host ? '👑 ' : ''}{n}{n === livePeople.me ? ' (you)' : ''}
               </span>
             ))}
           </span>
+          {liveState === 'live' && (liveRole.host ? (
+            <label className="flex items-center gap-2 font-bold cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={liveRole.open}
+                onChange={(e) => setOthersCanPaint(e.target.checked)}
+                className="w-4 h-4 accent-red-500 cursor-pointer"
+              />
+              Let others paint
+            </label>
+          ) : (
+            <span className="font-bold text-red-200/90">
+              {liveRole.open ? '🎨 You can paint too' : `👀 Watching${livePeople.host ? `: only ${livePeople.host} paints` : ''}`}
+            </span>
+          ))}
+          {inActivity && onInvite && (
+            <button
+              type="button"
+              onClick={onInvite}
+              className="ml-auto px-3 py-1 border-2 border-[var(--ink)] bg-red-500 text-white font-bold cursor-pointer shadow-[2px_2px_0_var(--ink)]"
+            >
+              Invite people
+            </button>
+          )}
           {!inActivity && (
             <>
               <button
