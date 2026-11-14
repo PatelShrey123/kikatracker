@@ -3,7 +3,7 @@ import { BufferGeometry, Float32BufferAttribute, LineBasicMaterial, LineSegments
 import { SkinViewer, IdleAnimation, WalkingAnimation, RunningAnimation } from 'skinview3d';
 import {
   Brush, Pencil, Eraser, PaintBucket, Pipette, Sun, Moon, Sparkles, Replace, Hand, Undo2, Redo2, Upload, Download,
-  FilePlus2, FlipHorizontal2, Grid3x3, Layers, Search, Loader2,
+  FilePlus2, FlipHorizontal2, Grid3x3, Layers, Search, Loader2, Radio,
 } from 'lucide-react';
 import { cleanTextureUrl, getProxiedTextureUrl, isPlaceholderUrl } from '../utils/skinAssets';
 import {
@@ -11,12 +11,17 @@ import {
 } from '../utils/skinLayout';
 import type { SkinModel, PartName, SkinSize } from '../utils/skinLayout';
 import { NativeAd, BoxAd } from './AdSlot';
+import { LIVE_SKIN_URL, roomFromUrl, newRoomId, pixelsToB64, b64ToPixels } from '../utils/liveSkin';
 
 type Tool = 'pencil' | 'eraser' | 'fill' | 'replace' | 'picker' | 'lighten' | 'darken' | 'noise' | 'move';
 type Motion = 'still' | 'idle' | 'walk' | 'run';
 
 interface SkinEditorSectionProps {
   catalog?: any[];
+  /** Join this live room (the Discord Activity passes one). Otherwise a ?room= link decides. */
+  liveRoom?: string;
+  /** Running inside Discord: no room link or leave link, no ads. */
+  inActivity?: boolean;
 }
 
 const TOOLS: { id: Tool; label: string; key: string; icon: React.ElementType; hint: string }[] = [
@@ -134,7 +139,7 @@ const BodyFigure: React.FC<{
   );
 };
 
-export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [] }) => {
+export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [], liveRoom, inActivity = false }) => {
   const [tool, setTool] = useState<Tool>('pencil');
   const [color, setColor] = useState('#E3202E');
   const [recent, setRecent] = useState<string[]>([]);
@@ -156,6 +161,10 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const [username, setUsername] = useState('');
   const [kirkaName, setKirkaName] = useState('');
   const [importing, setImporting] = useState(false);
+  // live room (?room=abc): everyone in it paints and sees the same skin
+  const room = useMemo(() => (LIVE_SKIN_URL ? liveRoom || roomFromUrl() : null), [liveRoom]);
+  const [livePeople, setLivePeople] = useState<{ names: string[]; me: string }>({ names: [], me: '' });
+  const [liveState, setLiveState] = useState<'connecting' | 'live' | 'offline'>('connecting');
 
   const stageRef = useRef<HTMLDivElement>(null);
   const flatRef = useRef<HTMLCanvasElement>(null);
@@ -247,6 +256,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
 
   // ---------------------------------------------------------------- history and draft
   const saveDraft = useCallback(() => {
+    if (room) return; // a shared room's skin isn't your own draft
     try {
       const c = document.createElement('canvas');
       c.width = c.height = live.current.size;
@@ -255,7 +265,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     } catch {
       // private window or full storage: the editor still works, it just won't remember
     }
-  }, []);
+  }, [room]);
 
   const syncHistory = useCallback(() => {
     setCanUndo(undoStack.current.length > 0);
@@ -705,27 +715,119 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   }, [drawFlat, grid, mirror, model, size, showBody, showOuter, parts]);
 
   // ---------------------------------------------------------------- restore the draft, once
+  const restoreDraft = useCallback(async (isCancelled: () => boolean = () => false) => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as { model: SkinModel; png: string };
+      const img = await loadImage(draft.png);
+      const data = imageToPixels(img);
+      if (!data || isCancelled()) return;
+      pixels.current = data.pixels;
+      applyModel(draft.model === 'default' ? 'default' : 'slim', data.size);
+      refresh();
+    } catch {
+      // no storage or a damaged draft: start from the mannequin
+    }
+  }, [applyModel, refresh]);
+
   useEffect(() => {
+    if (room) return; // in a room the skin comes from the room (the first person in brings their draft)
     let cancelled = false;
-    (async () => {
-      try {
-        const raw = localStorage.getItem(DRAFT_KEY);
-        if (!raw) return;
-        const draft = JSON.parse(raw) as { model: SkinModel; png: string };
-        const img = await loadImage(draft.png);
-        const data = imageToPixels(img);
-        if (!data || cancelled) return;
-        pixels.current = data.pixels;
-        applyModel(draft.model === 'default' ? 'default' : 'slim', data.size);
-        refresh();
-      } catch {
-        // no storage or a damaged draft: start from the mannequin
-      }
-    })();
+    void restoreDraft(() => cancelled);
     return () => {
       cancelled = true;
     };
-  }, [applyModel, refresh]);
+  }, [restoreDraft, room]);
+
+  // ---------------------------------------------------------------- live room
+  // Every 80 ms the pixels that changed since the last send go to the room; changes from others are written
+  // straight into the skin. Works with every tool, since it only looks at the pixels.
+  useEffect(() => {
+    if (!room || !LIVE_SKIN_URL) return;
+    const me = `Painter ${Math.floor(1000 + Math.random() * 9000)}`;
+    let ws: WebSocket | null = null;
+    let ready = false; // has the room's skin, or brought the first one
+    let stopped = false;
+    let retry: number | undefined;
+    let sent = new Uint8ClampedArray(0);
+    let sentKey = '';
+    const keyNow = () => `${live.current.model}/${live.current.size}`;
+    const snapshot = () => {
+      sent = new Uint8ClampedArray(pixels.current);
+      sentKey = keyNow();
+    };
+    const sendFull = () => {
+      ws?.send(JSON.stringify({ type: 'full', model: live.current.model, size: live.current.size, pixels: pixelsToB64(pixels.current) }));
+      snapshot();
+    };
+
+    const connect = () => {
+      setLiveState('connecting');
+      const sock = new WebSocket(`${LIVE_SKIN_URL}?room=${encodeURIComponent(room)}&name=${encodeURIComponent(me)}`);
+      ws = sock;
+      sock.onmessage = async (e) => {
+        const msg = JSON.parse(String(e.data));
+        if (msg.type === 'people') {
+          setLivePeople({ names: msg.names, me });
+        } else if (msg.type === 'empty') {
+          await restoreDraft();
+          ready = true;
+          sendFull();
+          setLiveState('live');
+        } else if (msg.type === 'full') {
+          const next = b64ToPixels(msg.pixels);
+          if (next.length !== msg.size * msg.size * 4) return;
+          pixels.current = next;
+          applyModel(msg.model, msg.size);
+          refresh();
+          snapshot();
+          ready = true;
+          setLiveState('live');
+        } else if (msg.type === 'diff' && ready && msg.key === keyNow()) {
+          const d = pixels.current;
+          for (const [i, r, g, b, a] of msg.px as number[][]) {
+            const o = i * 4;
+            d[o] = sent[o] = r;
+            d[o + 1] = sent[o + 1] = g;
+            d[o + 2] = sent[o + 2] = b;
+            d[o + 3] = sent[o + 3] = a;
+          }
+          refresh();
+        }
+      };
+      sock.onclose = () => {
+        ready = false;
+        if (stopped) return;
+        setLiveState('offline');
+        retry = window.setTimeout(connect, 2000);
+      };
+    };
+    connect();
+
+    const tick = window.setInterval(() => {
+      if (!ready || ws?.readyState !== WebSocket.OPEN) return;
+      const d = pixels.current;
+      if (keyNow() !== sentKey || sent.length !== d.length) return sendFull();
+      const px: number[][] = [];
+      for (let o = 0; o < d.length; o += 4) {
+        if (d[o] !== sent[o] || d[o + 1] !== sent[o + 1] || d[o + 2] !== sent[o + 2] || d[o + 3] !== sent[o + 3]) {
+          px.push([o / 4, d[o], d[o + 1], d[o + 2], d[o + 3]]);
+          if (px.length > 1500) return sendFull(); // a big change (fill, new skin, undo): send it whole
+        }
+      }
+      if (!px.length) return;
+      sent.set(d);
+      ws.send(JSON.stringify({ type: 'diff', key: sentKey, px }));
+    }, 80);
+
+    return () => {
+      stopped = true;
+      window.clearInterval(tick);
+      window.clearTimeout(retry);
+      ws?.close();
+    };
+  }, [room, applyModel, refresh, restoreDraft]);
 
   // ---------------------------------------------------------------- keyboard
   useEffect(() => {
@@ -951,6 +1053,16 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
+          {LIVE_SKIN_URL && !room && (
+            <button
+              type="button"
+              onClick={() => { window.location.search = `?room=${newRoomId()}`; }}
+              title="Open a live room: everyone with the link paints and sees this skin together"
+              className={`${action} !bg-[#3D1A20] !text-red-200`}
+            >
+              <Radio className="w-4 h-4" /> Go live
+            </button>
+          )}
           <button type="button" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" className={action}><Undo2 className="w-4 h-4" /> Undo</button>
           <button type="button" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)" className={action}><Redo2 className="w-4 h-4" /> Redo</button>
           <button type="button" onClick={newSkin} className={action}><FilePlus2 className="w-4 h-4" /> New</button>
@@ -970,6 +1082,34 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           </button>
         </div>
       </header>
+
+      {room && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-2 border-[var(--ink)] bg-[#3D1A20] px-3 py-2 text-[14px] text-red-100 shadow-[3px_3px_0_var(--ink)]">
+          <span className="flex items-center gap-1.5 font-bold">
+            <span className={`w-2.5 h-2.5 rounded-full ${liveState === 'live' ? 'bg-red-500 animate-pulse' : 'bg-slate-500'}`} />
+            {liveState === 'live' ? 'LIVE' : liveState === 'connecting' ? 'Connecting…' : 'Reconnecting…'} · room {room}
+          </span>
+          <span className="flex flex-wrap items-center gap-1.5">
+            {livePeople.names.map((n, i) => (
+              <span key={`${n}-${i}`} className={`px-2 py-0.5 border border-red-300/40 ${n === livePeople.me ? 'bg-red-900/60 font-bold' : ''}`}>
+                {n}{n === livePeople.me ? ' (you)' : ''}
+              </span>
+            ))}
+          </span>
+          {!inActivity && (
+            <>
+              <button
+                type="button"
+                onClick={() => { void navigator.clipboard?.writeText(window.location.href); say('Room link copied. Anyone who opens it joins this skin.'); }}
+                className="ml-auto underline cursor-pointer"
+              >
+                Copy room link
+              </button>
+              <a href={window.location.pathname} className="underline">Leave</a>
+            </>
+          )}
+        </div>
+      )}
 
       {notice && (
         // floats over the page: a bar in the flow would shift the canvas under the brush when it comes and goes
@@ -1089,10 +1229,12 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           </div>
           <p className="text-[13px] font-bold text-slate-500">Drag on the model to paint. Drag beside it, or right-drag anywhere, to turn it. Scroll to zoom.</p>
           {/* two 300x250 boxes side by side where there is room for both */}
-          <div className="!mt-4 flex flex-wrap justify-center gap-4">
-            <BoxAd />
-            <BoxAd className="hidden sm:flex" />
-          </div>
+          {!inActivity && (
+            <div className="!mt-4 flex flex-wrap justify-center gap-4">
+              <BoxAd />
+              <BoxAd className="hidden sm:flex" />
+            </div>
+          )}
         </section>
 
         {/* Flat sheet */}
@@ -1116,8 +1258,8 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[13px] font-bold text-slate-400 min-h-5">{hover || 'Blue outlines are the outer layer, cream are the body.'}</span>
           </div>
-          <BoxAd className="!mt-4" />
-          <NativeAd className="!mt-4" />
+          {!inActivity && <BoxAd className="!mt-4" />}
+          {!inActivity && <NativeAd className="!mt-4" />}
         </section>
       </div>
 
