@@ -302,61 +302,12 @@ function App() {
 
   // No ads in the aim trainer or the giveaway roulette (a game and a stream tool): the flag hides the
   // Social Bar there (index.css). Anywhere else it's started if it isn't running yet.
-  // Monetag can't be paused once loaded. Three kinds of page:
-  //  - aim trainer, giveaway: no Monetag at all
-  //  - skin editor (people click all over it to paint): In-Page Push and Vignette zones only, no popunder
-  //  - everything else: the Multitag (popunder, push, in-page push, vignette)
-  // scripts/prerender.mjs serves each page with the right tags. Moving inside the app to a page that must have
-  // fewer ads reloads it; moving to a page with more ads adds the tag, unless the skin editor's tags are already
-  // running (they'd show twice), in which case those stay until the next full page load.
   useEffect(() => {
-    const live = import.meta.env.PROD; // the built site (live, or the production build served locally), not the dev server
-    const path = location.pathname; // counts too: on first load the tab starts as 'search' before the route is read
-    const mode =
-      ['aimtrainer', 'giveaway'].includes(activeTab) || /\/(aimtrainer|aim-trainer|giveaway|roulette)\/?$/i.test(path) ? 'none'
-      : activeTab === 'skineditor' || /\/(skineditor|skin-editor)\/?$/i.test(path) ? 'nopop'
-      : 'all';
-    const multitag = !!document.querySelector('script[src*="quge5.com"]');
-    const partial = !!document.querySelector('script[src*="nap5k.com"], script[src*="n6wxm.com"]');
-
-    const reloadClean = () => {
-      const target = mode === 'nopop' ? '/skineditor' : /giveaway|roulette/i.test(path) || activeTab === 'giveaway' ? '/giveaway' : '/aimtrainer';
-      // guard against a reload loop if the served page ever still has the wrong tags: never reload to the
-      // same page twice within 15 seconds
-      let recent = false;
-      try {
-        const [lastTarget, lastTime] = (sessionStorage.getItem('kh-ads-reload') || '').split('|');
-        recent = lastTarget === target && Date.now() - Number(lastTime || 0) < 15000;
-        sessionStorage.setItem('kh-ads-reload', `${target}|${Date.now()}`);
-      } catch { /* storage blocked */ }
-      if (!recent) window.location.replace(target);
-    };
-    const addScript = (src: string, zone: string, extra?: (s: HTMLScriptElement) => void) => {
-      const s = document.createElement('script');
-      s.src = src;
-      s.dataset.zone = zone;
-      s.async = true;
-      extra?.(s);
-      document.head.appendChild(s);
-    };
-
-    if (mode === 'none') {
+    if (['aimtrainer', 'giveaway'].includes(activeTab)) {
       document.documentElement.dataset.noAds = '';
-      if (live && (multitag || partial)) reloadClean();
       return;
     }
     delete document.documentElement.dataset.noAds;
-    if (live) {
-      if (mode === 'nopop') {
-        if (multitag) reloadClean();
-        else if (!partial) {
-          addScript('https://nap5k.com/tag.min.js', '12252591');
-          addScript('https://n6wxm.com/vignette.min.js', '12252595');
-        }
-      } else if (!multitag && !partial) {
-        addScript('https://quge5.com/88/tag.min.js', '309573', (s) => { s.dataset.cfasync = 'false'; });
-      }
-    }
     if (!isLoading) loadSocialBar();
   }, [activeTab, isLoading]);
 
