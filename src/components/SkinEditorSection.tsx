@@ -3,7 +3,7 @@ import { BufferGeometry, Float32BufferAttribute, LineBasicMaterial, LineSegments
 import { SkinViewer, IdleAnimation, WalkingAnimation, RunningAnimation } from 'skinview3d';
 import {
   Brush, Pencil, Eraser, PaintBucket, Pipette, Sun, Moon, Sparkles, Replace, Hand, Undo2, Redo2, Upload, Download,
-  FilePlus2, FlipHorizontal2, Grid3x3, Layers, Search, Loader2, Radio,
+  FilePlus2, FlipHorizontal2, Grid3x3, Layers, Search, Loader2, Radio, Images, X,
 } from 'lucide-react';
 import { cleanTextureUrl, getProxiedTextureUrl, isPlaceholderUrl } from '../utils/skinAssets';
 import {
@@ -12,6 +12,9 @@ import {
 import type { SkinModel, PartName, SkinSize } from '../utils/skinLayout';
 import { NativeAd, BoxAd } from './AdSlot';
 import { No3DHelp, OfflineHelp } from './SkinEditorHelp';
+import { drawFrontBack } from '../utils/skinPreview';
+import { EDITOR_DRAFT_KEY, getMe, postSkin, signInUrl, galleryUrl } from '../utils/gallery';
+import type { GalleryUser } from '../utils/gallery';
 import { LIVE_SKIN_URL, roomFromUrl, newRoomId, pixelsToB64, b64ToPixels } from '../utils/liveSkin';
 
 type Tool = 'pencil' | 'eraser' | 'fill' | 'replace' | 'picker' | 'lighten' | 'darken' | 'noise' | 'move';
@@ -27,6 +30,10 @@ interface SkinEditorSectionProps {
   onInvite?: () => void;
   /** The name others see in the live room (the Discord Activity passes the Discord name). */
   liveName?: string;
+  /** Inside Discord: the person's Discord sign-in, for posting to the gallery. */
+  discordUser?: GalleryUser;
+  /** Inside Discord, links have to be opened through Discord. */
+  onOpenLink?: (url: string) => void;
 }
 
 const TOOLS: { id: Tool; label: string; key: string; icon: React.ElementType; hint: string }[] = [
@@ -51,7 +58,7 @@ const FLAT_PX = 640;
 const HISTORY_LIMIT = 100;
 const SHADE_STEP = 0.14;
 const NOISE_RANGE = 22;
-const DRAFT_KEY = 'kirkahub_skin_editor_draft_v1';
+const DRAFT_KEY = EDITOR_DRAFT_KEY;
 
 const hexToRgb = (hex: string): [number, number, number] => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 const rgbToHex = (r: number, g: number, b: number) => `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
@@ -66,39 +73,6 @@ const painterColour = (name: string) => {
 };
 const MAX_PIXEL_LIMIT = 10000;
 
-// ---------------------------------------------------------------- 2D preview, for browsers without WebGL
-const DOLL_SCALE = 12; // screen pixels per skin pixel (at 64x64)
-const DOLL_GAP = 6; // skin pixels between the front and the back
-
-/** Draws the character from the front and from the back, flat, the way the 3D model would show it. */
-function drawFrontBack(canvas: HTMLCanvasElement, source: HTMLCanvasElement, model: SkinModel, size: SkinSize) {
-  const aw = model === 'slim' ? 3 : 4;
-  const viewW = 8 + aw * 2;
-  canvas.width = (viewW * 2 + DOLL_GAP) * DOLL_SCALE;
-  canvas.height = 32 * DOLL_SCALE;
-  const ctx = canvas.getContext('2d')!;
-  ctx.imageSmoothingEnabled = false;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const { faces } = getSkinLayout(model, size);
-  // where each part sits in a view, in skin pixels; from behind, left and right swap sides
-  const spots = (back: boolean): [PartName, number, number, number, number][] => [
-    ['head', aw, 0, 8, 8],
-    ['body', aw, 8, 8, 12],
-    [back ? 'leftArm' : 'rightArm', 0, 8, aw, 12],
-    [back ? 'rightArm' : 'leftArm', aw + 8, 8, aw, 12],
-    [back ? 'leftLeg' : 'rightLeg', aw, 20, 4, 12],
-    [back ? 'rightLeg' : 'leftLeg', aw + 4, 20, 4, 12],
-  ];
-  for (const [back, ox] of [[false, 0], [true, viewW + DOLL_GAP]] as const) {
-    for (const overlay of [false, true]) {
-      for (const [part, x, y, w, h] of spots(back)) {
-        const f = faces.find((fc) => fc.part === part && fc.overlay === overlay && fc.face === (back ? 'back' : 'front'));
-        if (!f) continue;
-        ctx.drawImage(source, f.rect.x, f.rect.y, f.rect.w, f.rect.h, (ox + x) * DOLL_SCALE, y * DOLL_SCALE, w * DOLL_SCALE, h * DOLL_SCALE);
-      }
-    }
-  }
-}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -187,7 +161,7 @@ const BodyFigure: React.FC<{
   );
 };
 
-export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [], liveRoom, inActivity = false, onInvite, liveName }) => {
+export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [], liveRoom, inActivity = false, onInvite, liveName, discordUser, onOpenLink }) => {
   const [tool, setTool] = useState<Tool>('pencil');
   const [color, setColor] = useState('#E3202E');
   const [recent, setRecent] = useState<string[]>([]);
@@ -228,6 +202,8 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const [quotaView, setQuotaView] = useState({ limit: 0, used: 0 });
   const [limitDraft, setLimitDraft] = useState('');
   const [no3d, setNo3d] = useState(false);
+  // posting to the gallery
+  const [posting, setPosting] = useState<null | { name: string; user: GalleryUser | null | undefined; busy: boolean; error: string; posted: string }>(null);
   const [offlineLong, setOfflineLong] = useState(false); // the live room hasn't connected for a while
 
   const stageRef = useRef<HTMLDivElement>(null);
@@ -326,17 +302,22 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   }, [drawFlat, pushToViewer]);
 
   // ---------------------------------------------------------------- history and draft
+  /** The skin as it is now, as a PNG data URL. */
+  const skinPng = useCallback(() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = live.current.size;
+    c.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(pixels.current), live.current.size, live.current.size), 0, 0);
+    return c.toDataURL('image/png');
+  }, []);
+
   const saveDraft = useCallback(() => {
     if (room) return; // a shared room's skin isn't your own draft
     try {
-      const c = document.createElement('canvas');
-      c.width = c.height = live.current.size;
-      c.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(pixels.current), live.current.size, live.current.size), 0, 0);
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ model: live.current.model, png: c.toDataURL('image/png') }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ model: live.current.model, png: skinPng() }));
     } catch {
       // private window or full storage: the editor still works, it just won't remember
     }
-  }, [room]);
+  }, [room, skinPng]);
 
   const syncHistory = useCallback(() => {
     setCanUndo(undoStack.current.length > 0);
@@ -1125,13 +1106,61 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   };
 
   const downloadSkin = () => {
-    const c = document.createElement('canvas');
-    c.width = c.height = live.current.size;
-    c.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(pixels.current), live.current.size, live.current.size), 0, 0);
     const link = document.createElement('a');
     link.download = `kirkahub-skin-${live.current.model === 'slim' ? 'slim' : 'classic'}-${live.current.size}.png`;
-    link.href = c.toDataURL('image/png');
+    link.href = skinPng();
     link.click();
+  };
+
+  // ---------------------------------------------------------------- post to the gallery
+  const openPost = () => {
+    setPosting({ name: '', user: inActivity ? discordUser ?? null : undefined, busy: false, error: '', posted: '' });
+    if (!inActivity) void getMe().then((u) => setPosting((p) => (p ? { ...p, user: u } : p)));
+  };
+
+  // back from signing in to post: carry on where they were
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('post') !== '1') return;
+    params.delete('post');
+    const rest = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (rest ? `?${rest}` : ''));
+    openPost();
+    // runs once, on arrival
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const signInToPost = () => {
+    // keep the skin through the trip to Discord: it comes back as the editor's draft (a room keeps its own)
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ model: live.current.model, png: skinPng() }));
+    } catch {
+      // no storage here: a room still has the skin, a solo skin would be lost, which is rare enough
+    }
+    const params = new URLSearchParams(window.location.search);
+    params.set('post', '1');
+    window.location.href = signInUrl(`${window.location.pathname}?${params.toString()}`);
+  };
+
+  /** Whoever painted in this live session besides me, for the credits. */
+  const coPainters = () => Object.keys(painterCounts).filter((n) => n !== livePeople.me);
+
+  const submitPost = async () => {
+    if (!posting) return;
+    const name = posting.name.trim();
+    if (name.length < 2) return setPosting({ ...posting, error: 'Give your skin a name.' });
+    setPosting({ ...posting, busy: true, error: '' });
+    try {
+      const { id } = await postSkin({ name, model: live.current.model, size: live.current.size, png: skinPng(), painters: room ? coPainters() : [] });
+      setPosting((p) => (p ? { ...p, busy: false, posted: id } : p));
+    } catch (err) {
+      setPosting((p) => (p ? { ...p, busy: false, error: err instanceof Error ? err.message : String(err) } : p));
+    }
+  };
+
+  const viewPosted = (id: string) => {
+    if (onOpenLink) onOpenLink(galleryUrl(id));
+    else window.location.href = `/gallery/${id}`;
   };
 
   const newSkin = () => {
@@ -1276,6 +1305,9 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
               e.target.value = '';
             }}
           />
+          <button type="button" onClick={openPost} title="Share this skin in the Kirka Hub skin gallery" className={action}>
+            <Images className="w-4 h-4" /> Post to gallery
+          </button>
           <button type="button" onClick={downloadSkin} className="display flex items-center gap-1.5 h-9 px-4 bg-gold-primary text-[18px] cursor-pointer">
             <Download className="w-4 h-4" /> Download
           </button>
@@ -1371,6 +1403,74 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       )}
 
       {room && offlineLong && <OfflineHelp inActivity={inActivity} />}
+
+      {posting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => !posting.busy && setPosting(null)}>
+          <div
+            role="dialog"
+            aria-label="Post to the gallery"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-obsidian-card border-2 border-[var(--ink)] shadow-[6px_6px_0_var(--ink)] p-5 space-y-4 select-text"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="display text-[24px] text-slate-100 flex items-center gap-2"><Images className="w-5 h-5" /> Post to gallery</h2>
+              <button type="button" onClick={() => setPosting(null)} aria-label="Close" className="p-1 text-slate-400 hover:text-slate-100 cursor-pointer"><X className="w-5 h-5" /></button>
+            </div>
+
+            {posting.posted ? (
+              <div className="space-y-3">
+                <p className="text-[15px] text-slate-200 font-bold">Posted! Your skin is in the gallery now.</p>
+                <button type="button" onClick={() => viewPosted(posting.posted)} className="display flex items-center gap-1.5 h-10 px-4 bg-gold-primary text-[18px] cursor-pointer">
+                  See it in the gallery
+                </button>
+              </div>
+            ) : posting.user === undefined ? (
+              <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+            ) : !posting.user ? (
+              inActivity ? (
+                <p className="text-[14px] text-slate-300">
+                  Posting needs your Discord name, and Discord didn't share it. Close the Skin Editor, open it again with <b>/skineditor</b>, and press <b>Authorize</b> when Discord asks.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-[14px] text-slate-300">Sign in with Discord so the gallery can show who made it. Your skin stays here while you do.</p>
+                  <button type="button" onClick={signInToPost} className="px-4 py-2 border-2 border-[var(--ink)] bg-[#5865F2] text-white font-bold cursor-pointer shadow-[2px_2px_0_var(--ink)]">
+                    Sign in with Discord
+                  </button>
+                </div>
+              )
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void submitPost();
+                }}
+                className="space-y-3"
+              >
+                <label className="block space-y-1.5">
+                  <span className="text-[13px] font-bold text-slate-400">Skin name</span>
+                  <input
+                    autoFocus
+                    value={posting.name}
+                    maxLength={40}
+                    onChange={(e) => setPosting({ ...posting, name: e.target.value, error: '' })}
+                    placeholder="e.g. Crimson Ninja"
+                    className="w-full h-10 px-2 bg-obsidian-dark border-2 border-[var(--ink)] text-slate-100 text-[15px] outline-none"
+                  />
+                </label>
+                <p className="text-[13px] text-slate-400">
+                  Posting as <b className="text-slate-200">{posting.user.name}</b>
+                  {room && coPainters().length > 0 && <> · painted with {coPainters().join(', ')}</>}. Anyone can see, download and remix skins in the gallery.
+                </p>
+                {posting.error && <p className="text-[14px] font-bold text-red-300">{posting.error}</p>}
+                <button type="submit" disabled={posting.busy} className="display flex items-center gap-1.5 h-10 px-4 bg-gold-primary text-[18px] cursor-pointer disabled:opacity-50">
+                  {posting.busy && <Loader2 className="w-4 h-4 animate-spin" />} Post it
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {notice && (
         // floats over the page: a bar in the flow would shift the canvas under the brush when it comes and goes

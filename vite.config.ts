@@ -11,16 +11,21 @@ import path from 'path';
 // Only /api/changelog was mounted before, which meant /api/prices 404'd on every page load in
 // dev and the price list silently fell back to the committed JSON — so the sheet, and anything
 // layered on it, could never be tested locally.
-const DEV_API_ROUTES = ['changelog', 'prices', 'bot-stats', 'chat'];
+const DEV_API_ROUTES = ['changelog', 'prices', 'bot-stats', 'chat', 'gallery', 'auth'];
+// paths that Vercel rewrites to a function (vercel.json), mounted the same way here
+const DEV_REWRITES: Record<string, string> = { '/auth/callback': 'auth' };
 
 function apiDevServer() {
   return {
     name: 'api-dev-server',
     apply: 'serve' as const,
     configureServer(server: any) {
-      for (const route of DEV_API_ROUTES) {
-        server.middlewares.use(`/api/${route}`, async (req: any, res: any) => {
+      const mounts: [string, string][] = [...DEV_API_ROUTES.map((r) => [`/api/${r}`, r] as [string, string]), ...Object.entries(DEV_REWRITES)];
+      for (const [mount, route] of mounts) {
+        server.middlewares.use(mount, async (req: any, res: any) => {
           try {
+            // connect strips the mount from req.url; the handlers expect the full path, as on Vercel
+            req.url = req.originalUrl || req.url;
             const mod = await server.ssrLoadModule(`/api/${route}.js`);
             await mod.default(req, {
               setHeader: (k: string, v: string) => res.setHeader(k, v),
@@ -49,6 +54,8 @@ export default defineConfig(({ mode }) => {
   // api/chat.js reads these; they are deliberately not VITE_-prefixed so they never reach the client
   if (env.CHAT_SUPABASE_URL) process.env.CHAT_SUPABASE_URL = env.CHAT_SUPABASE_URL;
   if (env.CHAT_SUPABASE_ANON_KEY) process.env.CHAT_SUPABASE_ANON_KEY = env.CHAT_SUPABASE_ANON_KEY;
+  // the gallery and Discord sign-in (api/gallery.js, api/auth.js)
+  for (const k of ['GALLERY_SUPABASE_URL', 'GALLERY_SUPABASE_KEY', 'GALLERY_ADMIN_IDS', 'DISCORD_CLIENT_SECRET']) if (env[k]) process.env[k] = env[k];
 
   return {
     base: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? '/' : './',

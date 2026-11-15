@@ -6,6 +6,8 @@ import { Loader2 } from 'lucide-react';
 import { SkinEditorSection } from './SkinEditorSection';
 import { ActivityTrouble } from './SkinEditorHelp';
 import { DISCORD_CLIENT_ID, LIVE_SKIN_HOST } from '../utils/liveSkin';
+import { setGalleryToken } from '../utils/gallery';
+import type { GalleryUser } from '../utils/gallery';
 
 // Inside Discord, every request has to go through Discord's proxy. These prefixes match the
 // URL Mappings set for the app in the Developer Portal.
@@ -15,7 +17,7 @@ if (LIVE_SKIN_HOST) patchUrlMappings([{ prefix: '/live', target: LIVE_SKIN_HOST 
  * The person's Discord name. Discord asks them once to let KirkaHub see their username; the bot's server swaps
  * the code for a token (it holds the app secret). Anything going wrong just means a made-up name.
  */
-async function discordName(discord: DiscordSDK): Promise<string | undefined> {
+async function discordSignIn(discord: DiscordSDK): Promise<GalleryUser | undefined> {
   try {
     const { code } = await discord.commands.authorize({ client_id: DISCORD_CLIENT_ID, response_type: 'code', state: '', prompt: 'none', scope: ['identify'] });
     const res = await fetch(`https://${LIVE_SKIN_HOST}/live-skin/token`, {
@@ -26,7 +28,13 @@ async function discordName(discord: DiscordSDK): Promise<string | undefined> {
     if (!res.ok) return undefined;
     const { access_token } = await res.json();
     const { user } = await discord.commands.authenticate({ access_token });
-    return (user.global_name || user.username || '').slice(0, 32) || undefined;
+    // the gallery checks this token with Discord when someone posts from here
+    setGalleryToken(access_token);
+    return {
+      id: user.id,
+      name: (user.global_name || user.username || 'Painter').slice(0, 32),
+      avatar: user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64` : null,
+    };
   } catch {
     return undefined;
   }
@@ -45,7 +53,7 @@ function roomFor(id: string): string {
 export default function ActivityApp() {
   const [room, setRoom] = useState<string | null>(null);
   const [sdk, setSdk] = useState<DiscordSDK | null>(null);
-  const [name, setName] = useState<string | undefined>(undefined);
+  const [me, setMe] = useState<GalleryUser | undefined>(undefined);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -55,9 +63,9 @@ export default function ActivityApp() {
         const discord = new DiscordSDK(DISCORD_CLIENT_ID);
         await discord.ready();
         if (cancelled) return;
-        const me = await within(discordName(discord), 60000, undefined);
+        const signedIn = await within(discordSignIn(discord), 60000, undefined);
         if (cancelled) return;
-        setName(me);
+        setMe(signedIn);
         // One room per channel: whoever opens the editor in this channel (the command, the Launch button or
         // the bot's Join button) paints the same skin, even if Discord gives them separate sessions.
         setRoom(roomFor(discord.channelId || discord.instanceId));
@@ -84,7 +92,9 @@ export default function ActivityApp() {
   return (
     <SkinEditorSection
       liveRoom={room}
-      liveName={name}
+      liveName={me?.name}
+      discordUser={me}
+      onOpenLink={sdk ? (url) => { void sdk.commands.openExternalLink({ url }).catch(() => {}); } : undefined}
       inActivity
       onInvite={sdk ? () => { void sdk.commands.openInviteDialog().catch(() => {}); } : undefined}
     />

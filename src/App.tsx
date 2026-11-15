@@ -20,6 +20,7 @@ const RendersSection = lazy(() => import('./components/RendersSection').then(m =
 const FitSection = lazy(() => import('./components/FitSection').then(m => ({ default: m.FitSection })));
 const ReloadLab = lazy(() => import('./components/ReloadLab').then(m => ({ default: m.ReloadLab })));
 const SkinEditorSection = lazy(() => import('./components/SkinEditorSection').then(m => ({ default: m.SkinEditorSection })));
+const GallerySection = lazy(() => import('./components/GallerySection').then(m => ({ default: m.GallerySection })));
 const AimTrainerSection = lazy(() => import('./components/AimTrainerSection').then(m => ({ default: m.AimTrainerSection })));
 const WrappedSection = lazy(() => import('./components/WrappedSection').then(m => ({ default: m.WrappedSection })));
 const RouletteSection = lazy(() => import('./components/RouletteSection').then(m => ({ default: m.RouletteSection })));
@@ -163,6 +164,12 @@ function App() {
     }
     if (cleanPath === '/skineditor' || cleanPath === '/skin-editor') {
       return { tab: 'skineditor', player: null, clan: null, skin: null };
+    }
+    if (cleanPath === '/gallery' || cleanPath === '/gallery/') {
+      return { tab: 'gallery', player: null, clan: null, skin: null, sub: null };
+    }
+    if (cleanPath.startsWith('/gallery/')) {
+      return { tab: 'gallery', player: null, clan: null, skin: null, sub: cleanPath.split('/gallery/')[1].replace(/\/+$/, '') };
     }
     if (cleanPath === '/aimtrainer' || cleanPath === '/aim-trainer') {
       return { tab: 'aimtrainer', player: null, clan: null, skin: null };
@@ -386,6 +393,9 @@ function App() {
         break;
       case 'fit':
         document.title = 'Kirka 3D Fit Viewer — Flex Your Loadout | Kirka Hub';
+        break;
+      case 'gallery':
+        document.title = 'Skin Gallery: Kirka Skins Made by Players | Kirka Hub';
         break;
       case 'skineditor':
         document.title = 'Free Skin Editor for 3px Slim Skins, in 3D | Kirka Hub';
@@ -655,6 +665,19 @@ function App() {
                     <ReloadLab catalog={allItemData} />
                   )}
 
+                  {activeTab === 'gallery' && (
+                    <GallerySection
+                      skinId={subPage}
+                      onOpen={(id) => {
+                        const prefix = window.location.pathname.startsWith('/kikatracker') ? '/kikatracker' : '';
+                        window.history.pushState(null, '', `${prefix}/gallery${id ? `/${id}` : ''}`);
+                        setSubPage(id);
+                        window.scrollTo(0, 0);
+                      }}
+                      onNavigate={handleTabChange}
+                    />
+                  )}
+
                   {activeTab === 'skineditor' && (
                     <SkinEditorSection catalog={allItemData} />
                   )}
@@ -700,7 +723,7 @@ function App() {
                 </div>
                 {[
                   { title: 'Explore', links: [['prices', 'Skins & Prices'], ['trades', 'Trades Portal'], ['wrapped', 'Kirka Wrapped'], ['daily', 'Daily Leaderboard'], ['clans', 'Clans Registry'], ['guides', 'Guides']] },
-                  { title: 'Make', links: [['skineditor', 'Skin Editor'], ['aimtrainer', 'Aim Trainer'], ['fit', '3D Fit'], ['renders', '3D Renders'], ['reloadlab', 'Reload Lab']] },
+                  { title: 'Make', links: [['skineditor', 'Skin Editor'], ['gallery', 'Skin Gallery'], ['aimtrainer', 'Aim Trainer'], ['fit', '3D Fit'], ['renders', '3D Renders'], ['reloadlab', 'Reload Lab']] },
                 ].map((col) => (
                   <nav key={col.title} aria-label={col.title}>
                     <h2 className="display text-[20px] text-gold-bright leading-none mb-2">{col.title}</h2>

@@ -244,6 +244,16 @@ export const PAGES = {
       'It supports the slim 3px model and the classic 4px model at 64x64 and 128x128. You can start from any existing Kirka character skin, and your work is saved in the browser as you go.',
     ],
   },
+  gallery: {
+    path: '/gallery',
+    title: 'Kirka Skin Gallery — Skins Made by Players | Kirka Hub',
+    description: 'Kirka.io character skins made by players in the Kirka Hub Skin Editor. Like them, download them, or open one in the editor and remix it.',
+    heading: 'Kirka skin gallery',
+    intro: [
+      'The skin gallery collects Kirka.io character skins that players painted in the Kirka Hub Skin Editor, on the website or live together in Discord. Each skin has its own page where it turns in 3D.',
+      'Anyone can browse, download a skin as a PNG, or open it in the Skin Editor to make their own version. Signing in with Discord lets you post your skins and like other people\'s.',
+    ],
+  },
   aimtrainer: {
     path: '/aimtrainer',
     title: 'Kirka Aim Trainer With Your Exact Sensitivity & FOV | Kirka Hub',
