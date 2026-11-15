@@ -27,6 +27,7 @@ const PAGES: Record<Exclude<FilmStopId, 'skin'>, { title: string; links: { id: s
     title: 'Create',
     links: [
       { id: 'skineditor', label: 'Skin Editor', hint: 'Paint your own skin in 3D' },
+      { id: 'gallery', label: 'Skin Gallery', hint: 'Skins made by players' },
       { id: 'aimtrainer', label: 'Aim Trainer', hint: 'Your Kirka sens, FOV and crosshair' },
       { id: 'fit', label: '3D Fit', hint: 'Build and show off a loadout' },
       { id: 'reloadlab', label: 'Reload Lab', hint: 'Reloads on real weapon models' },
