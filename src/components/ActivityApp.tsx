@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { DiscordSDK, patchUrlMappings } from '@discord/embedded-app-sdk';
 import { Loader2 } from 'lucide-react';
 import { SkinEditorSection } from './SkinEditorSection';
+import { ActivityTrouble } from './SkinEditorHelp';
 import { DISCORD_CLIENT_ID, LIVE_SKIN_HOST } from '../utils/liveSkin';
 
 // Inside Discord, every request has to go through Discord's proxy. These prefixes match the
@@ -71,7 +72,7 @@ export default function ActivityApp() {
   }, []);
 
   if (error) {
-    return <p className="p-6 text-red-300 font-bold">The Skin Editor couldn't connect to Discord: {error}</p>;
+    return <ActivityTrouble error={error} />;
   }
   if (!room) {
     return (

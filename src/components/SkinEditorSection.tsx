@@ -11,6 +11,7 @@ import {
 } from '../utils/skinLayout';
 import type { SkinModel, PartName, SkinSize } from '../utils/skinLayout';
 import { NativeAd, BoxAd } from './AdSlot';
+import { No3DHelp, OfflineHelp } from './SkinEditorHelp';
 import { LIVE_SKIN_URL, roomFromUrl, newRoomId, pixelsToB64, b64ToPixels } from '../utils/liveSkin';
 
 type Tool = 'pencil' | 'eraser' | 'fill' | 'replace' | 'picker' | 'lighten' | 'darken' | 'noise' | 'move';
@@ -63,7 +64,41 @@ const painterColour = (name: string) => {
   for (let k = 0; k < name.length; k++) h = (h * 31 + name.charCodeAt(k)) | 0;
   return PAINTER_COLOURS[Math.abs(h) % PAINTER_COLOURS.length];
 };
-const PIXEL_LIMITS = [0, 5, 10, 25, 50, 100, 250];
+const MAX_PIXEL_LIMIT = 10000;
+
+// ---------------------------------------------------------------- 2D preview, for browsers without WebGL
+const DOLL_SCALE = 12; // screen pixels per skin pixel (at 64x64)
+const DOLL_GAP = 6; // skin pixels between the front and the back
+
+/** Draws the character from the front and from the back, flat, the way the 3D model would show it. */
+function drawFrontBack(canvas: HTMLCanvasElement, source: HTMLCanvasElement, model: SkinModel, size: SkinSize) {
+  const aw = model === 'slim' ? 3 : 4;
+  const viewW = 8 + aw * 2;
+  canvas.width = (viewW * 2 + DOLL_GAP) * DOLL_SCALE;
+  canvas.height = 32 * DOLL_SCALE;
+  const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const { faces } = getSkinLayout(model, size);
+  // where each part sits in a view, in skin pixels; from behind, left and right swap sides
+  const spots = (back: boolean): [PartName, number, number, number, number][] => [
+    ['head', aw, 0, 8, 8],
+    ['body', aw, 8, 8, 12],
+    [back ? 'leftArm' : 'rightArm', 0, 8, aw, 12],
+    [back ? 'rightArm' : 'leftArm', aw + 8, 8, aw, 12],
+    [back ? 'leftLeg' : 'rightLeg', aw, 20, 4, 12],
+    [back ? 'rightLeg' : 'leftLeg', aw + 4, 20, 4, 12],
+  ];
+  for (const [back, ox] of [[false, 0], [true, viewW + DOLL_GAP]] as const) {
+    for (const overlay of [false, true]) {
+      for (const [part, x, y, w, h] of spots(back)) {
+        const f = faces.find((fc) => fc.part === part && fc.overlay === overlay && fc.face === (back ? 'back' : 'front'));
+        if (!f) continue;
+        ctx.drawImage(source, f.rect.x, f.rect.y, f.rect.w, f.rect.h, (ox + x) * DOLL_SCALE, y * DOLL_SCALE, w * DOLL_SCALE, h * DOLL_SCALE);
+      }
+    }
+  }
+}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -188,14 +223,18 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const [showPainters, setShowPainters] = useState(false);
   const [stageOwner, setStageOwner] = useState('');
   // the host's pixel limit, as it applies to me: the pixels I've used this round
-  const quota = useRef<{ limit: number; round: number; used: Set<number>; blocked: boolean }>({ limit: 0, round: 0, used: new Set(), blocked: false });
+  // `pending` is what I've painted since the last send, which the server can't have counted yet
+  const quota = useRef({ limit: 0, used: new Set<number>(), pending: new Set<number>(), blocked: false });
   const [quotaView, setQuotaView] = useState({ limit: 0, used: 0 });
+  const [limitDraft, setLimitDraft] = useState('');
   const [no3d, setNo3d] = useState(false);
+  const [offlineLong, setOfflineLong] = useState(false); // the live room hasn't connected for a while
 
   const stageRef = useRef<HTMLDivElement>(null);
   const flatRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const viewerRef = useRef<SkinViewer | null>(null);
+  const previewRef = useRef<HTMLCanvasElement | null>(null); // the 2D front and back, where there's no WebGL
   const pixels = useRef<Uint8ClampedArray>(blankSkin('slim', 64));
   const hovered = useRef(-1);
   const undoStack = useRef<{ pixels: Uint8ClampedArray; model: SkinModel; size: SkinSize }[]>([]);
@@ -272,11 +311,13 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
 
   const pushToViewer = useCallback(() => {
     const viewer = viewerRef.current;
-    if (!viewer) return;
+    const flat2d = previewRef.current;
+    if (!viewer && !flat2d) return;
     const source = document.createElement('canvas');
     source.width = source.height = live.current.size;
     source.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(pixels.current), live.current.size, live.current.size), 0, 0);
-    viewer.loadSkin(source, { model: live.current.model });
+    if (viewer) viewer.loadSkin(source, { model: live.current.model });
+    else if (flat2d) drawFrontBack(flat2d, source, live.current.model, live.current.size);
   }, []);
 
   const refresh = useCallback(() => {
@@ -359,6 +400,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
         return;
       }
       q.used.add(i);
+      q.pending.add(i);
     }
     d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = a;
     if (stroke.current) stroke.current.changed = true;
@@ -844,10 +886,13 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       else for (let o = 0; o < d.length; o += 4) if (d[o] !== sent[o] || d[o + 1] !== sent[o + 1] || d[o + 2] !== sent[o + 2] || d[o + 3] !== sent[o + 3]) owners.current.set(o / 4, me);
       recount();
       ws?.send(JSON.stringify({ type: 'full', model: live.current.model, size: live.current.size, pixels: pixelsToB64(pixels.current) }));
+      quota.current.pending.clear();
       snapshot();
     };
 
     const connect = () => {
+      quota.current = { limit: 0, used: new Set(), pending: new Set(), blocked: false };
+      setQuotaView({ limit: 0, used: 0 });
       setLiveState('connecting');
       const sock = new WebSocket(`${LIVE_SKIN_URL}?room=${encodeURIComponent(room)}&name=${encodeURIComponent(me)}`);
       ws = sock;
@@ -860,12 +905,10 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           watchOnly.current = !(msg.host || msg.open);
           setLiveRole({ host: !!msg.host, open: !!msg.open, limit: Number(msg.limit) || 0 });
         } else if (msg.type === 'quota') {
+          // the server's count is the truth, plus whatever I've painted that hasn't reached it yet
           const q = quota.current;
-          // a new round starts from the server's count; within a round, keep pixels painted since it last said
-          if (msg.round !== q.round) q.used = new Set(msg.used);
-          else for (const i of msg.used as number[]) q.used.add(i);
+          q.used = new Set([...(msg.used as number[]), ...q.pending]);
           q.limit = Number(msg.limit) || 0;
-          q.round = msg.round;
           setQuotaView({ limit: q.limit, used: q.used.size });
         } else if (msg.type === 'need-full') {
           // the room has no skin yet and we may paint: this skin becomes the room's
@@ -945,6 +988,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       for (const [i] of px) owners.current.set(i, me);
       recount();
       ws.send(JSON.stringify({ type: 'diff', key: sentKey, px }));
+      quota.current.pending.clear();
     }, 80);
 
     return () => {
@@ -960,6 +1004,24 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   /** The host's settings: may others paint, and how many pixels each (0 = no limit). */
   const setRoomRules = (open: boolean, limit: number) => {
     liveSocket.current?.send(JSON.stringify({ type: 'open', open, limit }));
+  };
+  // the help for a room that won't connect comes up only after a while, not on every short reconnect
+  // (it waits on "live or not", so the reconnect loop's connecting/offline flips don't restart the wait)
+  const isLive = liveState === 'live';
+  useEffect(() => {
+    if (isLive) return setOfflineLong(false);
+    const t = window.setTimeout(() => setOfflineLong(true), 8000);
+    return () => window.clearTimeout(t);
+  }, [isLive]);
+
+  // the limit box shows the room's limit, and sends a new one when the host leaves the box or presses Enter
+  useEffect(() => {
+    setLimitDraft(liveRole.limit ? String(liveRole.limit) : '');
+  }, [liveRole.limit]);
+  const commitLimit = () => {
+    const n = Math.min(MAX_PIXEL_LIMIT, parseInt(limitDraft, 10) || 0);
+    setLimitDraft(n ? String(n) : '');
+    if (n !== liveRole.limit) setRoomRules(true, n);
   };
   const newRound = () => {
     liveSocket.current?.send(JSON.stringify({ type: 'new-round' }));
@@ -1247,15 +1309,20 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
                 Let others paint
               </label>
               {liveRole.open && (
-                <label className="flex items-center gap-1.5 font-bold">
+                <label className="flex items-center gap-1.5 font-bold" title="How many pixels each person may paint. Leave it empty for no limit.">
                   Pixels each
-                  <select
-                    value={liveRole.limit}
-                    onChange={(e) => setRoomRules(true, Number(e.target.value))}
-                    className="h-7 px-1 bg-obsidian-dark border-2 border-[var(--ink)] text-slate-100 text-[13px] cursor-pointer"
-                  >
-                    {PIXEL_LIMITS.map((l) => <option key={l} value={l}>{l ? l : 'No limit'}</option>)}
-                  </select>
+                  <input
+                    type="number"
+                    min={0}
+                    max={MAX_PIXEL_LIMIT}
+                    inputMode="numeric"
+                    placeholder="no limit"
+                    value={limitDraft}
+                    onChange={(e) => setLimitDraft(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                    onBlur={commitLimit}
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                    className="w-24 h-7 px-1.5 bg-obsidian-dark border-2 border-[var(--ink)] text-slate-100 text-[13px] outline-none placeholder:text-slate-500"
+                  />
                 </label>
               )}
               {liveRole.open && liveRole.limit > 0 && (
@@ -1302,6 +1369,8 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           )}
         </div>
       )}
+
+      {room && offlineLong && <OfflineHelp inActivity={inActivity} />}
 
       {notice && (
         // floats over the page: a bar in the flow would shift the canvas under the brush when it comes and goes
@@ -1414,9 +1483,19 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
             }`}
           >
             {no3d && (
-              <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-[14px] font-bold text-slate-400">
-                The 3D view can't start here (no WebGL{inActivity ? ': turn on Hardware Acceleration in Discord settings' : ''}). You can still paint on the flat sheet.
-              </p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
+                <canvas
+                  ref={(el) => {
+                    previewRef.current = el;
+                    if (el) pushToViewer();
+                  }}
+                  className="max-w-full"
+                  style={{ imageRendering: 'pixelated', maxHeight: 'calc(100% - 48px)' }}
+                />
+                <p className="text-center text-[13px] font-bold text-slate-400">
+                  Front and back. The 3D view is off here: the steps to turn it on are below. You can paint on the flat sheet.
+                </p>
+              </div>
             )}
             {stageOwner && (
               <span className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 border-2 border-[var(--ink)] bg-obsidian-dark text-[13px] font-bold text-slate-100 pointer-events-none">
@@ -1429,14 +1508,15 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
             <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={grid} className={`${chip(grid)} flex items-center gap-1.5`}>
               <Grid3x3 className="w-4 h-4" /> Grid
             </button>
-            <div className="flex gap-1 ml-auto" role="group" aria-label="Animation">
+            <div className={`flex gap-1 ml-auto ${no3d ? 'hidden' : ''}`} role="group" aria-label="Animation">
               {(['still', 'idle', 'walk', 'run'] as Motion[]).map((m) => (
                 <button key={m} type="button" onClick={() => setMotion(m)} aria-pressed={motion === m} className={`${chip(motion === m)} capitalize`}>{m}</button>
               ))}
               <button type="button" onClick={() => setSpin((v) => !v)} aria-pressed={spin} className={chip(spin)}>Spin</button>
             </div>
           </div>
-          <p className="text-[13px] font-bold text-slate-500">Drag on the model to paint. Drag beside it, or right-drag anywhere, to turn it. Scroll to zoom.</p>
+          {no3d && <No3DHelp />}
+          <p className={`text-[13px] font-bold text-slate-500 ${no3d ? 'hidden' : ''}`}>Drag on the model to paint. Drag beside it, or right-drag anywhere, to turn it. Scroll to zoom.</p>
           {/* two 300x250 boxes side by side where there is room for both */}
           {!inActivity && (
             <div className="!mt-4 flex flex-wrap justify-center gap-4">
