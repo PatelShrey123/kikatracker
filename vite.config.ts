@@ -11,7 +11,7 @@ import path from 'path';
 // Only /api/changelog was mounted before, which meant /api/prices 404'd on every page load in
 // dev and the price list silently fell back to the committed JSON — so the sheet, and anything
 // layered on it, could never be tested locally.
-const DEV_API_ROUTES = ['changelog', 'prices', 'bot-stats', 'chat', 'gallery', 'auth'];
+const DEV_API_ROUTES = ['changelog', 'prices', 'bot-stats', 'chat', 'gallery', 'auth', 'track'];
 // paths that Vercel rewrites to a function (vercel.json), mounted the same way here
 const DEV_REWRITES: Record<string, string> = { '/auth/callback': 'auth' };
 
@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
   if (env.CHAT_SUPABASE_URL) process.env.CHAT_SUPABASE_URL = env.CHAT_SUPABASE_URL;
   if (env.CHAT_SUPABASE_ANON_KEY) process.env.CHAT_SUPABASE_ANON_KEY = env.CHAT_SUPABASE_ANON_KEY;
   // the gallery and Discord sign-in (api/gallery.js, api/auth.js)
-  for (const k of ['GALLERY_SUPABASE_URL', 'GALLERY_SUPABASE_KEY', 'GALLERY_ADMIN_IDS', 'DISCORD_CLIENT_SECRET']) if (env[k]) process.env[k] = env[k];
+  for (const k of ['GALLERY_SUPABASE_URL', 'GALLERY_SUPABASE_KEY', 'GALLERY_ADMIN_IDS', 'DISCORD_CLIENT_SECRET', 'DISCORD_LOG_WEBHOOK']) if (env[k]) process.env[k] = env[k];
 
   return {
     base: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? '/' : './',

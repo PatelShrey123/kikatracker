@@ -6,6 +6,7 @@ import './themes.css'
 import App from './App.tsx'
 import { inDiscordActivity } from './utils/liveSkin'
 import { ActivityTrouble } from './components/SkinEditorHelp'
+import { startPageLog } from './utils/pageLog'
 
 // Opened inside Discord as an Activity: only the live Skin Editor, nothing else of the site
 const ActivityApp = lazy(() => import('./components/ActivityApp'))
@@ -25,6 +26,9 @@ class ActivityCrash extends Component<{ children: ReactNode }, { error: string }
 // Theme preview: ?theme=fieldops, lanparty, almanac or pixel. Stays set while moving around the app.
 const previewTheme = new URLSearchParams(window.location.search).get('theme');
 if (previewTheme) document.documentElement.dataset.theme = previewTheme;
+
+// which pages people open, posted to the owner's Discord log channel (not inside the Discord Activity)
+if (!inDiscordActivity()) startPageLog();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
