@@ -10,6 +10,30 @@ import { DISCORD_CLIENT_ID, LIVE_SKIN_HOST } from '../utils/liveSkin';
 // URL Mappings set for the app in the Developer Portal.
 if (LIVE_SKIN_HOST) patchUrlMappings([{ prefix: '/live', target: LIVE_SKIN_HOST }]);
 
+/**
+ * The person's Discord name. Discord asks them once to let KirkaHub see their username; the bot's server swaps
+ * the code for a token (it holds the app secret). Anything going wrong just means a made-up name.
+ */
+async function discordName(discord: DiscordSDK): Promise<string | undefined> {
+  try {
+    const { code } = await discord.commands.authorize({ client_id: DISCORD_CLIENT_ID, response_type: 'code', state: '', prompt: 'none', scope: ['identify'] });
+    const res = await fetch(`https://${LIVE_SKIN_HOST}/live-skin/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    if (!res.ok) return undefined;
+    const { access_token } = await res.json();
+    const { user } = await discord.commands.authenticate({ access_token });
+    return (user.global_name || user.username || '').slice(0, 32) || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Waits for a promise, but not forever. */
+const within = <T,>(p: Promise<T>, ms: number, fallback: T) => Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
+
 /** A room name from Discord's ids: a short hash, since room names are short and plain. */
 function roomFor(id: string): string {
   let h = 2166136261;
@@ -20,6 +44,7 @@ function roomFor(id: string): string {
 export default function ActivityApp() {
   const [room, setRoom] = useState<string | null>(null);
   const [sdk, setSdk] = useState<DiscordSDK | null>(null);
+  const [name, setName] = useState<string | undefined>(undefined);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,6 +54,9 @@ export default function ActivityApp() {
         const discord = new DiscordSDK(DISCORD_CLIENT_ID);
         await discord.ready();
         if (cancelled) return;
+        const me = await within(discordName(discord), 60000, undefined);
+        if (cancelled) return;
+        setName(me);
         // One room per channel: whoever opens the editor in this channel (the command, the Launch button or
         // the bot's Join button) paints the same skin, even if Discord gives them separate sessions.
         setRoom(roomFor(discord.channelId || discord.instanceId));
@@ -55,6 +83,7 @@ export default function ActivityApp() {
   return (
     <SkinEditorSection
       liveRoom={room}
+      liveName={name}
       inActivity
       onInvite={sdk ? () => { void sdk.commands.openInviteDialog().catch(() => {}); } : undefined}
     />

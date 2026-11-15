@@ -24,6 +24,8 @@ interface SkinEditorSectionProps {
   inActivity?: boolean;
   /** Inside Discord: opens Discord's invite window so others can join. */
   onInvite?: () => void;
+  /** The name others see in the live room (the Discord Activity passes the Discord name). */
+  liveName?: string;
 }
 
 const TOOLS: { id: Tool; label: string; key: string; icon: React.ElementType; hint: string }[] = [
@@ -53,6 +55,15 @@ const DRAFT_KEY = 'kirkahub_skin_editor_draft_v1';
 const hexToRgb = (hex: string): [number, number, number] => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 const rgbToHex = (r: number, g: number, b: number) => `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
 const clamp8 = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+
+// Each painter in a live room gets a colour, used for their name and to outline what they painted
+const PAINTER_COLOURS = ['#FF4D6D', '#4DA3FF', '#7CE05A', '#FFC23D', '#C77DFF', '#2EE6D6', '#FF8A3D', '#F472B6', '#A3E635', '#93C5FD'];
+const painterColour = (name: string) => {
+  let h = 0;
+  for (let k = 0; k < name.length; k++) h = (h * 31 + name.charCodeAt(k)) | 0;
+  return PAINTER_COLOURS[Math.abs(h) % PAINTER_COLOURS.length];
+};
+const PIXEL_LIMITS = [0, 5, 10, 25, 50, 100, 250];
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -141,7 +152,7 @@ const BodyFigure: React.FC<{
   );
 };
 
-export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [], liveRoom, inActivity = false, onInvite }) => {
+export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = [], liveRoom, inActivity = false, onInvite, liveName }) => {
   const [tool, setTool] = useState<Tool>('pencil');
   const [color, setColor] = useState('#E3202E');
   const [recent, setRecent] = useState<string[]>([]);
@@ -168,9 +179,18 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const [livePeople, setLivePeople] = useState<{ names: string[]; me: string; host: string | null }>({ names: [], me: '', host: null });
   const [liveState, setLiveState] = useState<'connecting' | 'live' | 'offline'>('connecting');
   // in a room the host paints and everyone else watches, unless the host lets everyone paint
-  const [liveRole, setLiveRole] = useState<{ host: boolean; open: boolean }>({ host: false, open: false });
+  const [liveRole, setLiveRole] = useState<{ host: boolean; open: boolean; limit: number }>({ host: false, open: false, limit: 0 });
   const watchOnly = useRef(!!room);
   const liveSocket = useRef<WebSocket | null>(null);
+  // who painted each pixel in the room, and how many each person has
+  const owners = useRef<Map<number, string>>(new Map());
+  const [painterCounts, setPainterCounts] = useState<Record<string, number>>({});
+  const [showPainters, setShowPainters] = useState(false);
+  const [stageOwner, setStageOwner] = useState('');
+  // the host's pixel limit, as it applies to me: the pixels I've used this round
+  const quota = useRef<{ limit: number; round: number; used: Set<number>; blocked: boolean }>({ limit: 0, round: 0, used: new Set(), blocked: false });
+  const [quotaView, setQuotaView] = useState({ limit: 0, used: 0 });
+  const [no3d, setNo3d] = useState(false);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const flatRef = useRef<HTMLCanvasElement>(null);
@@ -183,8 +203,8 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const stroke = useRef<{ before: Uint8ClampedArray; touched: Set<number>; last: number; changed: boolean } | null>(null);
 
   // the pointer handlers are bound once; they read the current settings from here
-  const live = useRef({ tool, color, brush, mirror, model, size, grid, showBody, showOuter, parts });
-  live.current = { tool, color, brush, mirror, model, size, grid, showBody, showOuter, parts };
+  const live = useRef({ tool, color, brush, mirror, model, size, grid, showBody, showOuter, parts, showPainters });
+  live.current = { tool, color, brush, mirror, model, size, grid, showBody, showOuter, parts, showPainters };
 
   /** A part of a layer can be seen and edited only when both the layer and the part are on. */
   const isOn = (overlay: boolean, part: PartName) => live.current.parts[part] && (overlay ? live.current.showOuter : live.current.showBody);
@@ -240,6 +260,10 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       ctx.lineWidth = 2;
       ctx.strokeRect((i % live.current.size) * S + 1, Math.floor(i / live.current.size) * S + 1, S - 2, S - 2);
     };
+    // live room: each painted pixel outlined in its painter's colour
+    if (live.current.showPainters) {
+      for (const [i, name] of owners.current) if (cells[i]) mark(i, painterColour(name));
+    }
     if (hovered.current >= 0 && cells[hovered.current]) {
       mark(hovered.current, '#FFD60A');
       if (live.current.mirror && mirrorMap[hovered.current] >= 0) mark(mirrorMap[hovered.current], 'rgba(255,214,10,0.55)');
@@ -327,6 +351,15 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     const d = pixels.current;
     const o = i * 4;
     if (d[o] === r && d[o + 1] === g && d[o + 2] === b && d[o + 3] === a) return;
+    // a live room with a pixel limit: a pixel already mine is free to repaint, a new one takes a slot
+    const q = quota.current;
+    if (q.limit && !q.used.has(i)) {
+      if (q.used.size >= q.limit) {
+        q.blocked = true;
+        return;
+      }
+      q.used.add(i);
+    }
     d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = a;
     if (stroke.current) stroke.current.changed = true;
   };
@@ -470,6 +503,12 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const endStroke = () => {
     const s = stroke.current;
     stroke.current = null;
+    const q = quota.current;
+    if (q.limit) setQuotaView({ limit: q.limit, used: q.used.size });
+    if (q.blocked) {
+      q.blocked = false;
+      setNotice({ text: `You've painted all ${q.limit} of your pixels. You can still repaint those, or wait for the host to start a new round.`, bad: true });
+    }
     if (!s || !s.changed) return;
     remember(s.before, live.current.model, live.current.size);
     const { tool: t, color: hex } = live.current;
@@ -519,7 +558,8 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const describe = (i: number) => {
     const cell = i >= 0 ? getSkinLayout(live.current.model, live.current.size).cells[i] : null;
     if (!cell) return '';
-    return `${PART_LABELS[cell.part]} · ${cell.face} · ${cell.overlay ? 'outer layer' : 'body'} · ${i % live.current.size}, ${Math.floor(i / live.current.size)}`;
+    const by = owners.current.get(i);
+    return `${PART_LABELS[cell.part]} · ${cell.face} · ${cell.overlay ? 'outer layer' : 'body'} · ${i % live.current.size}, ${Math.floor(i / live.current.size)}${by ? ` · painted by ${by}` : ''}`;
   };
 
   const onFlatDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -551,13 +591,21 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     source.width = source.height = live.current.size;
     source.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(pixels.current), live.current.size, live.current.size), 0, 0);
 
-    const viewer = new SkinViewer({
-      canvas,
-      width: Math.max(stage.clientWidth, 100),
-      height: Math.max(stage.clientHeight, 100),
-      model: live.current.model,
-      skin: source,
-    });
+    let viewer: SkinViewer;
+    try {
+      viewer = new SkinViewer({
+        canvas,
+        width: Math.max(stage.clientWidth, 100),
+        height: Math.max(stage.clientHeight, 100),
+        model: live.current.model,
+        skin: source,
+      });
+    } catch {
+      // no WebGL here (Discord with hardware acceleration off, an old laptop): the flat sheet still works
+      canvas.remove();
+      setNo3d(true);
+      return;
+    }
     viewer.camera.position.set(-22, 14, 42);
     viewer.camera.lookAt(0, 0, 0);
     viewer.controls.enablePan = false;
@@ -619,10 +667,21 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
         if (viewer.animation) viewer.animation.paused = true;
       }
     };
+    let lastOwner = '';
     const onMove = (e: PointerEvent) => {
-      if (!stroke.current) return;
+      if (!stroke.current) {
+        // live room: name whoever painted the pixel under the pointer
+        if (!owners.current.size) return;
+        const seen = pixelsUnder(e).find((h) => pixels.current[h * 4 + 3] || owners.current.has(h)) ?? -1;
+        const by = (seen >= 0 && owners.current.get(seen)) || '';
+        if (by !== lastOwner) setStageOwner((lastOwner = by));
+        return;
+      }
       const i = pixelsUnder(e)[0] ?? -1;
       if (i >= 0) strokeTo(i);
+    };
+    const onLeave = () => {
+      if (lastOwner) setStageOwner((lastOwner = ''));
     };
     const onUp = () => {
       if (stroke.current) endStroke();
@@ -634,6 +693,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerup', onUp);
     canvas.addEventListener('pointercancel', onUp);
+    canvas.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('contextmenu', noMenu);
 
     return () => {
@@ -642,6 +702,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerup', onUp);
       canvas.removeEventListener('pointercancel', onUp);
+      canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('contextmenu', noMenu);
       viewerRef.current = null;
       viewer.dispose();
@@ -720,7 +781,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
 
   useEffect(() => {
     drawFlat();
-  }, [drawFlat, grid, mirror, model, size, showBody, showOuter, parts]);
+  }, [drawFlat, grid, mirror, model, size, showBody, showOuter, parts, showPainters]);
 
   // ---------------------------------------------------------------- restore the draft, once
   const restoreDraft = useCallback(async (isCancelled: () => boolean = () => false) => {
@@ -753,7 +814,18 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   // straight into the skin. Works with every tool, since it only looks at the pixels.
   useEffect(() => {
     if (!room || !LIVE_SKIN_URL) return;
-    const me = `Painter ${Math.floor(1000 + Math.random() * 9000)}`;
+    const me = liveName || `Painter ${Math.floor(1000 + Math.random() * 9000)}`;
+    let countTimer: number | undefined;
+    /** Recounts each painter's pixels, at most a few times a second. */
+    const recount = () => {
+      if (countTimer) return;
+      countTimer = window.setTimeout(() => {
+        countTimer = undefined;
+        const counts: Record<string, number> = {};
+        for (const n of owners.current.values()) counts[n] = (counts[n] || 0) + 1;
+        setPainterCounts(counts);
+      }, 300);
+    };
     let ws: WebSocket | null = null;
     let ready = false; // has the room's skin, or brought the first one
     let stopped = false;
@@ -766,6 +838,11 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       sentKey = keyNow();
     };
     const sendFull = () => {
+      // the room credits me with every pixel that changed; a new model or size starts the record over
+      const d = pixels.current;
+      if (keyNow() !== sentKey || sent.length !== d.length) owners.current.clear();
+      else for (let o = 0; o < d.length; o += 4) if (d[o] !== sent[o] || d[o + 1] !== sent[o + 1] || d[o + 2] !== sent[o + 2] || d[o + 3] !== sent[o + 3]) owners.current.set(o / 4, me);
+      recount();
       ws?.send(JSON.stringify({ type: 'full', model: live.current.model, size: live.current.size, pixels: pixelsToB64(pixels.current) }));
       snapshot();
     };
@@ -781,7 +858,15 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           setLivePeople({ names: msg.names, me, host: msg.host ?? null });
         } else if (msg.type === 'role') {
           watchOnly.current = !(msg.host || msg.open);
-          setLiveRole({ host: !!msg.host, open: !!msg.open });
+          setLiveRole({ host: !!msg.host, open: !!msg.open, limit: Number(msg.limit) || 0 });
+        } else if (msg.type === 'quota') {
+          const q = quota.current;
+          // a new round starts from the server's count; within a round, keep pixels painted since it last said
+          if (msg.round !== q.round) q.used = new Set(msg.used);
+          else for (const i of msg.used as number[]) q.used.add(i);
+          q.limit = Number(msg.limit) || 0;
+          q.round = msg.round;
+          setQuotaView({ limit: q.limit, used: q.used.size });
         } else if (msg.type === 'need-full') {
           // the room has no skin yet and we may paint: this skin becomes the room's
           ready = true;
@@ -801,6 +886,9 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           const next = b64ToPixels(msg.pixels);
           if (next.length !== msg.size * msg.size * 4) return;
           pixels.current = next;
+          owners.current = new Map();
+          for (const [n, list] of Object.entries((msg.owners || {}) as Record<string, number[]>)) for (const i of list) owners.current.set(i, n);
+          recount();
           applyModel(msg.model, msg.size);
           refresh();
           snapshot();
@@ -814,7 +902,9 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
             d[o + 1] = sent[o + 1] = g;
             d[o + 2] = sent[o + 2] = b;
             d[o + 3] = sent[o + 3] = a;
+            if (msg.by) owners.current.set(i, msg.by);
           }
+          if (msg.by) recount();
           refresh();
         }
       };
@@ -852,6 +942,8 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       }
       if (!px.length) return;
       sent.set(d);
+      for (const [i] of px) owners.current.set(i, me);
+      recount();
       ws.send(JSON.stringify({ type: 'diff', key: sentKey, px }));
     }, 80);
 
@@ -859,13 +951,19 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       stopped = true;
       window.clearInterval(tick);
       window.clearTimeout(retry);
+      window.clearTimeout(countTimer);
       ws?.close();
       liveSocket.current = null;
     };
-  }, [room, applyModel, refresh, restoreDraft]);
+  }, [room, applyModel, refresh, restoreDraft, liveName]);
 
-  const setOthersCanPaint = (open: boolean) => {
-    liveSocket.current?.send(JSON.stringify({ type: 'open', open }));
+  /** The host's settings: may others paint, and how many pixels each (0 = no limit). */
+  const setRoomRules = (open: boolean, limit: number) => {
+    liveSocket.current?.send(JSON.stringify({ type: 'open', open, limit }));
+  };
+  const newRound = () => {
+    liveSocket.current?.send(JSON.stringify({ type: 'new-round' }));
+    setNotice({ text: 'New round: everyone has their full pixels again.' });
   };
 
   // ---------------------------------------------------------------- keyboard
@@ -1080,9 +1178,9 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const heading = 'display text-[19px] text-slate-100 leading-none';
 
   return (
-    <div className="max-w-[1500px] mx-auto px-4 py-6 space-y-4 select-none">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-obsidian-border pb-4">
-        <div>
+    <div className={`max-w-[1500px] mx-auto select-none ${inActivity ? 'px-2 py-2 space-y-2' : 'px-4 py-6 space-y-4'}`}>
+      <header className={`flex flex-wrap items-end justify-between gap-3 ${inActivity ? '' : 'border-b border-obsidian-border pb-4'}`}>
+        <div className={inActivity ? 'hidden' : ''}>
           <h1 className="display text-4xl sm:text-5xl text-slate-100 flex items-center gap-3">
             <Brush className="w-8 h-8 text-gold-bright" />
             <span>Skin <span className="mark">Editor</span></span>
@@ -1130,26 +1228,57 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
           </span>
           <span className="flex flex-wrap items-center gap-1.5">
             {livePeople.names.map((n, i) => (
-              <span key={`${n}-${i}`} className={`px-2 py-0.5 border border-red-300/40 ${n === livePeople.me ? 'bg-red-900/60 font-bold' : ''}`}>
+              <span key={`${n}-${i}`} className={`flex items-center gap-1.5 px-2 py-0.5 border border-red-300/40 ${n === livePeople.me ? 'bg-red-900/60 font-bold' : ''}`}>
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: painterColour(n) }} />
                 {n === livePeople.host ? '👑 ' : ''}{n}{n === livePeople.me ? ' (you)' : ''}
+                {painterCounts[n] ? <span className="text-red-200/70 font-normal">· {painterCounts[n]} px</span> : null}
               </span>
             ))}
           </span>
           {liveState === 'live' && (liveRole.host ? (
-            <label className="flex items-center gap-2 font-bold cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={liveRole.open}
-                onChange={(e) => setOthersCanPaint(e.target.checked)}
-                className="w-4 h-4 accent-red-500 cursor-pointer"
-              />
-              Let others paint
-            </label>
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <label className="flex items-center gap-2 font-bold cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={liveRole.open}
+                  onChange={(e) => setRoomRules(e.target.checked, liveRole.limit)}
+                  className="w-4 h-4 accent-red-500 cursor-pointer"
+                />
+                Let others paint
+              </label>
+              {liveRole.open && (
+                <label className="flex items-center gap-1.5 font-bold">
+                  Pixels each
+                  <select
+                    value={liveRole.limit}
+                    onChange={(e) => setRoomRules(true, Number(e.target.value))}
+                    className="h-7 px-1 bg-obsidian-dark border-2 border-[var(--ink)] text-slate-100 text-[13px] cursor-pointer"
+                  >
+                    {PIXEL_LIMITS.map((l) => <option key={l} value={l}>{l ? l : 'No limit'}</option>)}
+                  </select>
+                </label>
+              )}
+              {liveRole.open && liveRole.limit > 0 && (
+                <button type="button" onClick={newRound} title="Everyone gets their full pixels again" className="underline font-bold cursor-pointer">
+                  New round
+                </button>
+              )}
+            </span>
           ) : (
             <span className="font-bold text-red-200/90">
-              {liveRole.open ? '🎨 You can paint too' : `👀 Watching${livePeople.host ? `: only ${livePeople.host} paints` : ''}`}
+              {!liveRole.open
+                ? `👀 Watching${livePeople.host ? `: only ${livePeople.host} paints` : ''}`
+                : quotaView.limit
+                  ? `🎨 You can paint: ${Math.max(0, quotaView.limit - quotaView.used)} of ${quotaView.limit} pixels left`
+                  : '🎨 You can paint too'}
             </span>
           ))}
+          {Object.keys(painterCounts).length > 0 && (
+            <label className="flex items-center gap-2 font-bold cursor-pointer select-none" title="Outline every pixel in the colour of whoever painted it">
+              <input type="checkbox" checked={showPainters} onChange={(e) => setShowPainters(e.target.checked)} className="w-4 h-4 accent-red-500 cursor-pointer" />
+              Show who painted
+            </label>
+          )}
           {inActivity && onInvite && (
             <button
               type="button"
@@ -1183,7 +1312,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
 
       <div className="grid gap-4 xl:grid-cols-[250px_minmax(0,1fr)_minmax(0,1.15fr)] lg:grid-cols-[250px_minmax(0,1fr)]">
         {/* Tools and colour */}
-        <aside className="space-y-4 lg:row-span-2 xl:row-span-1">
+        <aside className={`space-y-4 lg:row-span-2 xl:row-span-1 ${inActivity ? 'order-2 lg:order-none' : ''}`}>
           <section className={panel}>
             <h2 className={`${heading} flex items-center gap-2`}><Layers className="w-4 h-4" /> Body parts</h2>
             <div className="grid grid-cols-2 gap-1.5">
@@ -1277,8 +1406,25 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
         </aside>
 
         {/* 3D */}
-        <section className="space-y-2 min-w-0">
-          <div ref={stageRef} className="night relative h-[460px] xl:h-[600px] bg-[var(--stage)] border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] overflow-hidden cursor-crosshair" />
+        <section className={`space-y-2 min-w-0 ${inActivity ? 'order-1 lg:order-none' : ''}`}>
+          <div
+            ref={stageRef}
+            className={`night relative bg-[var(--stage)] border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] overflow-hidden cursor-crosshair ${
+              inActivity ? 'h-[min(460px,62vh)] xl:h-[min(600px,75vh)]' : 'h-[460px] xl:h-[600px]'
+            }`}
+          >
+            {no3d && (
+              <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-[14px] font-bold text-slate-400">
+                The 3D view can't start here (no WebGL{inActivity ? ': turn on Hardware Acceleration in Discord settings' : ''}). You can still paint on the flat sheet.
+              </p>
+            )}
+            {stageOwner && (
+              <span className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 border-2 border-[var(--ink)] bg-obsidian-dark text-[13px] font-bold text-slate-100 pointer-events-none">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: painterColour(stageOwner) }} />
+                painted by {stageOwner}
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={grid} className={`${chip(grid)} flex items-center gap-1.5`}>
               <Grid3x3 className="w-4 h-4" /> Grid
@@ -1301,7 +1447,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
         </section>
 
         {/* Flat sheet */}
-        <section className="space-y-2 min-w-0 lg:col-start-2 xl:col-start-3">
+        <section className={`space-y-2 min-w-0 lg:col-start-2 xl:col-start-3 ${inActivity ? 'order-3 lg:order-none' : ''}`}>
           <canvas
             ref={flatRef}
             width={FLAT_PX}
@@ -1384,7 +1530,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
         </section>
       </div>
 
-      <section className="text-[15px] text-slate-400 leading-relaxed max-w-[80ch] select-text space-y-2 pt-2">
+      <section className={`text-[15px] text-slate-400 leading-relaxed max-w-[80ch] select-text space-y-2 pt-2 ${inActivity ? 'hidden' : ''}`}>
         <h2 className="display text-[26px] text-slate-100">How a skin file works</h2>
         <p>
           A player skin is a square PNG, usually 64x64, and Kirka also allows 128x128 for finer detail. Every part of the body has six faces on that sheet, and there are two
