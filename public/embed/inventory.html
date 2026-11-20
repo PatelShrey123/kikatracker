@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<title>Kirka inventory · KirkaHub</title>
+<link rel="stylesheet" href="/embed/embed.css">
+<!-- KirkaHub inventory embed: /embed/inventory?id=<Kirka short ID>&lang=es|en&embed=rite
+     Shows the total value and the most valuable items; the full list is one click away on KirkaHub. -->
+<style>
+  .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; }
+  .worth { text-align: right; }
+  .worth .big { display: block; }
+  .rarities { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rar { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--mut); border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 6px; padding: 3px 8px; }
+  .rar b { color: var(--tx); font-weight: 600; }
+  .label { font: 500 13px var(--ft); color: var(--mut); margin: 0; }
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .item { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--raise); min-width: 0; }
+  .item::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--c); }
+  .pic { aspect-ratio: 16 / 10; display: grid; place-items: center; background: radial-gradient(70% 70% at 50% 40%, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%); }
+  .pic img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+  .pic span { font: 700 26px var(--fd); color: color-mix(in srgb, var(--c) 70%, var(--tx)); }
+  .info { padding: 7px 9px 10px; }
+  .info b { display: block; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info small { display: flex; justify-content: space-between; gap: 6px; color: var(--mut); font-size: 12px; }
+  .info small span:last-child { color: var(--acc); font-weight: 600; white-space: nowrap; }
+  .item .n { position: absolute; top: 6px; right: 6px; background: rgb(0 0 0 / .55); color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 999px; }
+  @media (max-width: 560px) {
+    .top { grid-template-columns: minmax(0, 1fr); }
+    .worth { text-align: left; display: flex; align-items: baseline; gap: 8px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .title { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<main id="out" aria-live="polite">
+  <div class="card" aria-busy="true">
+    <div class="top">
+      <div><p class="title skel">Loading inventory</p><div class="meta"><span class="skel">items</span></div></div>
+      <div class="worth"><b class="big skel">000K</b><span class="sub skel">Hub value</span></div>
+    </div>
+    <div class="grid"><div class="item skel" style="aspect-ratio:1"></div><div class="item skel" style="aspect-ratio:1"></div><div class="item skel" style="aspect-ratio:1"></div><div class="item skel" style="aspect-ratio:1"></div></div>
+  </div>
+</main>
+<script src="/embed/embed.js"></script>
+<script>
+(async () => {
+  const { id, validId, t, fmt, el } = KH;
+  const out = document.getElementById('out');
+  const SHOW = 8;
+  const RARITY = ['MYTHICAL', 'LEGENDARY', 'EPIC', 'RARE', 'COMMON'];
+  const colour = (r) => `var(--${RARITY.includes(r) ? r.toLowerCase() : 'common'})`;
+  KH.track('inventory');
+  if (!validId) return KH.message(out, t('noId'), t('noIdText'));
+
+  try {
+    const key = 'kh-embed-inventory-' + id;
+    let data = KH.cacheGet(key);
+    if (!data) {
+      const [p, inv] = await Promise.all([KH.profile(), KH.inventory()]);
+      if (!p || !p.shortId) throw Object.assign(new Error('not found'), { status: 404 });
+      const map = await KH.prices();
+      const rows = (inv || []).filter((e) => e.item).map((e) => ({
+        id: e.item.id, name: KH.cleanName(e.item), rarity: String(e.item.rarity || '').toUpperCase(),
+        kind: e.item.type === 'BODY_SKIN' ? 'character' : e.item.parent?.name || '',
+        amount: e.amount || 1, value: KH.itemValue(e.item, map),
+      }));
+      const counts = {};
+      for (const r of rows) counts[r.rarity] = (counts[r.rarity] || 0) + r.amount;
+      data = {
+        name: p.name, shortId: p.shortId, entries: rows.length,
+        units: rows.reduce((s, r) => s + r.amount, 0),
+        total: rows.reduce((s, r) => s + r.value * r.amount, 0),
+        counts, top: rows.sort((a, b) => b.value - a.value).slice(0, SHOW),
+      };
+      KH.cacheSet(key, data);
+    }
+    if (!data.entries) return KH.message(out, t('empty'), t('emptyText'));
+
+    const card = el('article', 'card');
+    card.setAttribute('aria-label', data.name);
+
+    const top = el('div', 'top');
+    const who = el('div');
+    who.append(el('p', 'title', data.name));
+    const meta = el('div', 'meta');
+    const idTag = el('span'); idTag.append('#', el('b', '', data.shortId)); meta.append(idTag, el('span', '', t('items', { n: data.units.toLocaleString(KH.lang) })));
+    who.append(meta);
+    const worth = el('div', 'worth');
+    worth.append(el('b', 'big', fmt(data.total)), el('span', 'sub', t('worth')));
+    top.append(who, worth);
+
+    const rar = el('div', 'rarities');
+    for (const r of RARITY) {
+      if (!data.counts[r]) continue;
+      const chip = el('span', 'rar'); chip.style.setProperty('--c', colour(r));
+      chip.append(t(r), el('b', '', data.counts[r].toLocaleString(KH.lang)));
+      rar.append(chip);
+    }
+
+    const grid = el('div', 'grid');
+    for (const it of data.top) {
+      const tile = el('div', 'item'); tile.style.setProperty('--c', colour(it.rarity));
+      const pic = el('div', 'pic');
+      const src = await KH.renderOf(it.id);
+      if (src) { const img = el('img'); img.src = src; img.alt = it.name; img.loading = 'lazy'; img.onerror = () => img.replaceWith(el('span', '', it.name.slice(0, 2))); pic.append(img); }
+      else pic.append(el('span', '', it.name.slice(0, 2)));
+      const info = el('div', 'info');
+      const line = el('small');
+      line.append(el('span', '', it.kind === 'character' ? t('character') : it.kind), el('span', '', it.value ? fmt(it.value) : '–'));
+      info.append(el('b', '', it.name), line);
+      tile.append(pic, info);
+      if (it.amount > 1) tile.append(el('span', 'n', `×${it.amount}`));
+      grid.append(tile);
+    }
+
+    const foot = el('div', 'foot');
+    foot.append(KH.brand());
+    card.append(top, rar, el('p', 'label', t('topSkins')), grid,
+      KH.linkTo(`/player/${encodeURIComponent(data.shortId)}`, t('seeAll', { n: data.units.toLocaleString(KH.lang) })), foot);
+    out.replaceChildren(card);
+  } catch (err) {
+    KH.failed(out, err);
+  }
+})();
+</script>
+</body>
+</html>

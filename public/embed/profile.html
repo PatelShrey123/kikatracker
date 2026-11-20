@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<title>Kirka profile · KirkaHub</title>
+<link rel="stylesheet" href="/embed/embed.css">
+<!-- KirkaHub profile embed: /embed/profile?id=<Kirka short ID>&lang=es|en&embed=rite -->
+<style>
+  .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+  .worth { text-align: right; }
+  .worth .big { display: block; }
+  .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .stat { border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-width: 0; }
+  .stat b { display: block; font: 700 20px/1.1 var(--fd); }
+  .stat span { font-size: 12px; color: var(--mut); }
+  @media (max-width: 560px) {
+    .top { grid-template-columns: minmax(0, 1fr); }
+    .worth { text-align: left; display: flex; align-items: baseline; gap: 8px; }
+    .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .title { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<main id="out" aria-live="polite">
+  <div class="card" aria-busy="true">
+    <div class="top">
+      <div><p class="title skel">Loading player</p><div class="meta"><span class="skel">level and clan</span></div></div>
+      <div class="worth"><b class="big skel">000K</b><span class="sub skel">Hub value</span></div>
+    </div>
+    <div class="stats"><div class="stat skel">x</div><div class="stat skel">x</div><div class="stat skel">x</div><div class="stat skel">x</div><div class="stat skel">x</div></div>
+  </div>
+</main>
+<script src="/embed/embed.js"></script>
+<script>
+(async () => {
+  const { id, validId, t, fmt, pct, el } = KH;
+  const out = document.getElementById('out');
+  KH.track('profile');
+  if (!validId) return KH.message(out, t('noId'), t('noIdText'));
+
+  try {
+    const key = 'kh-embed-profile-' + id;
+    let data = KH.cacheGet(key);
+    if (!data) {
+      const [p, inv] = await Promise.all([KH.profile(), KH.inventory().catch(() => null)]);
+      if (!p || !p.shortId) throw Object.assign(new Error('not found'), { status: 404 });
+      let value = null;
+      if (inv) { const map = await KH.prices(); value = inv.reduce((sum, e) => sum + KH.itemValue(e.item, map) * (e.amount || 1), 0); }
+      data = { name: p.name, shortId: p.shortId, level: p.level, clan: p.clan, skin: KH.cleanName(p.activeBodySkin) || null, stats: p.stats || {}, value };
+      KH.cacheSet(key, data);
+    }
+
+    const s = data.stats;
+    const card = el('article', 'card');
+    card.setAttribute('aria-label', data.name);
+
+    const top = el('div', 'top');
+    const who = el('div');
+    who.append(el('p', 'title', data.name));
+    const meta = el('div', 'meta');
+    meta.append(el('span', 'pill', `${t('level')} ${data.level ?? '–'}`));
+    const idTag = el('span'); idTag.append('#', el('b', '', data.shortId)); meta.append(idTag);
+    if (data.clan) { const c = el('span'); c.append(`${t('clan')} `, el('b', '', data.clan)); meta.append(c); }
+    if (data.skin) { const k = el('span'); k.append(`${t('skin')} `, el('b', '', data.skin)); meta.append(k); }
+    who.append(meta);
+    const worth = el('div', 'worth');
+    worth.append(el('b', 'big', data.value == null ? '–' : fmt(data.value)), el('span', 'sub', t('worth')));
+    top.append(who, worth);
+
+    const stats = el('div', 'stats');
+    const kd = s.deaths ? (s.kills / s.deaths).toFixed(2) : s.kills ? '∞' : '–';
+    for (const [label, val] of [[t('kd'), kd], [t('kills'), fmt(s.kills)], [t('games'), fmt(s.games)], [t('winrate'), pct(s.wins, s.games)], [t('headshots'), pct(s.headshots, s.kills)]]) {
+      const box = el('div', 'stat'); box.append(el('b', '', val), el('span', '', label)); stats.append(box);
+    }
+
+    const foot = el('div', 'foot');
+    foot.append(KH.brand());
+    card.append(top, stats, KH.linkTo(`/player/${encodeURIComponent(data.shortId)}`, t('fullProfile')), foot);
+    out.replaceChildren(card);
+  } catch (err) {
+    KH.failed(out, err);
+  }
+})();
+</script>
+</body>
+</html>

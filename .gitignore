@@ -48,3 +48,4 @@ PROJECT_TIMELINE_INDEX.md
 # Desktop aim trainer build output
 desktop/app
 desktop/dist
+public/embed/renders.json

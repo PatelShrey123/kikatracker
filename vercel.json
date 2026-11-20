@@ -2,7 +2,20 @@
   "redirects": [
     { "source": "/((?!ad-frame\\.html).*)", "has": [{ "type": "host", "value": "ads.kirkahub.online" }], "destination": "https://kirkahub.online/$1", "permanent": true }
   ],
+  "headers": [
+    {
+      "source": "/embed/:path*",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "frame-ancestors https://rite.lat https://www.rite.lat" },
+        { "key": "Cache-Control", "value": "public, max-age=300, s-maxage=3600" }
+      ]
+    }
+  ],
   "rewrites": [
+    { "source": "/embed/profile", "destination": "/embed/profile.html" },
+    { "source": "/embed/profile/:id", "destination": "/embed/profile.html" },
+    { "source": "/embed/inventory", "destination": "/embed/inventory.html" },
+    { "source": "/embed/inventory/:id", "destination": "/embed/inventory.html" },
     { "source": "/api/bot-stats", "destination": "/api/bot-stats" },
     { "source": "/api/prices", "destination": "/api/prices" },
     { "source": "/api/changelog", "destination": "/api/changelog" },

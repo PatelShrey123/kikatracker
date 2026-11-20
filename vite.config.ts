@@ -20,6 +20,12 @@ function apiDevServer() {
     name: 'api-dev-server',
     apply: 'serve' as const,
     configureServer(server: any) {
+      // the embeds are static pages that vercel.json rewrites /embed/<page>[/<id>] to
+      server.middlewares.use((req: any, _res: any, next: () => void) => {
+        const m = /^\/embed\/(profile|inventory)(?:\/[^/?]*)?(\?.*)?$/.exec(req.url || '');
+        if (m) req.url = `/embed/${m[1]}.html${m[2] || ''}`;
+        next();
+      });
       const mounts: [string, string][] = [...DEV_API_ROUTES.map((r) => [`/api/${r}`, r] as [string, string]), ...Object.entries(DEV_REWRITES)];
       for (const [mount, route] of mounts) {
         server.middlewares.use(mount, async (req: any, res: any) => {

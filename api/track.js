@@ -54,6 +54,8 @@ function describe(path) {
     case 'gallery': return arg ? '🖼️ Gallery skin' : '🖼️ Skin Gallery';
     case 'guides': return arg ? `📖 Guide: ${arg}` : '📖 Guides';
     case 'fit': return arg ? '👕 3D Fit (a shared loadout)' : '👕 3D Fit';
+    // the embeds other sites show in an iframe (public/embed), e.g. /embed/profile/LL0ZBM
+    case 'embed': return `🧩 Embed on another site: ${cut(decode(rest.join(' ')), 80)}`;
   }
   const known = PAGES[first];
   return known ? `${known[0]} ${known[1]}` : `📄 ${cut(path, 80)}`;
