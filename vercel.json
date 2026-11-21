@@ -16,6 +16,7 @@
     { "source": "/embed/profile/:id", "destination": "/embed/profile.html" },
     { "source": "/embed/inventory", "destination": "/embed/inventory.html" },
     { "source": "/embed/inventory/:id", "destination": "/embed/inventory.html" },
+    { "source": "/embed/crosshair", "destination": "/embed/crosshair.html" },
     { "source": "/api/bot-stats", "destination": "/api/bot-stats" },
     { "source": "/api/prices", "destination": "/api/prices" },
     { "source": "/api/changelog", "destination": "/api/changelog" },

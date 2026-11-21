@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<title>Kirka crosshair maker · KirkaHub</title>
+<link rel="stylesheet" href="/embed/embed.css">
+<!-- KirkaHub crosshair maker: /embed/crosshair?lang=es|en&embed=rite
+     Outputs Kirka's own settings code for the crosshair group, {"CROSSHAIR___SETTING":{...}}, with the
+     16 keys in the order Kirka exports them (checked against Kirka's Export, November 2026). Kirka's
+     Import accepts this group on its own and changes only the crosshair; RITE Aim reads the same JSON.
+     Slider ranges are Kirka's: size 1-20, thickness 1-10, gap -10 to 20, dot size 1-10, outline 1-6. -->
+<style>
+  [hidden] { display: none !important; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 16px; align-items: start; }
+  .stage { border-radius: 10px; border: 1px solid var(--line); overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; min-height: 220px; }
+  .view { position: relative; display: grid; place-items: center; min-height: 220px; }
+  .view img { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .view .tag { position: absolute; left: 8px; top: 8px; font-size: 11px; color: #fff; background: rgb(0 0 0 / .45); padding: 2px 7px; border-radius: 999px; }
+  .bg-sky { background: linear-gradient(#7fb6e6, #bcd9f2 55%, #6f8f4e 55%, #5d7b40); }
+  .bg-dark { background: #1b1d22; }
+  .bg-light { background: #e9edf2; }
+  .bg-wall { background: repeating-linear-gradient(90deg, #8a6f55 0 46px, #7a6049 46px 48px), #8a6f55; }
+  .bgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { font: 500 12px var(--ft); color: var(--mut); border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 10px; cursor: pointer; }
+  .chip[aria-pressed="true"] { color: var(--acc-ink); background: var(--acc); border-color: var(--acc); }
+  .chip:focus-visible, .seg button:focus-visible, .tog:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  .controls { display: grid; gap: 10px; }
+  .row { display: grid; grid-template-columns: 96px minmax(0, 1fr) 40px; gap: 10px; align-items: center; font-size: 13px; }
+  .row label, .row .lab { color: var(--mut); }
+  .row output { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--acc); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { font: 500 13px var(--ft); color: var(--mut); background: transparent; border: 0; padding: 6px 10px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--acc); color: var(--acc-ink); }
+  .toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tog { font: 500 13px var(--ft); color: var(--mut); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+  .tog[aria-pressed="true"] { color: var(--tx); border-color: var(--acc); box-shadow: inset 0 -2px 0 var(--acc); }
+  .color { display: flex; gap: 8px; align-items: center; }
+  .color input[type=color] { width: 34px; height: 28px; border: 1px solid var(--line); border-radius: 6px; background: transparent; padding: 0; cursor: pointer; }
+  .color input[type=text] { width: 92px; font: 500 13px ui-monospace, monospace; color: var(--tx); background: var(--raise); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+  .sub2 { font: 600 13px var(--ft); color: var(--tx); margin: 4px 0 0; }
+  .code { width: 100%; min-height: 88px; resize: vertical; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--tx); background: var(--raise); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .go.small { min-height: 38px; padding: 8px 14px; font-size: 14px; }
+  .ghost { display: inline-flex; align-items: center; min-height: 38px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); color: var(--tx); background: transparent; font: 600 14px var(--ft); cursor: pointer; text-decoration: none; }
+  .ghost:hover { border-color: var(--mut); }
+  .how { font-size: 13px; color: var(--mut); margin: 0; }
+  .how b { color: var(--tx); }
+  .msgline { font-size: 12px; min-height: 16px; color: var(--mut); }
+  .msgline.bad { color: #f87171; }
+  details summary { cursor: pointer; font-size: 13px; color: var(--mut); }
+  details[open] summary { margin-bottom: 8px; }
+  .presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .row { grid-template-columns: 86px minmax(0, 1fr) 36px; }
+  }
+</style>
+</head>
+<body>
+<main id="out">
+  <div class="card">
+    <div class="grid">
+      <section aria-label="Preview">
+        <div class="stage" id="stage">
+          <div class="view bg-sky" id="v1"><span class="tag" id="t1">1×</span><img id="x1" alt="Crosshair preview at real size"></div>
+          <div class="view bg-sky" id="v4"><span class="tag" id="t4">4×</span><img id="x4" alt="Crosshair preview, zoomed in"></div>
+        </div>
+        <div class="bgs" id="bgs" role="group" aria-label="Background"></div>
+        <p class="sub2" id="presetsLabel"></p>
+        <div class="presets" id="presets"></div>
+      </section>
+
+      <section class="controls" aria-label="Crosshair settings">
+        <div class="row"><span class="lab" id="lType"></span><div class="seg" id="type" role="group"></div><span></span></div>
+        <div class="row"><span class="lab" id="lColor"></span><div class="color"><input type="color" id="color" aria-labelledby="lColor"><input type="text" id="colorHex" maxlength="7" spellcheck="false" aria-labelledby="lColor"></div><span></span></div>
+        <div class="row"><label for="size" id="lSize"></label><input type="range" id="size" min="1" max="20" step="1"><output id="oSize"></output></div>
+        <div class="row"><label for="thickness" id="lThick"></label><input type="range" id="thickness" min="1" max="10" step="1"><output id="oThick"></output></div>
+        <div class="row"><label for="gap" id="lGap"></label><input type="range" id="gap" min="-10" max="20" step="1"><output id="oGap"></output></div>
+        <div class="row"><span class="lab" id="lLines"></span><div class="toggles" id="lines"></div><span></span></div>
+        <div class="row"><span class="lab" id="lDot"></span><div class="toggles"><button type="button" class="tog" id="dot"></button></div><span></span></div>
+        <div class="row" id="rowDotSize"><label for="dotSize" id="lDotSize"></label><input type="range" id="dotSize" min="1" max="10" step="1"><output id="oDotSize"></output></div>
+        <div class="row"><span class="lab" id="lOutline"></span><div class="toggles"><button type="button" class="tog" id="outline"></button></div><span></span></div>
+        <div class="row" id="rowOlColor"><span class="lab" id="lOlColor"></span><div class="color"><input type="color" id="olColor" aria-labelledby="lOlColor"><input type="text" id="olHex" maxlength="7" spellcheck="false" aria-labelledby="lOlColor"></div><span></span></div>
+        <div class="row" id="rowOlThick"><label for="olThick" id="lOlThick"></label><input type="range" id="olThick" min="1" max="6" step="1"><output id="oOlThick"></output></div>
+      </section>
+    </div>
+
+    <section aria-label="Settings code" style="display:grid;gap:8px">
+      <label class="sub2" for="code" id="lCode"></label>
+      <textarea class="code" id="code" readonly spellcheck="false"></textarea>
+      <div class="actions">
+        <button type="button" class="go small" id="copy"></button>
+        <a class="ghost" id="train" target="_blank" rel="noopener"></a>
+      </div>
+      <p class="how" id="how"></p>
+      <details>
+        <summary id="lLoad"></summary>
+        <textarea class="code" id="paste" spellcheck="false"></textarea>
+        <div class="actions" style="margin-top:8px"><button type="button" class="ghost" id="load"></button></div>
+        <p class="msgline" id="loadMsg" aria-live="polite"></p>
+      </details>
+    </section>
+
+    <div class="foot" id="foot"></div>
+  </div>
+</main>
+<script src="/embed/embed.js"></script>
+<script>
+(() => {
+  const { el } = KH;
+  const ES = KH.lang === 'es';
+  const T = ES ? {
+    type: 'Tipo', static: 'Estática', dynamic: 'Dinámica', hidden: 'Oculta', color: 'Color', size: 'Tamaño', thick: 'Grosor', gap: 'Separación',
+    lines: 'Líneas', top: 'Arriba', bottom: 'Abajo', left: 'Izquierda', right: 'Derecha', dot: 'Punto central', dotSize: 'Tamaño del punto',
+    outline: 'Contorno', olColor: 'Color del contorno', olThick: 'Grosor del contorno', on: 'Sí', off: 'No',
+    code: 'Código de ajustes de Kirka', copy: 'Copiar código', copied: '¡Copiado!', train: 'Entrénala en el Aim Trainer de KirkaHub',
+    how: 'En Kirka: <b>Ajustes ⚙</b> → <b>Import</b> → pega el código → <b>Import</b>. Solo cambia tu mira; el resto de tus ajustes se queda igual. Kirka lo guarda en tu preset <b>Custom1</b>.',
+    load: 'Cargar una mira de un código de Kirka', loadBtn: 'Cargar', loaded: 'Mira cargada.', bad: 'Ese texto no tiene una mira de Kirka (CROSSHAIR___SETTING).',
+    presets: 'Para empezar', bg: { sky: 'Cielo', dark: 'Oscuro', light: 'Claro', wall: 'Pared' }, moving: 'en movimiento', hiddenNote: 'Oculta',
+  } : {
+    type: 'Type', static: 'Static', dynamic: 'Dynamic', hidden: 'Hidden', color: 'Color', size: 'Size', thick: 'Thickness', gap: 'Gap',
+    lines: 'Lines', top: 'Top', bottom: 'Bottom', left: 'Left', right: 'Right', dot: 'Center dot', dotSize: 'Dot size',
+    outline: 'Outline', olColor: 'Outline color', olThick: 'Outline thickness', on: 'Yes', off: 'No',
+    code: 'Kirka settings code', copy: 'Copy code', copied: 'Copied!', train: 'Train with it in the KirkaHub Aim Trainer',
+    how: 'In Kirka: <b>Settings ⚙</b> → <b>Import</b> → paste the code → <b>Import</b>. Only your crosshair changes; the rest of your settings stay as they are. Kirka saves it as your <b>Custom1</b> preset.',
+    load: 'Load a crosshair from a Kirka code', loadBtn: 'Load', loaded: 'Crosshair loaded.', bad: "That text has no Kirka crosshair in it (CROSSHAIR___SETTING).",
+    presets: 'Start from', bg: { sky: 'Sky', dark: 'Dark', light: 'Light', wall: 'Wall' }, moving: 'moving', hiddenNote: 'Hidden',
+  };
+
+  // Kirka's defaults (its own settings defaults) and the key order of its export
+  const DEFAULT = { type: 'static', color: '#ffffff', size: 5, thickness: 2, gap: -1, outline: false, olColor: '#000000', olThick: 1, dot: false, dotSize: 1, top: true, bottom: true, left: true, right: true };
+  const PRESETS = {
+    'Kirka default': {},
+    'Classic': { color: '#00ff00', size: 6, thickness: 2, gap: 3, outline: true },
+    'Dot only': { top: false, bottom: false, left: false, right: false, dot: true, dotSize: 3, color: '#ff3b3b', outline: true },
+    'T shape': { top: false, color: '#00e5ff', size: 7, gap: 2 },
+    'Tiny': { size: 2, thickness: 1, gap: 1, color: '#ffff00' },
+    'Plus': { size: 8, thickness: 2, gap: -1, color: '#ff66cc', outline: true },
+  };
+  let s = { ...DEFAULT };
+  const clamp = (v, lo, hi, d) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const hex = (v, d) => (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v.trim()) ? v.trim().toLowerCase() : d);
+
+  // the same drawing as src/utils/kirkaSettings.ts crosshairSvg(), Kirka's own crosshair, pixel for pixel
+  function svg(c, gapExtra = 0) {
+    const size = c.size, thick = c.thickness, gap = c.gap + gapExtra, ol = c.outline ? c.olThick : 0, dot = c.dotSize;
+    const reach = Math.abs(gap) + size + ol;
+    let box = 2 * reach + Math.max(thick, dot) + 2 * ol;
+    if (box % 2 === 0) box += 1;
+    const mid = Math.floor(box / 2);
+    const rect = (x, y, w, h) => (c.outline ? `<rect x="${x - ol}" y="${y - ol}" width="${w + 2 * ol}" height="${h + 2 * ol}" fill="${c.olColor}"/>` : '') + `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c.color}"/>`;
+    const at = mid - Math.floor((thick - 1) / 2);
+    const parts = [];
+    if (c.top) parts.push(rect(at, at - gap - size, thick, size));
+    if (c.bottom) parts.push(rect(at, at + thick + gap, thick, size));
+    if (c.left) parts.push(rect(at - gap - size, at, size, thick));
+    if (c.right) parts.push(rect(at + thick + gap, at, size, thick));
+    if (c.dot) { const d = mid - Math.floor((dot - 1) / 2); parts.push(rect(d, d, dot, dot)); }
+    return { box, url: 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${box}" height="${box}" viewBox="0 0 ${box} ${box}" shape-rendering="crispEdges">${parts.join('')}</svg>`) };
+  }
+
+  // Kirka's crosshair group, keys in Kirka's export order, on/off as 1/0 like Kirka writes them
+  function code() {
+    const b = (v) => (v ? 1 : 0);
+    return JSON.stringify({ CROSSHAIR___SETTING: {
+      DISPLAY_TYPE___SETTING: s.type, STATIC_MODE___SETTING: 'custom', STATIC_URL___SETTING: '',
+      CUSTOM_COLOR___SETTING: s.color, CUSTOM_SIZE___SETTING: s.size, CUSTOM_THICKNESS___SETTING: s.thickness, CUSTOM_GAP___SETTING: s.gap,
+      CUSTOM_OUTLINE___SETTING: b(s.outline), CUSTOM_OUTLINE_COLOR___SETTING: s.olColor, CUSTOM_OUTLINE_THICKNESS___SETTING: s.olThick,
+      CUSTOM_DOT___SETTING: b(s.dot), CUSTOM_DOT_SIZE___SETTING: s.dotSize,
+      CUSTOM_TOP___SETTING: b(s.top), CUSTOM_BOTTOM___SETTING: b(s.bottom), CUSTOM_LEFT___SETTING: b(s.left), CUSTOM_RIGHT___SETTING: b(s.right),
+    } });
+  }
+
+  // reading a pasted Kirka code (a full export or just the crosshair group); parsed as JSON only, never run
+  function load(text) {
+    const a = text.indexOf('{'), z = text.lastIndexOf('}');
+    if (a < 0 || z <= a || text.length > 400000) return false;
+    let raw; try { raw = JSON.parse(text.slice(a, z + 1)); } catch { return false; }
+    const c = raw && (raw.CROSSHAIR___SETTING || (raw.CUSTOM_SIZE___SETTING !== undefined ? raw : null));
+    if (!c || typeof c !== 'object') return false;
+    const bool = (v, d) => (v === undefined || v === null ? d : v === true || v === 1 || v === '1' || v === 'true');
+    s = {
+      type: ['static', 'dynamic', 'hidden'].includes(c.DISPLAY_TYPE___SETTING) ? c.DISPLAY_TYPE___SETTING : DEFAULT.type,
+      color: hex(c.CUSTOM_COLOR___SETTING, DEFAULT.color), size: clamp(c.CUSTOM_SIZE___SETTING, 1, 20, DEFAULT.size),
+      thickness: clamp(c.CUSTOM_THICKNESS___SETTING, 1, 10, DEFAULT.thickness), gap: clamp(c.CUSTOM_GAP___SETTING, -10, 20, DEFAULT.gap),
+      outline: bool(c.CUSTOM_OUTLINE___SETTING, DEFAULT.outline), olColor: hex(c.CUSTOM_OUTLINE_COLOR___SETTING, DEFAULT.olColor),
+      olThick: clamp(c.CUSTOM_OUTLINE_THICKNESS___SETTING, 1, 6, DEFAULT.olThick), dot: bool(c.CUSTOM_DOT___SETTING, DEFAULT.dot),
+      dotSize: clamp(c.CUSTOM_DOT_SIZE___SETTING, 1, 10, DEFAULT.dotSize),
+      top: bool(c.CUSTOM_TOP___SETTING, true), bottom: bool(c.CUSTOM_BOTTOM___SETTING, true), left: bool(c.CUSTOM_LEFT___SETTING, true), right: bool(c.CUSTOM_RIGHT___SETTING, true),
+    };
+    return true;
+  }
+
+  // ---------------------------------------------------------------- UI
+  const $ = (id) => document.getElementById(id);
+  const label = (id, text) => { $(id).textContent = text; };
+  [['lType', T.type], ['lColor', T.color], ['lSize', T.size], ['lThick', T.thick], ['lGap', T.gap], ['lLines', T.lines], ['lDot', T.dot], ['lDotSize', T.dotSize],
+   ['lOutline', T.outline], ['lOlColor', T.olColor], ['lOlThick', T.olThick], ['lCode', T.code], ['copy', T.copy], ['train', T.train], ['lLoad', T.load], ['load', T.loadBtn], ['presetsLabel', T.presets]].forEach(([i, t]) => label(i, t));
+  $('how').innerHTML = T.how;
+  $('train').href = location.origin + '/aimtrainer';
+  $('foot').append(KH.brand());
+
+  for (const t of ['static', 'dynamic', 'hidden']) { const b = el('button', '', T[t]); b.type = 'button'; b.dataset.v = t; $('type').append(b); }
+  for (const k of ['top', 'bottom', 'left', 'right']) { const b = el('button', 'tog', T[k]); b.type = 'button'; b.dataset.line = k; $('lines').append(b); }
+  for (const [k, cls] of Object.entries({ sky: 'bg-sky', dark: 'bg-dark', light: 'bg-light', wall: 'bg-wall' })) {
+    const b = el('button', 'chip', T.bg[k]); b.type = 'button'; b.dataset.bg = cls; b.setAttribute('aria-pressed', String(k === 'sky')); $('bgs').append(b);
+  }
+  for (const name of Object.keys(PRESETS)) { const b = el('button', 'chip', name); b.type = 'button'; b.dataset.preset = name; $('presets').append(b); }
+
+  let moving = 0, raf = 0;
+  function render() {
+    $('oSize').textContent = $('size').value = s.size;
+    $('oThick').textContent = $('thickness').value = s.thickness;
+    $('oGap').textContent = $('gap').value = s.gap;
+    $('oDotSize').textContent = $('dotSize').value = s.dotSize;
+    $('oOlThick').textContent = $('olThick').value = s.olThick;
+    $('color').value = s.color; if (document.activeElement !== $('colorHex')) $('colorHex').value = s.color;
+    $('olColor').value = s.olColor; if (document.activeElement !== $('olHex')) $('olHex').value = s.olColor;
+    for (const b of $('type').children) b.setAttribute('aria-pressed', String(b.dataset.v === s.type));
+    for (const b of $('lines').children) b.setAttribute('aria-pressed', String(!!s[b.dataset.line]));
+    for (const id of ['dot', 'outline']) { $(id).setAttribute('aria-pressed', String(s[id])); $(id).textContent = s[id] ? T.on : T.off; }
+    $('rowDotSize').hidden = !s.dot;
+    $('rowOlColor').hidden = $('rowOlThick').hidden = !s.outline;
+    $('code').value = code();
+    draw();
+  }
+  function draw() {
+    const hidden = s.type === 'hidden';
+    const extra = s.type === 'dynamic' ? Math.round(moving) : 0;
+    const x = svg(s, extra);
+    for (const [img, z] of [[$('x1'), 1], [$('x4'), 4]]) {
+      img.hidden = hidden;
+      img.src = x.url; img.width = x.box * z; img.height = x.box * z;
+    }
+    $('t1').textContent = hidden ? T.hiddenNote : '1×' + (extra ? ' · ' + T.moving : '');
+    $('t4').textContent = hidden ? T.hiddenNote : '4×';
+  }
+  // dynamic crosshairs open up while moving and shooting: show that as a gentle pulse
+  function pulse(t) {
+    moving = s.type === 'dynamic' ? (Math.sin(t / 420) + 1) * 2.5 : 0;
+    draw();
+    raf = s.type === 'dynamic' && !matchMedia('(prefers-reduced-motion: reduce)').matches ? requestAnimationFrame(pulse) : 0;
+  }
+  function changed() { render(); cancelAnimationFrame(raf); if (s.type === 'dynamic') raf = requestAnimationFrame(pulse); }
+
+  $('type').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { s.type = b.dataset.v; changed(); } });
+  $('lines').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { s[b.dataset.line] = !s[b.dataset.line]; changed(); } });
+  $('dot').addEventListener('click', () => { s.dot = !s.dot; changed(); });
+  $('outline').addEventListener('click', () => { s.outline = !s.outline; changed(); });
+  for (const [id, key] of [['size', 'size'], ['thickness', 'thickness'], ['gap', 'gap'], ['dotSize', 'dotSize'], ['olThick', 'olThick']])
+    $(id).addEventListener('input', (e) => { s[key] = Number(e.target.value); changed(); });
+  for (const [pick, text, key] of [['color', 'colorHex', 'color'], ['olColor', 'olHex', 'olColor']]) {
+    $(pick).addEventListener('input', (e) => { s[key] = e.target.value.toLowerCase(); changed(); });
+    $(text).addEventListener('input', (e) => { const v = e.target.value.trim(); if (/^#[0-9a-f]{6}$/i.test(v)) { s[key] = v.toLowerCase(); changed(); } });
+  }
+  $('bgs').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    for (const x of $('bgs').children) x.setAttribute('aria-pressed', String(x === b));
+    for (const v of ['v1', 'v4']) $(v).className = 'view ' + b.dataset.bg;
+  });
+  $('presets').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { s = { ...DEFAULT, ...PRESETS[b.dataset.preset] }; changed(); } });
+  $('copy').addEventListener('click', async () => {
+    const text = $('code').value;
+    try { await navigator.clipboard.writeText(text); } catch { $('code').select(); try { document.execCommand('copy'); } catch {} }
+    $('copy').textContent = T.copied;
+    setTimeout(() => { $('copy').textContent = T.copy; }, 1600);
+  });
+  $('load').addEventListener('click', () => {
+    const ok = load($('paste').value);
+    $('loadMsg').textContent = ok ? T.loaded : T.bad;
+    $('loadMsg').className = 'msgline' + (ok ? '' : ' bad');
+    if (ok) changed();
+  });
+
+  KH.track('crosshair');
+  changed();
+})();
+</script>
+</body>
+</html>

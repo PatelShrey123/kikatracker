@@ -22,7 +22,7 @@ function apiDevServer() {
     configureServer(server: any) {
       // the embeds are static pages that vercel.json rewrites /embed/<page>[/<id>] to
       server.middlewares.use((req: any, _res: any, next: () => void) => {
-        const m = /^\/embed\/(profile|inventory)(?:\/[^/?]*)?(\?.*)?$/.exec(req.url || '');
+        const m = /^\/embed\/(profile|inventory|crosshair)(?:\/[^/?]*)?(\?.*)?$/.exec(req.url || '');
         if (m) req.url = `/embed/${m[1]}.html${m[2] || ''}`;
         next();
       });
