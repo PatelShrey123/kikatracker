@@ -66,7 +66,7 @@ const CENTER_X: React.CSSProperties = { transform: 'translateX(-50%)' };
 
 export const AimTrainerSection: React.FC = () => {
   const [saved, setSaved] = useState<SavedSettings>(() => loadSettings());
-  const [prefs, setPrefs] = useState(() => loadJson(PREFS_KEY, { gun: 'AR-9' as Gun, fullscreen: true, muted: false, drill: 'gridshot' as DrillId }));
+  const [prefs, setPrefs] = useState(() => loadJson(PREFS_KEY, { gun: 'AR-9' as Gun, fullscreen: true, muted: false, kirkaSounds: true, drill: 'gridshot' as DrillId }));
   const [best, setBest] = useState<Partial<Record<DrillId, number>>>(() => loadJson(BEST_STORE, {}));
   const [engineState, setEngineState] = useState<EngineState>('idle');
   const [hud, setHud] = useState<Hud>(EMPTY_HUD);
@@ -146,6 +146,7 @@ export const AimTrainerSection: React.FC = () => {
     engineRef.current = engine;
     if (import.meta.env.DEV) (window as unknown as { __aim?: AimEngine }).__aim = engine;
     engine.muted = prefs.muted;
+    engine.kirkaSounds = prefs.kirkaSounds;
     engine.prepare(prefs.drill);
     return () => {
       engine.dispose();
@@ -162,6 +163,10 @@ export const AimTrainerSection: React.FC = () => {
   useEffect(() => {
     if (engineRef.current) engineRef.current.muted = prefs.muted;
   }, [prefs.muted]);
+
+  useEffect(() => {
+    if (engineRef.current) engineRef.current.kirkaSounds = prefs.kirkaSounds;
+  }, [prefs.kirkaSounds]);
 
   const pickDrill = (id: DrillId) => {
     setPref({ drill: id });
@@ -481,6 +486,11 @@ export const AimTrainerSection: React.FC = () => {
             <button type="button" onClick={() => setPref({ muted: !prefs.muted })} aria-pressed={!prefs.muted} className={chip(!prefs.muted)}>
               <span className="flex items-center gap-1.5">{prefs.muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />} Sound</span>
             </button>
+            {!prefs.muted && (
+              <button type="button" onClick={() => setPref({ kirkaSounds: !prefs.kirkaSounds })} aria-pressed={prefs.kirkaSounds} title="Each gun's real Kirka shot, plus Kirka's hit and kill sounds. Off: simple beeps." className={chip(prefs.kirkaSounds)}>
+                Kirka sounds
+              </button>
+            )}
             {s.rawInput && rawActive === false && <span className="text-[13px] font-bold text-red-300">Raw Input isn't available here, so your system's mouse acceleration applies (Kirka's own client is the same).</span>}
           </div>
         </div>

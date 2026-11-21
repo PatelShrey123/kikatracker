@@ -106,6 +106,13 @@ interface Touch {
 const EYE = 1.6;
 const DEG = Math.PI / 180;
 
+/** Kirka's own sounds (public/sounds/kirka): each gun's shot, and the hit and kill sounds. */
+const SOUND_FILES: Record<string, string> = {
+  'AR-9': 'ar-9', SCAR: 'scar', LAR: 'lar', M60: 'm60', 'MAC-10': 'mac-10', Weatie: 'weatie', Revolver: 'revolver', Shark: 'shark', VITA: 'vita',
+  hit: 'hit', kill: 'kill',
+};
+const soundUrl = (name: string) => `${import.meta.env.BASE_URL}sounds/kirka/${SOUND_FILES[name]}.mp3`;
+
 function gridTexture(base: string, line: string, cells = 4) {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
@@ -177,6 +184,10 @@ export class AimEngine {
   private last = 0;
   private audio: AudioContext | null = null;
   muted = false;
+  /** Kirka's real gun, hit and kill sounds; off gives the simple beeps. */
+  kirkaSounds = true;
+  private sounds = new Map<string, AudioBuffer>();
+  private soundsLoading = false;
   private resize: ResizeObserver;
   private disposers: (() => void)[] = [];
 
@@ -590,7 +601,7 @@ export class AimEngine {
 
   private shoot() {
     this.shots++;
-    this.click(0.04, 160);
+    if (!this.play(this.gun, 0.45)) this.click(0.04, 160);
     const dir = new THREE.Vector2(0, 0);
     // The VITA is wildly off unless scoped in, as in Kirka
     if (GUN_ADS[this.gun].scope && !this.fullyAimed) {
@@ -609,7 +620,8 @@ export class AimEngine {
     this.kills++;
     this.killTimes.push(this.clock - target.born);
     target.dying = 0.09;
-    this.ding();
+    // a pop is a kill: Kirka's kill sound, or its hit sound when kills come fast (Gridshot)
+    if (!this.play(this.drill.id === 'gridshot' ? 'hit' : 'kill', 0.7)) this.ding();
     this.flashHitmarker();
     this.spawn();
     if (this.drill.kills && this.kills >= this.drill.kills) this.finish();
@@ -666,9 +678,10 @@ export class AimEngine {
           if (this.trackTick <= 0) {
             this.trackTick = 0.1;
             this.shots++;
+            if (!this.play(this.gun, 0.3)) this.click(0.04, 160);
             if (on) {
               this.hits++;
-              this.ding();
+              if (!this.play('hit', 0.5)) this.ding();
               this.flashHitmarker();
             }
           }
@@ -758,6 +771,35 @@ export class AimEngine {
     } catch {
       this.audio = null;
     }
+    this.loadSounds();
+  }
+
+  /** Fetches Kirka's sounds once. Until they're in (or if one fails), the beeps stand in. */
+  private loadSounds() {
+    const a = this.audio;
+    if (!a || this.soundsLoading) return;
+    this.soundsLoading = true;
+    for (const name of Object.keys(SOUND_FILES)) {
+      fetch(soundUrl(name))
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+        .then((data) => a.decodeAudioData(data))
+        .then((buffer) => this.sounds.set(name, buffer))
+        .catch(() => {});
+    }
+  }
+
+  /** Plays one of Kirka's sounds; false if it isn't available, so the caller can beep instead. */
+  private play(name: string, volume: number) {
+    if (this.muted || !this.audio || !this.kirkaSounds) return false;
+    const buffer = this.sounds.get(name);
+    if (!buffer) return false;
+    const src = this.audio.createBufferSource();
+    const g = this.audio.createGain();
+    src.buffer = buffer;
+    g.gain.value = volume;
+    src.connect(g).connect(this.audio.destination);
+    src.start();
+    return true;
   }
 
   private click(length: number, freq: number) {
