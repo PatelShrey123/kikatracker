@@ -587,3 +587,7 @@ html[data-no-ads] > *:not(head):not(body) {
 .kh-prose table { width: 100%; border-collapse: collapse; margin: 0 0 1.2em; font-size: 15px; }
 .kh-prose th, .kh-prose td { text-align: left; padding: 0.45em 0.7em; border: 2px solid var(--ink, #000); }
 .kh-prose th { color: #f1f5f9; background: rgba(255, 255, 255, 0.05); }
+
+/* The Skin Editor shows each tool as the pointer; the site's target cursor would sit on top of the pixel being painted */
+html.native-cursor .target-cursor-wrapper { display: none !important; }
+html.native-cursor body { cursor: auto !important; }

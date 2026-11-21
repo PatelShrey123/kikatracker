@@ -3,7 +3,7 @@ import { BufferGeometry, Float32BufferAttribute, LineBasicMaterial, LineSegments
 import { SkinViewer, IdleAnimation, WalkingAnimation, RunningAnimation } from 'skinview3d';
 import {
   Brush, Pencil, Eraser, PaintBucket, Pipette, Sun, Moon, Sparkles, Replace, Hand, Undo2, Redo2, Upload, Download,
-  FilePlus2, FlipHorizontal2, Grid3x3, Layers, Search, Loader2, Radio, Images, X,
+  FilePlus2, FlipHorizontal2, Grid3x3, Layers, Search, Loader2, Radio, Images, X, Copy,
 } from 'lucide-react';
 import { cleanTextureUrl, getProxiedTextureUrl, isPlaceholderUrl } from '../utils/skinAssets';
 import {
@@ -17,7 +17,11 @@ import { EDITOR_DRAFT_KEY, getMe, postSkin, signInUrl, galleryUrl } from '../uti
 import type { GalleryUser } from '../utils/gallery';
 import { LIVE_SKIN_URL, roomFromUrl, newRoomId, pixelsToB64, b64ToPixels } from '../utils/liveSkin';
 
-type Tool = 'pencil' | 'eraser' | 'fill' | 'replace' | 'picker' | 'lighten' | 'darken' | 'noise' | 'move';
+type Tool = 'pencil' | 'eraser' | 'fill' | 'replace' | 'picker' | 'lighten' | 'darken' | 'noise' | 'copy' | 'move';
+/** What Fill fills: touching pixels of one colour, a box dragged on the flat sheet, or only the see-through spots. */
+type FillMode = 'touching' | 'box' | 'empty';
+/** A copied block of the sheet: w x h pixels, see-through ones included (they're skipped when pasting). */
+type Clip = { w: number; h: number; px: Uint8ClampedArray };
 type Motion = 'still' | 'idle' | 'walk' | 'run';
 
 interface SkinEditorSectionProps {
@@ -39,12 +43,13 @@ interface SkinEditorSectionProps {
 const TOOLS: { id: Tool; label: string; key: string; icon: React.ElementType; hint: string }[] = [
   { id: 'pencil', label: 'Pencil', key: 'B', icon: Pencil, hint: 'Paint with the current colour' },
   { id: 'eraser', label: 'Eraser', key: 'E', icon: Eraser, hint: 'Make pixels transparent' },
-  { id: 'fill', label: 'Fill', key: 'G', icon: PaintBucket, hint: 'Fill touching pixels of one colour, on one face' },
+  { id: 'fill', label: 'Fill', key: 'G', icon: PaintBucket, hint: 'Fill touching pixels of one colour, a box you drag, or only the empty spots' },
   { id: 'replace', label: 'Swap', key: 'R', icon: Replace, hint: 'Swap one colour for the current one across its whole layer' },
   { id: 'picker', label: 'Pick', key: 'I', icon: Pipette, hint: 'Take a colour from the skin (or hold Alt with any tool)' },
   { id: 'lighten', label: 'Lighten', key: 'L', icon: Sun, hint: 'Brighten what is already there' },
   { id: 'darken', label: 'Darken', key: 'D', icon: Moon, hint: 'Shade what is already there' },
   { id: 'noise', label: 'Noise', key: 'N', icon: Sparkles, hint: 'Paint the current colour with a random grain' },
+  { id: 'copy', label: 'Copy', key: 'C', icon: Copy, hint: 'Drag a box on the flat sheet to copy it, then click anywhere to paste it' },
   { id: 'move', label: 'Move', key: 'V', icon: Hand, hint: 'Drag to turn the 3D model without painting' },
 ];
 
@@ -72,6 +77,27 @@ const painterColour = (name: string) => {
   return PAINTER_COLOURS[Math.abs(h) % PAINTER_COLOURS.length];
 };
 const MAX_PIXEL_LIMIT = 10000;
+
+// The pointer over the model and the sheet shows the tool, with its tip on the pixel it paints.
+// Each icon is drawn twice, dark and thick then white, so it shows on any colour.
+const cursorFor = (paths: string, x: number, y: number) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="#0b0c12" stroke-width="4">${paths}</g><g stroke="#fff" stroke-width="1.8">${paths}</g></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${x} ${y}, auto`;
+};
+const PENCIL_PATHS = '<path d="M21.17 6.81a2.82 2.82 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/>';
+const BRUSH_PATHS = '<path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4.04-1.8 4.04-4.04a3.01 3.01 0 0 0-3-3.02z"/>';
+const TOOL_CURSORS: Partial<Record<Tool, string>> = {
+  pencil: cursorFor(PENCIL_PATHS, 2, 22),
+  noise: cursorFor(PENCIL_PATHS, 2, 22),
+  lighten: cursorFor(BRUSH_PATHS, 2, 21),
+  darken: cursorFor(BRUSH_PATHS, 2, 21),
+  replace: cursorFor(BRUSH_PATHS, 2, 21),
+  eraser: cursorFor('<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>', 4, 18),
+  fill: cursorFor('<path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"/><path d="m5 2 5 5"/><path d="M2 13h15"/><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"/>', 20, 22),
+  picker: cursorFor('<path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/>', 2, 22),
+  move: 'grab',
+};
+const BOX_CURSOR = cursorFor('<path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/>', 3, 3);
 
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -129,8 +155,12 @@ const BodyFigure: React.FC<{
   shown: Record<PartName, boolean>;
   armWidth: number;
   onPart: (part: PartName) => void;
-}> = ({ shown, armWidth, onPart }) => {
-  const U = 6; // px per skin pixel
+  /** px per skin pixel */
+  unit?: number;
+  /** what the switches control, for their tooltips (e.g. "outer layer") */
+  what?: string;
+}> = ({ shown, armWidth, onPart, unit = 6, what }) => {
+  const U = unit;
   const gap = 1; // skin pixels between the arm and the torso, so they read as separate buttons
   const left = armWidth + gap;
   const parts: { part: PartName; x: number; y: number; w: number; h: number }[] = [
@@ -150,7 +180,7 @@ const BodyFigure: React.FC<{
           onClick={() => onPart(part)}
           aria-pressed={shown[part]}
           aria-label={PART_LABELS[part]}
-          title={`${PART_LABELS[part]}: ${shown[part] ? 'on' : 'off'}`}
+          title={`${PART_LABELS[part]}${what ? ` ${what}` : ''}: ${shown[part] ? 'on' : 'off'}`}
           className={`absolute border-2 cursor-pointer transition-colors ${
             shown[part] ? 'bg-[var(--accent)] hover:brightness-110 border-[var(--ink)]' : 'bg-transparent border-slate-700 border-dashed hover:bg-obsidian-hover'
           }`}
@@ -175,7 +205,15 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const [showBody, setShowBody] = useState(true);
   const [showOuter, setShowOuter] = useState(true);
   const [parts, setParts] = useState<Record<PartName, boolean>>(() => Object.fromEntries(PART_NAMES.map((p) => [p, true])) as Record<PartName, boolean>);
+  // the outer layer, part by part (e.g. only on the head); the "Outer layer" button still switches all of it
+  const [outerParts, setOuterParts] = useState<Record<PartName, boolean>>(() => Object.fromEntries(PART_NAMES.map((p) => [p, true])) as Record<PartName, boolean>);
   const [partMode, setPartMode] = useState<'toggle' | 'isolate'>('toggle');
+  const [fillMode, setFillMode] = useState<FillMode>('touching');
+  const [clip, setClip] = useState<Clip | null>(null);
+  // Copy: true while the next drag picks the area to copy (always, until something is copied)
+  const [copyPicking, setCopyPicking] = useState(true);
+  // a box being dragged on the flat sheet (Fill's box, or the area to copy), as two sheet pixels
+  const box = useRef<{ from: number; to: number } | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [hover, setHover] = useState<string>('');
@@ -218,11 +256,12 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const stroke = useRef<{ before: Uint8ClampedArray; touched: Set<number>; last: number; changed: boolean } | null>(null);
 
   // the pointer handlers are bound once; they read the current settings from here
-  const live = useRef({ tool, color, brush, mirror, model, size, grid, showBody, showOuter, parts, showPainters });
-  live.current = { tool, color, brush, mirror, model, size, grid, showBody, showOuter, parts, showPainters };
+  const live = useRef({ tool, color, brush, mirror, model, size, grid, showBody, showOuter, outerParts, parts, showPainters, fillMode, clip, copyPicking });
+  live.current = { tool, color, brush, mirror, model, size, grid, showBody, showOuter, outerParts, parts, showPainters, fillMode, clip, copyPicking };
 
   /** A part of a layer can be seen and edited only when both the layer and the part are on. */
-  const isOn = (overlay: boolean, part: PartName) => live.current.parts[part] && (overlay ? live.current.showOuter : live.current.showBody);
+  const isOn = (overlay: boolean, part: PartName) =>
+    live.current.parts[part] && (overlay ? live.current.showOuter && live.current.outerParts[part] : live.current.showBody);
 
   const characters = useMemo(
     () => catalog.filter((c) => c?.type === 'BODY_SKIN' && c?.name).map((c) => ({ name: String(c.name).replace(/^_+/, '').trim(), textureUrl: c.textureUrl as string | null })),
@@ -278,6 +317,37 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     // live room: each painted pixel outlined in its painter's colour
     if (live.current.showPainters) {
       for (const [i, name] of owners.current) if (cells[i]) mark(i, painterColour(name));
+    }
+    // the box being dragged
+    if (box.current) {
+      const r = boxRect(box.current.from, box.current.to);
+      ctx.fillStyle = 'rgba(255,214,10,0.18)';
+      ctx.fillRect(r.x * S, r.y * S, r.w * S, r.h * S);
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = '#FFD60A';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(r.x * S + 1, r.y * S + 1, r.w * S - 2, r.h * S - 2);
+      ctx.setLineDash([]);
+    }
+    // Copy: where the copied block would land
+    const c = live.current.clip;
+    if (live.current.tool === 'copy' && c && !live.current.copyPicking && hovered.current >= 0 && !box.current) {
+      const { x: px0, y: py0 } = pasteOrigin(hovered.current, c);
+      ctx.globalAlpha = 0.75;
+      for (let y = 0; y < c.h; y++) {
+        for (let x = 0; x < c.w; x++) {
+          const o = (x + y * c.w) * 4;
+          const sx = px0 + x;
+          const sy = py0 + y;
+          if (!c.px[o + 3] || sx < 0 || sy < 0 || sx >= live.current.size || sy >= live.current.size) continue;
+          ctx.fillStyle = `rgb(${c.px[o]},${c.px[o + 1]},${c.px[o + 2]})`;
+          ctx.fillRect(sx * S, sy * S, S, S);
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = '#FFD60A';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px0 * S + 0.5, py0 * S + 0.5, c.w * S - 1, c.h * S - 1);
     }
     if (hovered.current >= 0 && cells[hovered.current]) {
       mark(hovered.current, '#FFD60A');
@@ -448,6 +518,19 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     }
   };
 
+  /** The box between two sheet pixels, corners included. */
+  const boxRect = (a: number, b: number) => {
+    const n = live.current.size;
+    const ax = a % n, ay = Math.floor(a / n), bx = b % n, by = Math.floor(b / n);
+    const x = Math.min(ax, bx), y = Math.min(ay, by);
+    return { x, y, w: Math.abs(ax - bx) + 1, h: Math.abs(ay - by) + 1 };
+  };
+  /** Where a pasted block's top-left corner lands, centred on a pixel. */
+  const pasteOrigin = (at: number, c: Clip) => {
+    const n = live.current.size;
+    return { x: (at % n) - Math.floor((c.w - 1) / 2), y: Math.floor(at / n) - Math.floor((c.h - 1) / 2) };
+  };
+
   const sameColor = (a: number, b: number) => {
     const d = pixels.current;
     const oa = a * 4;
@@ -478,6 +561,81 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     for (const i of region) {
       setPixel(i, r, g, b, 255);
       if (useMirror && mirrorMap[i] >= 0) setPixel(mirrorMap[i], r, g, b, 255);
+    }
+  };
+
+  /** Fills only the see-through pixels of the clicked part's layer (all its faces). */
+  const fillEmpty = (start: number) => {
+    const { color: hex, mirror: useMirror, model: m } = live.current;
+    const { cells, mirror: mirrorMap } = getSkinLayout(m, live.current.size);
+    const cell = cells[start];
+    if (!cell) return;
+    const [r, g, b] = hexToRgb(hex);
+    const d = pixels.current;
+    cells.forEach((c, i) => {
+      if (!c || c.part !== cell.part || c.overlay !== cell.overlay || d[i * 4 + 3]) return;
+      setPixel(i, r, g, b, 255);
+      const twin = useMirror ? mirrorMap[i] : -1;
+      if (twin >= 0 && !d[twin * 4 + 3]) setPixel(twin, r, g, b, 255);
+    });
+  };
+
+  /** Fills every skin pixel inside a box on the sheet (parts that are off are left alone). */
+  const fillBox = (from: number, to: number) => {
+    const { color: hex, mirror: useMirror, model: m } = live.current;
+    const { cells, mirror: mirrorMap } = getSkinLayout(m, live.current.size);
+    const [r, g, b] = hexToRgb(hex);
+    const { x, y, w, h } = boxRect(from, to);
+    for (let yy = y; yy < y + h; yy++) {
+      for (let xx = x; xx < x + w; xx++) {
+        const i = xx + yy * live.current.size;
+        if (!cells[i]) continue;
+        setPixel(i, r, g, b, 255);
+        if (useMirror && mirrorMap[i] >= 0) setPixel(mirrorMap[i], r, g, b, 255);
+      }
+    }
+  };
+
+  /** Copies a box of the sheet. */
+  const copyBox = (from: number, to: number) => {
+    const { x, y, w, h } = boxRect(from, to);
+    const d = pixels.current;
+    const { cells } = getSkinLayout(live.current.model, live.current.size);
+    const px = new Uint8ClampedArray(w * h * 4);
+    let solid = 0;
+    for (let yy = 0; yy < h; yy++) {
+      for (let xx = 0; xx < w; xx++) {
+        const i = x + xx + (y + yy) * live.current.size;
+        if (!cells[i]) continue;
+        const o = i * 4;
+        px.set([d[o], d[o + 1], d[o + 2], d[o + 3]], (xx + yy * w) * 4);
+        if (d[o + 3]) solid++;
+      }
+    }
+    if (!solid) {
+      setNotice({ text: 'That box is empty: drag over something you painted.', bad: true });
+      return;
+    }
+    setClip({ w, h, px });
+    setCopyPicking(false);
+    setNotice({ text: `Copied ${w} x ${h}. Click anywhere on the skin to paste it, as many times as you like.` });
+  };
+
+  /** Pastes the copied block centred on a pixel. See-through pixels of the copy leave what's underneath. */
+  const pasteAt = (at: number) => {
+    const c = live.current.clip;
+    if (!c) return;
+    const { cells } = getSkinLayout(live.current.model, live.current.size);
+    const { x: x0, y: y0 } = pasteOrigin(at, c);
+    for (let y = 0; y < c.h; y++) {
+      for (let x = 0; x < c.w; x++) {
+        const o = (x + y * c.w) * 4;
+        const sx = x0 + x;
+        const sy = y0 + y;
+        if (!c.px[o + 3] || sx < 0 || sy < 0 || sx >= live.current.size || sy >= live.current.size) continue;
+        const i = sx + sy * live.current.size;
+        if (cells[i]) setPixel(i, c.px[o], c.px[o + 1], c.px[o + 2], c.px[o + 3]);
+      }
     }
   };
 
@@ -515,9 +673,17 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
       return false;
     }
     if (watchOnly.current) return false; // watching someone else's live room
+    // the box tools are dragged on the flat sheet (that's handled there); a click on the model just says so
+    if ((t === 'fill' && live.current.fillMode === 'box') || (t === 'copy' && (live.current.copyPicking || !live.current.clip))) {
+      setNotice({ text: t === 'copy' ? 'Drag a box on the flat sheet to copy that area.' : 'Drag a box on the flat sheet to fill it.' });
+      return false;
+    }
     stroke.current = { before: new Uint8ClampedArray(pixels.current), touched: new Set(), last: i, changed: false };
-    if (t === 'fill') floodFill(i);
-    else if (t === 'replace') swapColor(i);
+    if (t === 'fill') {
+      if (live.current.fillMode === 'empty') fillEmpty(i);
+      else floodFill(i);
+    } else if (t === 'replace') swapColor(i);
+    else if (t === 'copy') pasteAt(i);
     else stamp(i);
     refresh();
     return true;
@@ -542,7 +708,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
   const strokeTo = (i: number) => {
     const s = stroke.current;
     const { tool: t } = live.current;
-    if (!s || t === 'fill' || t === 'replace') return;
+    if (!s || t === 'fill' || t === 'replace' || t === 'copy') return;
     const { cells } = getSkinLayout(live.current.model, live.current.size);
     // a jump between faces isn't a line across the sheet: it's the brush crossing an edge of the model
     if (cells[s.last]?.faceId !== cells[i]?.faceId) {
@@ -585,17 +751,54 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     return `${PART_LABELS[cell.part]} · ${cell.face} · ${cell.overlay ? 'outer layer' : 'body'} · ${i % live.current.size}, ${Math.floor(i / live.current.size)}${by ? ` · painted by ${by}` : ''}`;
   };
 
+  /** Fill's box and Copy's area are dragged on the sheet, not painted. */
+  const boxTool = () => {
+    const { tool: t, fillMode: f, copyPicking: picking, clip: c } = live.current;
+    return (t === 'fill' && f === 'box') || (t === 'copy' && (picking || !c));
+  };
+
   const onFlatDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.button !== 0) return;
     const i = flatIndex(e);
-    if (i < 0 || !getSkinLayout(live.current.model, live.current.size).cells[i]) return;
+    if (i < 0) return;
+    if (boxTool() && !e.altKey) {
+      // copying is fine for a watcher; filling isn't
+      if (live.current.tool === 'fill' && watchOnly.current) return;
+      box.current = { from: i, to: i };
+      e.currentTarget.setPointerCapture(e.pointerId);
+      drawFlat();
+      return;
+    }
+    if (!getSkinLayout(live.current.model, live.current.size).cells[i]) return;
     if (beginStroke(i, e.altKey)) e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onFlatUp = () => {
+    const b = box.current;
+    if (!b) return endStroke();
+    box.current = null;
+    if (live.current.tool === 'copy') {
+      copyBox(b.from, b.to);
+      drawFlat();
+      return;
+    }
+    stroke.current = { before: new Uint8ClampedArray(pixels.current), touched: new Set(), last: b.to, changed: false };
+    fillBox(b.from, b.to);
+    refresh();
+    endStroke();
   };
 
   const onFlatMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const i = flatIndex(e);
     hovered.current = i;
     setHover(describe(i));
+    if (box.current) {
+      if (i >= 0) box.current.to = i;
+      const r = boxRect(box.current.from, box.current.to);
+      setHover(`${r.w} x ${r.h}`);
+      drawFlat();
+      return;
+    }
     const valid = i >= 0 && !!getSkinLayout(live.current.model, live.current.size).cells[i];
     if (stroke.current && valid) strokeTo(i);
     else drawFlat();
@@ -760,9 +963,9 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     const skin = viewer.playerObject.skin;
     for (const p of PART_NAMES) {
       skin[p].innerLayer.visible = showBody && parts[p];
-      skin[p].outerLayer.visible = showOuter && parts[p];
+      skin[p].outerLayer.visible = showOuter && outerParts[p] && parts[p];
     }
-  }, [showBody, showOuter, parts, model]);
+  }, [showBody, showOuter, outerParts, parts, model]);
 
   // The pixel grid, drawn on the model itself: on the body, and as a shell floating where the outer
   // layer is, so the outer layer can be seen and clicked before it has any paint on it.
@@ -804,7 +1007,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
 
   useEffect(() => {
     drawFlat();
-  }, [drawFlat, grid, mirror, model, size, showBody, showOuter, parts, showPainters]);
+  }, [drawFlat, grid, mirror, model, size, showBody, showOuter, outerParts, parts, showPainters]);
 
   // ---------------------------------------------------------------- restore the draft, once
   const restoreDraft = useCallback(async (isCancelled: () => boolean = () => false) => {
@@ -1008,6 +1211,12 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     liveSocket.current?.send(JSON.stringify({ type: 'new-round' }));
     setNotice({ text: 'New round: everyone has their full pixels again.' });
   };
+
+  // the site's target cursor hides while the editor is open: the tool is the pointer here
+  useEffect(() => {
+    document.documentElement.classList.add('native-cursor');
+    return () => document.documentElement.classList.remove('native-cursor');
+  }, []);
 
   // ---------------------------------------------------------------- keyboard
   useEffect(() => {
@@ -1225,8 +1434,27 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     }
   });
 
-  const clearLayer = (outerLayer: boolean) => editLayers((d, base, over) => {
-    for (const i of outerLayer ? over : base) d.fill(0, i * 4, i * 4 + 4);
+  /**
+   * Clearing the outer layer makes it see-through. The body can't be see-through (the game and the 3D view
+   * draw those spots black), so clearing it puts back the plain grey of a new skin instead.
+   */
+  const clearLayer = (outerLayer: boolean) => editLayers((d, _base, over) => {
+    if (outerLayer) {
+      for (const i of over) d.fill(0, i * 4, i * 4 + 4);
+      return;
+    }
+    const size = live.current.size;
+    const plain = blankSkin(live.current.model, size);
+    const { faces } = getSkinLayout(live.current.model, size);
+    for (const f of faces) {
+      if (f.overlay) continue;
+      // each face's own shade, taken from a corner (a new skin's head has eyes painted on its front)
+      const o = (f.rect.x + f.rect.y * size) * 4;
+      const rgba = [plain[o], plain[o + 1], plain[o + 2], 255];
+      for (let y = 0; y < f.rect.h; y++) {
+        for (let x = 0; x < f.rect.w; x++) d.set(rgba, (f.rect.x + x + (f.rect.y + y) * size) * 4);
+      }
+    }
   });
 
   const mirrorWholeSkin = () => {
@@ -1253,6 +1481,17 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
     setParts(allParts(true));
     setShowBody(true);
     setShowOuter(true);
+    setOuterParts(allParts(true));
+  };
+
+  /** The outer-layer figure: each click switches that part's outer layer (and turns the outer layer on if it was off). */
+  const clickOuterPart = (part: PartName) => {
+    if (!showOuter) {
+      setShowOuter(true);
+      setOuterParts({ ...allParts(false), [part]: true });
+      return;
+    }
+    setOuterParts((s) => ({ ...s, [part]: !s[part] }));
   };
 
   const clickPart = (part: PartName) => {
@@ -1483,53 +1722,6 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
         {/* Tools and colour */}
         <aside className={`space-y-4 lg:row-span-2 xl:row-span-1 ${inActivity ? 'order-2 lg:order-none' : ''}`}>
           <section className={panel}>
-            <h2 className={`${heading} flex items-center gap-2`}><Layers className="w-4 h-4" /> Body parts</h2>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button type="button" onClick={() => setShowBody((v) => !v)} aria-pressed={showBody} title="Show or hide the body layer (H)" className={chip(showBody)}>Body</button>
-              <button type="button" onClick={() => setShowOuter((v) => !v)} aria-pressed={showOuter} title="Show or hide the outer layer (O)" className={chip(showOuter)}>Outer layer</button>
-            </div>
-            <p className="text-[13px] font-bold text-slate-500 leading-snug">You paint whatever's in front. Hide the outer layer to get at the body.</p>
-            <BodyFigure shown={parts} armWidth={model === 'slim' ? 3 : 4} onPart={clickPart} />
-            <div className="flex gap-1" role="group" aria-label="What clicking a part does">
-              <button type="button" onClick={() => setPartMode('toggle')} aria-pressed={partMode === 'toggle'} title="Clicking a part turns it on or off" className={`${chip(partMode === 'toggle')} flex-1`}>On / off</button>
-              <button type="button" onClick={() => setPartMode('isolate')} aria-pressed={partMode === 'isolate'} title="Clicking a part makes it the only one you can edit" className={`${chip(partMode === 'isolate')} flex-1`}>Isolate</button>
-            </div>
-            <button type="button" onClick={showEverything} className={`${action} w-full`}>Show everything</button>
-          </section>
-
-          <section className={panel}>
-            <h2 className={heading}>Tools</h2>
-            <div className="grid grid-cols-3 gap-1.5">
-              {TOOLS.map(({ id, label, key, icon: Icon, hint }) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setTool(id)}
-                  title={`${hint} (${key})`}
-                  aria-pressed={tool === id}
-                  className={`flex flex-col items-center gap-0.5 py-1.5 border-2 text-[12px] font-bold cursor-pointer transition-colors ${
-                    tool === id ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)] shadow-[2px_2px_0_var(--ink)]' : 'bg-obsidian-dark text-slate-300 border-[var(--ink)] hover:bg-obsidian-hover'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <span className="text-[13px] font-bold text-slate-400">Brush</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4].map((n) => (
-                  <button key={n} type="button" onClick={() => setBrush(n)} aria-pressed={brush === n} className={chip(brush === n)}>{n}</button>
-                ))}
-              </div>
-            </div>
-            <button type="button" onClick={() => setMirror((v) => !v)} aria-pressed={mirror} title="Paint both sides at once (M)" className={`${chip(mirror)} w-full flex items-center justify-center gap-1.5`}>
-              <FlipHorizontal2 className="w-4 h-4" /> Mirror {mirror ? 'on' : 'off'}
-            </button>
-          </section>
-
-          <section className={panel}>
             <h2 className={heading}>Colour</h2>
             <div className="flex items-center gap-2">
               <input
@@ -1572,15 +1764,109 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
               </>
             )}
           </section>
+
+          <section className={panel}>
+            <h2 className={`${heading} flex items-center gap-2`}><Layers className="w-4 h-4" /> Body parts</h2>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button type="button" onClick={() => setShowBody((v) => !v)} aria-pressed={showBody} title="Show or hide the body layer (H)" className={chip(showBody)}>Body</button>
+              <button type="button" onClick={() => setShowOuter((v) => !v)} aria-pressed={showOuter} title="Show or hide the whole outer layer (O)" className={chip(showOuter)}>Outer layer</button>
+            </div>
+            <p className="text-[13px] font-bold text-slate-500 leading-snug">You paint whatever's in front. Hide the outer layer to get at the body.</p>
+            <div className="grid grid-cols-2 gap-2 items-start">
+              <div className="space-y-1">
+                <p className="text-[12px] font-bold text-slate-400 text-center">Paint these</p>
+                <BodyFigure shown={parts} armWidth={model === 'slim' ? 3 : 4} onPart={clickPart} unit={5} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[12px] font-bold text-slate-400 text-center">Outer layer on</p>
+                <BodyFigure shown={showOuter ? outerParts : allParts(false)} armWidth={model === 'slim' ? 3 : 4} onPart={clickOuterPart} unit={5} what="outer layer" />
+              </div>
+            </div>
+            <p className="text-[13px] font-bold text-slate-500 leading-snug">
+              Left: click a part to stop painting it by mistake. Right: click a part to hide just its outer layer, e.g. keep it only on the head.
+            </p>
+            <div className="flex gap-1" role="group" aria-label="What clicking a part does">
+              <button type="button" onClick={() => setPartMode('toggle')} aria-pressed={partMode === 'toggle'} title="Each click turns that part on or off" className={`${chip(partMode === 'toggle')} flex-1`}>Turn on / off</button>
+              <button type="button" onClick={() => setPartMode('isolate')} aria-pressed={partMode === 'isolate'} title="A click makes that part the only one you can paint" className={`${chip(partMode === 'isolate')} flex-1`}>Only that part</button>
+            </div>
+            <p className="text-[12px] font-bold text-slate-500 leading-snug">
+              {partMode === 'isolate' ? 'Clicking the left figure paints just that part, e.g. only the head.' : 'Each click on the left figure switches one part on or off.'}
+            </p>
+            <button type="button" onClick={showEverything} className={`${action} w-full`}>Show everything</button>
+          </section>
+
+          <section className={panel}>
+            <h2 className={heading}>Tools</h2>
+            <div className="grid grid-cols-3 gap-1.5">
+              {TOOLS.map(({ id, label, key, icon: Icon, hint }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTool(id)}
+                  title={`${hint} (${key})`}
+                  aria-pressed={tool === id}
+                  className={`flex flex-col items-center gap-0.5 py-1.5 border-2 text-[12px] font-bold cursor-pointer transition-colors ${
+                    tool === id ? 'bg-[var(--accent)] text-[var(--on-accent)] border-[var(--ink)] shadow-[2px_2px_0_var(--ink)]' : 'bg-obsidian-dark text-slate-300 border-[var(--ink)] hover:bg-obsidian-hover'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <span className="text-[13px] font-bold text-slate-400">Brush</span>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4].map((n) => (
+                  <button key={n} type="button" onClick={() => setBrush(n)} aria-pressed={brush === n} className={chip(brush === n)}>{n}</button>
+                ))}
+              </div>
+            </div>
+            {tool === 'fill' && (
+              <div className="space-y-1.5 pt-1">
+                <div className="grid grid-cols-3 gap-1" role="group" aria-label="What Fill fills">
+                  <button type="button" onClick={() => setFillMode('touching')} aria-pressed={fillMode === 'touching'} className={chip(fillMode === 'touching')}>Touching</button>
+                  <button type="button" onClick={() => setFillMode('box')} aria-pressed={fillMode === 'box'} className={chip(fillMode === 'box')}>Box</button>
+                  <button type="button" onClick={() => setFillMode('empty')} aria-pressed={fillMode === 'empty'} className={chip(fillMode === 'empty')}>Empty only</button>
+                </div>
+                <p className="text-[12px] font-bold text-slate-500 leading-snug">
+                  {fillMode === 'touching'
+                    ? 'Click a pixel: every touching pixel of that same colour on that face changes.'
+                    : fillMode === 'box'
+                      ? 'Drag a box on the flat sheet: everything inside it is filled.'
+                      : "Click a part: only its see-through spots are filled, so what you've painted stays."}
+                </p>
+              </div>
+            )}
+            {tool === 'copy' && (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-[12px] font-bold text-slate-500 leading-snug">
+                  {copyPicking || !clip
+                    ? 'Drag a box on the flat sheet around what you want to copy.'
+                    : `Copied ${clip.w} x ${clip.h}. Click anywhere on the sheet or the model to paste it. See-through bits don't cover what's underneath.`}
+                </p>
+                {clip && !copyPicking && (
+                  <button type="button" onClick={() => setCopyPicking(true)} className={`${action} w-full`}>
+                    <Copy className="w-4 h-4" /> Copy a different area
+                  </button>
+                )}
+              </div>
+            )}
+            <button type="button" onClick={() => setMirror((v) => !v)} aria-pressed={mirror} title="Paint both sides at once (M)" className={`${chip(mirror)} w-full flex items-center justify-center gap-1.5`}>
+              <FlipHorizontal2 className="w-4 h-4" /> Mirror {mirror ? 'on' : 'off'}
+            </button>
+          </section>
+
         </aside>
 
         {/* 3D */}
         <section className={`space-y-2 min-w-0 ${inActivity ? 'order-1 lg:order-none' : ''}`}>
           <div
             ref={stageRef}
-            className={`night relative bg-[var(--stage)] border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] overflow-hidden cursor-crosshair ${
+            className={`night relative bg-[var(--stage)] border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] overflow-hidden ${
               inActivity ? 'h-[min(460px,62vh)] xl:h-[min(600px,75vh)]' : 'h-[460px] xl:h-[600px]'
             }`}
+            style={{ cursor: TOOL_CURSORS[tool === 'copy' ? (clip && !copyPicking ? 'pencil' : 'move') : tool] ?? 'default' }}
           >
             {no3d && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
@@ -1634,15 +1920,22 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
             height={FLAT_PX}
             onPointerDown={onFlatDown}
             onPointerMove={onFlatMove}
-            onPointerUp={endStroke}
-            onPointerCancel={endStroke}
+            onPointerUp={onFlatUp}
+            onPointerCancel={() => {
+              box.current = null;
+              endStroke();
+              drawFlat();
+            }}
             onPointerLeave={() => {
               hovered.current = -1;
               setHover('');
               drawFlat();
             }}
-            className="block w-full aspect-square border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] touch-none cursor-crosshair"
-            style={{ imageRendering: 'pixelated' }}
+            className="block w-full aspect-square border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] touch-none"
+            style={{
+              imageRendering: 'pixelated',
+              cursor: (tool === 'fill' && fillMode === 'box') || (tool === 'copy' && (copyPicking || !clip)) ? BOX_CURSOR : tool === 'copy' ? TOOL_CURSORS.pencil : TOOL_CURSORS[tool] ?? 'default',
+            }}
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[13px] font-bold text-slate-400 min-h-5">{hover || 'Blue outlines are the outer layer, cream are the body.'}</span>
@@ -1667,7 +1960,7 @@ export const SkinEditorSection: React.FC<SkinEditorSectionProps> = ({ catalog = 
             <button type="button" onClick={copyBaseToOverlay} className={action}>Body to outer</button>
             <button type="button" onClick={flattenOverlay} title="Solid outer pixels are pressed onto the body, then the outer layer is cleared" className={action}>Flatten outer</button>
             <button type="button" onClick={() => clearLayer(true)} className={action}>Clear outer</button>
-            <button type="button" onClick={() => clearLayer(false)} className={action}>Clear body</button>
+            <button type="button" onClick={() => clearLayer(false)} title="Puts the body back to plain grey (the body can't be see-through: it would show black)" className={action}>Clear body</button>
             <button type="button" onClick={mirrorWholeSkin} title="Copies each side of the character onto the other" className={`${action} col-span-2`}>Mirror whole skin</button>
           </div>
         </section>
